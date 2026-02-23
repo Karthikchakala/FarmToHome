@@ -4,6 +4,7 @@ html {
 
 :root {
   --navbar-height: 72px;
+  --home-navbar-height: 74px;
   --sidebar-width: 240px;
   --content-max-width: 1240px;
   --page-padding: 24px;

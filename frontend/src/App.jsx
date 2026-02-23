@@ -103,6 +103,15 @@ function App() {
 // Separate component that has access to auth context
 function AppContent({ toggleSidebar, location }) {
   const { user, loading } = useAuth()
+  const navbarOffsetRoutes = [
+    '/about',
+    '/services',
+    '/contact',
+    '/products',
+    '/login',
+    '/signup'
+  ]
+  const shouldOffsetNavbar = navbarOffsetRoutes.some((route) => location.pathname === route || location.pathname.startsWith('/product/'))
   const hideFooterOnRoutes = [
     '/ai-assistant',
     '/farmer/ai-assistant',
@@ -111,14 +120,15 @@ function AppContent({ toggleSidebar, location }) {
     '/farmer/crop-simulator',
     '/farmer/climate-simulator'
   ]
-  const hideFooter = hideFooterOnRoutes.some((route) => location.pathname.startsWith(route))
+  const isHomeRoute = location.pathname === '/'
+  const hideFooter = isHomeRoute || hideFooterOnRoutes.some((route) => location.pathname.startsWith(route))
   const assistantElement = user?.role === 'farmer' ? <AIAssistant /> : <Navigate to="/login" replace />
 
   if (loading) {
     return (
       <div className="app">
         <Navbar location={location} user={user} toggleSidebar={toggleSidebar} />
-        <main className="main" />
+        <main className={`main${shouldOffsetNavbar ? ' main--navbar-offset' : ''}`} />
       </div>
     )
   }
@@ -130,7 +140,7 @@ function AppContent({ toggleSidebar, location }) {
   return (
     <div className="app">
       {showMainNavbar && <Navbar location={location} user={user} toggleSidebar={toggleSidebar} />}
-      <main className="main">
+      <main className={`main${shouldOffsetNavbar ? ' main--navbar-offset' : ''}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -241,7 +251,7 @@ function AppContent({ toggleSidebar, location }) {
           <Route path="/signup" element={<Signup />} />
         </Routes>
       </main>
-      <FloatingChatbot />
+      {!isHomeRoute && <FloatingChatbot />}
       {!hideFooter && <Footer />}
       <ToastContainer 
         position="top-right"

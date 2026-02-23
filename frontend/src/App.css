@@ -19,7 +19,23 @@
   padding: 0;
 }
 
+.main.main--navbar-offset {
+  padding-top: calc(var(--home-navbar-height) + 0.75rem);
+}
+
 /* Ensure footer stays at bottom */
 .footer {
   margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .main.main--navbar-offset {
+    padding-top: calc(64px + 0.75rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .main.main--navbar-offset {
+    padding-top: calc(64px + 0.5rem);
+  }
 }
