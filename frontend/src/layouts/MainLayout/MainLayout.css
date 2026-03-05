@@ -1,0 +1,29 @@
+.main-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    /* Width of the sidebar */
+    padding: 2rem;
+    background-color: #f9fafb;
+    /* Light gray background */
+    width: calc(100% - 250px);
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding-top: 4rem;
+        /* Space for the mobile toggle button */
+    }
+}
+
+/* Full-width layout for homepage, auth, and product pages (no sidebar) */
+.main-layout-fullwidth {
+    width: 100%;
+    min-height: 100vh;
+}

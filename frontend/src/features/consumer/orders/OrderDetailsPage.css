@@ -1,0 +1,176 @@
+.order-details-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.details-header-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.back-link {
+    color: #4b5563;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: #111827;
+}
+
+.cancel-order-btn {
+    background-color: #fff;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-order-btn:hover:not(:disabled) {
+    background-color: #fef2f2;
+}
+
+.cancel-order-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #d1d5db;
+    color: #6b7280;
+}
+
+.cancel-error {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+.receipt-container {
+    background-color: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+}
+
+.receipt-header {
+    background-color: #f9fafb;
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.receipt-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+    color: #111827;
+}
+
+.receipt-date {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.timeline-section {
+    padding: 0 24px;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.receipt-body {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.items-section {
+    flex: 2;
+    padding: 32px 24px;
+    min-width: 300px;
+    border-right: 1px solid #e5e7eb;
+}
+
+.items-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    color: #111827;
+}
+
+.summary-section {
+    flex: 1;
+    min-width: 250px;
+    padding: 32px 24px;
+    background-color: #f9fafb;
+}
+
+.summary-card {
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.summary-card h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.1rem;
+    color: #111827;
+}
+
+.summary-card p {
+    margin: 8px 0;
+    font-size: 0.95rem;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 16px 0;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+
+.payment-row:last-child {
+    margin-bottom: 0;
+}
+
+.total-row {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+@media (max-width: 768px) {
+    .receipt-body {
+        flex-direction: column;
+    }
+
+    .items-section {
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+}

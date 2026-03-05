@@ -1,0 +1,211 @@
+.order-row-container {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+    margin-bottom: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-row-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.order-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.order-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.order-id {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.order-date {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.status-placed {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+.status-confirmed {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-packed {
+    background-color: #fef08a;
+    color: #854d0e;
+}
+
+.status-out {
+    background-color: #ffedd5;
+    color: #c2410c;
+}
+
+.status-delivered,
+.status-completed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-default {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Details Section */
+.order-details-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.customer-info strong,
+.order-items strong,
+.order-total strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.customer-info {
+    font-weight: 500;
+    color: #374151;
+}
+
+.order-items ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.order-items li {
+    margin-bottom: 4px;
+}
+
+.total-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+/* Actions */
+.order-actions {
+    background-color: #f9fafb;
+    padding: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.action-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-status {
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.btn-status:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-status.confirmed {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.btn-status.confirmed:hover:not(:disabled) {
+    background-color: #3b82f6;
+    color: #fff;
+}
+
+.btn-status.packed {
+    border-color: #eab308;
+    color: #ca8a04;
+}
+
+.btn-status.packed:hover:not(:disabled) {
+    background-color: #eab308;
+    color: #fff;
+}
+
+.btn-status.out_for_delivery {
+    border-color: #f97316;
+    color: #c2410c;
+}
+
+.btn-status.out_for_delivery:hover:not(:disabled) {
+    background-color: #f97316;
+    color: #fff;
+}
+
+.btn-status.delivered {
+    border-color: #10b981;
+    color: #047857;
+}
+
+.btn-status.delivered:hover:not(:disabled) {
+    background-color: #10b981;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .order-details-wrapper {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .order-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

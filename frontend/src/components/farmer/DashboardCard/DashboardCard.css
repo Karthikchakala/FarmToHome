@@ -1,0 +1,101 @@
+.dashboard-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    text-transform: capitalize;
+}
+
+.card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    line-height: returning1.2;
+}
+
+.card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Color Variants */
+.card-primary .card-icon-wrapper {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+}
+
+.card-success .card-icon-wrapper {
+    background-color: #d1fae5;
+    color: #10b981;
+}
+
+.card-warning .card-icon-wrapper {
+    background-color: #fef3c7;
+    color: #f59e0b;
+}
+
+.card-danger .card-icon-wrapper {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+
+.card-bottom {
+    display: flex;
+    align-items: center;
+    margin-top: auto;
+    font-size: 0.85rem;
+}
+
+.trend-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.trend-badge.positive {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.trend-badge.negative {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.trend-label {
+    color: #9ca3af;
+}

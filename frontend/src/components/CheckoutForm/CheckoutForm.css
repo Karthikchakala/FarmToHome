@@ -1,0 +1,128 @@
+.checkout-form {
+    background-color: #fff;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.form-section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    background-color: #fafafa;
+}
+
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #27ae60;
+    background-color: #fff;
+}
+
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.payment-option {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-option.selected {
+    border-color: #27ae60;
+    background-color: #f0fdf4;
+}
+
+.payment-option.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f9f9f9;
+}
+
+.payment-option input[type="radio"] {
+    margin-top: 4px;
+    margin-right: 16px;
+    accent-color: #27ae60;
+}
+
+.option-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.option-title {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+}
+
+.option-desc {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.btn-place-order {
+    width: 100%;
+    padding: 16px;
+    background-color: #27ae60;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
+    margin-top: 16px;
+}
+
+.btn-place-order:hover:not(:disabled) {
+    background-color: #219653;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(39, 174, 96, 0.3);
+}
+
+.btn-place-order:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    box-shadow: none;
+}
