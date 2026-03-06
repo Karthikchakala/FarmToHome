@@ -20,7 +20,11 @@ const ConsumerProducts = () => {
                     setLocationStatus(`Location acquired. Searching within 7km.`);
                     fetchNearbyProducts(lat, lng);
                 },
+<<<<<<< HEAD
                 (_error) => {
+=======
+                (error) => {
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
                     setLocError(true);
                     setLocationStatus('Location access denied. Please enable to see nearby farmers.');
                     setLoading(false);

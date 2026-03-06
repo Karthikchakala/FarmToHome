@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
+=======
+import { useDispatch } from 'react-redux';
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
 import { fetchFeaturedProducts } from './homeAPI.js';
 import './FeaturedProducts.css';
 

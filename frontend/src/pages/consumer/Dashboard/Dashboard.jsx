@@ -48,7 +48,11 @@ const ConsumerDashboard = () => {
             await api.post('/support/wallet/topup', { amount: 1000 });
             alert('Wallet topped up with ₹1000!');
             setWalletBalance(prev => parseFloat(prev) + 1000);
+<<<<<<< HEAD
         } catch (_e) {
+=======
+        } catch (e) {
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
             alert('Top up integration is pending');
         }
     };

@@ -44,7 +44,11 @@ const AdminDashboard = () => {
             await api.put(`/admin/farmers/${farmerId}/approve`);
             alert('Farmer approved successfully');
             fetchAdminData(); // Refresh lists
+<<<<<<< HEAD
         } catch (_err) {
+=======
+        } catch (err) {
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
             alert('Failed to approve farmer. Ensure you are an Admin.');
         }
     };

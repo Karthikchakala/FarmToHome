@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react-swc'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+<<<<<<< HEAD
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
@@ -16,4 +17,6 @@ export default defineConfig({
       }
     }
   }
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
 })

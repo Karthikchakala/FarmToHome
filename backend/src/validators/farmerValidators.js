@@ -11,6 +11,7 @@ export const updateStockSchema = z.object({
         stockQuantity: z.number().int().nonnegative("Stock cannot be negative")
     })
 });
+<<<<<<< HEAD
 
 export const updateProfileSchema = z.object({
     body: z.object({
@@ -26,3 +27,5 @@ export const addDeliveryZoneSchema = z.object({
         coordinates: z.array(z.array(z.number())).min(3)
     })
 });
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4

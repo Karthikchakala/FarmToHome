@@ -1768,6 +1768,7 @@
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
     at async file:///C:/Users/karth/Downloads/6th%20Sem/Full%20stack/farm%20to%20home/backend/node_modules/express-rate-limit/dist/index.mjs:796:5
 2026-03-05 21:10:06 info: Connected to PostgreSQL (Supabase)
+<<<<<<< HEAD
 2026-03-06 21:16:03 info: Server running in development mode on port 5000
 2026-03-06 21:16:03 info: [SubscriptionCron] Scheduled: daily at 06:00 AM
 2026-03-06 21:26:28 info: Server running in development mode on port 5000
@@ -1776,3 +1777,5 @@
 2026-03-06 21:27:35 info: [SubscriptionCron] Scheduled: daily at 06:00 AM
 2026-03-06 21:37:41 info: Server running in development mode on port 5000
 2026-03-06 21:37:41 info: [SubscriptionCron] Scheduled: daily at 06:00 AM
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4

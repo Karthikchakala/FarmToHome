@@ -10,9 +10,12 @@ import CartPage from './features/consumer/cart/CartPage.jsx';
 import CheckoutPage from './features/consumer/cart/CheckoutPage.jsx';
 import OrdersPage from './features/consumer/orders/OrdersPage.jsx';
 import OrderDetailsPage from './features/consumer/orders/OrderDetailsPage.jsx';
+<<<<<<< HEAD
 import SubscriptionsPage from './pages/consumer/SubscriptionsPage.jsx';
 import CreateSubscriptionPage from './pages/consumer/CreateSubscriptionPage.jsx';
 import SubscriptionDetailsPage from './pages/consumer/SubscriptionDetailsPage.jsx';
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
 
 import ConsumerDashboard from './pages/consumer/Dashboard/Dashboard.jsx';
 
@@ -23,6 +26,7 @@ import AddProductPage from './features/farmer/Products/AddProductPage.jsx';
 import EditProductPage from './features/farmer/Products/EditProductPage.jsx';
 import FarmerOrdersPage from './features/farmer/Orders/FarmerOrdersPage.jsx';
 
+<<<<<<< HEAD
 import SelectLocationPage from './pages/consumer/SelectLocationPage.jsx';
 import DeliveryAddressPage from './pages/consumer/DeliveryAddressPage.jsx';
 
@@ -46,6 +50,9 @@ import TopProductsPage from './pages/admin/TopProductsPage.jsx';
 import SubscriptionAnalyticsPage from './pages/admin/SubscriptionAnalyticsPage.jsx';
 import DeliveryZonesPage from './pages/admin/DeliveryZonesPage.jsx';
 import NotificationsPage from './pages/notifications/NotificationsPage.jsx';
+=======
+import AdminDashboard from './pages/admin/Dashboard/Dashboard.jsx';
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, user } = useSelector(state => state.auth);
@@ -84,6 +91,7 @@ const App = () => {
           <Route path="/orders/:orderId" element={
             <ProtectedRoute allowedRoles={['consumer']}><OrderDetailsPage /></ProtectedRoute>
           } />
+<<<<<<< HEAD
           <Route path="/subscriptions" element={
             <ProtectedRoute allowedRoles={['consumer']}><SubscriptionsPage /></ProtectedRoute>
           } />
@@ -112,6 +120,8 @@ const App = () => {
           <Route path="/payment/:orderId" element={
             <ProtectedRoute allowedRoles={['consumer']}><PaymentPage /></ProtectedRoute>
           } />
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
 
           {/* Farmer Protected Routes */}
           <Route path="/farmer" element={<ProtectedRoute allowedRoles={['farmer']}><FarmerLayout /></ProtectedRoute>}>
@@ -123,6 +133,7 @@ const App = () => {
             <Route path="profile" element={<div style={{ padding: '32px' }}>Profile Page Coming Soon...</div>} />
           </Route>
 
+<<<<<<< HEAD
           {/* Admin Protected Routes - Nested under AdminLayout */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
             <Route path="dashboard" element={<AdminDashboard />} />
@@ -146,6 +157,11 @@ const App = () => {
           {/* Notifications - All authenticated users */}
           <Route path="/notifications" element={
             <ProtectedRoute allowedRoles={['consumer', 'farmer', 'admin']}><NotificationsPage /></ProtectedRoute>
+=======
+          {/* Admin Protected Routes */}
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
           } />
 
           {/* Catch all */}

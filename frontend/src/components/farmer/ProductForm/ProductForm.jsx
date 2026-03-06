@@ -18,7 +18,11 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, title }) => {
 
     useEffect(() => {
         if (initialData) {
+<<<<<<< HEAD
             setTimeout(() => setFormData({
+=======
+            setFormData({
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
                 productName: initialData.name || '',
                 description: initialData.description || '',
                 category: initialData.category || 'Vegetables',
@@ -26,7 +30,12 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, title }) => {
                 stockQuantity: initialData.stock_quantity || '',
                 unit: initialData.unit || 'kg',
                 images: initialData.image_url ? [initialData.image_url] : [''],
+<<<<<<< HEAD
             }), 0);
+=======
+                harvestDate: initialData.harvest_date ? new Date(initialData.harvest_date).toISOString().split('T')[0] : ''
+            });
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
         }
     }, [initialData]);
 

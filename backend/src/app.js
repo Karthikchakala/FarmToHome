@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import farmerRoutes from './routes/farmerRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+<<<<<<< HEAD
 import adminRoutes from '../modules/admin/admin.routes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
@@ -18,6 +19,12 @@ import subscriptionRoutes from '../modules/subscriptions/subscriptions.routes.js
 import analyticsRoutes from '../modules/analytics/analytics.routes.js';
 import deliveryRoutes from '../modules/delivery/delivery.routes.js';
 import paymentRoutes from '../modules/payments/payments.routes.js';
+=======
+import adminRoutes from './routes/adminRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
+import homeRoutes from './routes/homeRoutes.js';
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
 
 const app = express();
 
@@ -59,11 +66,14 @@ app.use('/api/farmers', farmerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/home', homeRoutes);
+<<<<<<< HEAD
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api', deliveryRoutes);
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
 
 app.use(notFound);
 app.use(errorHandler);

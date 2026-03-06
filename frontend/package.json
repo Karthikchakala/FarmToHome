@@ -17,13 +17,19 @@
     "@mui/material": "^7.3.8",
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.6",
+<<<<<<< HEAD
     "lucide-react": "^0.577.0",
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.2",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.13.1",
+<<<<<<< HEAD
     "recharts": "^3.7.0",
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
     "zod": "^4.3.6"
   },
   "devDependencies": {

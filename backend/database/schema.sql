@@ -48,7 +48,10 @@ CREATE TABLE farmers (
     is_approved BOOLEAN DEFAULT false,
     delivery_radius_km DECIMAL(5,2) DEFAULT 7.00,
     minimum_order_value DECIMAL(10,2) DEFAULT 0.00,
+<<<<<<< HEAD
     delivery_slots JSONB DEFAULT '[]'::jsonb,
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -60,7 +63,10 @@ CREATE TABLE delivery_zones (
     farmer_id UUID REFERENCES farmers(id) ON DELETE CASCADE,
     zone_name VARCHAR(100),
     zone_polygon GEOGRAPHY(POLYGON), -- Defines custom boundaries if needed beyond raw radius
+<<<<<<< HEAD
     is_active BOOLEAN DEFAULT true,
+=======
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

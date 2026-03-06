@@ -39,7 +39,11 @@ const FarmerDashboard = () => {
             // Real API implementation
             // await api.put(`/orders/${orderId}/status`, { status: newStatus });
             setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+<<<<<<< HEAD
         } catch (_err) {
+=======
+        } catch (err) {
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
             alert('Failed to update status');
         }
     };

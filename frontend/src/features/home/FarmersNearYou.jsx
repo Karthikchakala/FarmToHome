@@ -50,7 +50,11 @@ const FarmersNearYou = () => {
 
     useEffect(() => {
         if (!navigator.geolocation) {
+<<<<<<< HEAD
             setTimeout(() => setLocationStatus('denied'), 0);
+=======
+            setLocationStatus('denied');
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
             return;
         }
         setLocationStatus('requesting');

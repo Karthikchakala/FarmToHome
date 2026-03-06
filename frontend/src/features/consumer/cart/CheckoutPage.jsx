@@ -27,6 +27,7 @@ const CheckoutPage = () => {
             if (response.status === 201) {
                 // Ensure the local state clears since backend cart was deleted
                 dispatch(clearCart());
+<<<<<<< HEAD
 
                 if (formData.paymentMethod === 'ONLINE' && response.data.orders?.length > 0) {
                     navigate(`/payment/${response.data.orders[0].id}`);
@@ -34,6 +35,10 @@ const CheckoutPage = () => {
                     alert('Order placed successfully!');
                     navigate('/orders');
                 }
+=======
+                alert('Order placed successfully!');
+                navigate('/'); // Or redirect to an order confirmation page in the future
+>>>>>>> 13e0d502b1d3468218cb5ebbe8d706910030bec4
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Checkout failed. Please try again.');
