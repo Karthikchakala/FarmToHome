@@ -1,0 +1,142 @@
+/* ============================================
+   HOW IT WORKS
+   ============================================ */
+
+.hiw {
+    background: linear-gradient(135deg, #f9fbe7 0%, #e8f5e9 100%);
+    padding: 5rem 0;
+}
+
+.hiw__container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.hiw__header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+}
+
+.hiw__steps {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+}
+
+.hiw-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 1rem;
+    position: relative;
+}
+
+.hiw-step__icon-wrap {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(46, 125, 50, 0.15);
+    margin-bottom: 1.5rem;
+    border: 3px solid #a5d6a7;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.hiw-step:hover .hiw-step__icon-wrap {
+    transform: scale(1.08);
+    box-shadow: 0 12px 32px rgba(46, 125, 50, 0.25);
+}
+
+.hiw-step__num {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 28px;
+    height: 28px;
+    background: #2e7d32;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hiw-step__icon {
+    font-size: 2.2rem;
+}
+
+.hiw-step__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.6rem;
+}
+
+.hiw-step__desc {
+    font-size: 0.87rem;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+/* Connector Arrow */
+.hiw__connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a5d6a7;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    margin-top: 2.4rem;
+    padding: 0 0.25rem;
+    white-space: nowrap;
+    font-weight: 300;
+    animation: connectorPulse 2s ease-in-out infinite;
+}
+
+@keyframes connectorPulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scaleX(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scaleX(1.05);
+    }
+}
+
+@media (max-width: 900px) {
+    .hiw__steps {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .hiw__connector {
+        transform: rotate(90deg);
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .hiw-step {
+        width: 100%;
+        max-width: 340px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hiw {
+        padding: 3rem 0;
+    }
+}

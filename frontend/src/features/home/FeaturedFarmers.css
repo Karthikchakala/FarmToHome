@@ -1,0 +1,186 @@
+/* ============================================
+   FEATURED FARMERS
+   ============================================ */
+
+.ff-section {
+    background: #f9fafb;
+    padding: 5rem 0;
+}
+
+.ff-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.ff-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.ff-view-all {
+    color: #2e7d32;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ff-view-all:hover {
+    text-decoration: underline;
+}
+
+.ff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Card */
+.ff-card {
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1.5px solid #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.ff-card:hover {
+    border-color: #a5d6a7;
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(46, 125, 50, 0.1);
+}
+
+.ff-card__img-wrap {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.ff-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.ff-card:hover .ff-card__img {
+    transform: scale(1.08);
+}
+
+.ff-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(27, 94, 32, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.ff-card:hover .ff-card__overlay {
+    opacity: 1;
+}
+
+.ff-card__view-btn {
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    transition: border-color 0.2s;
+}
+
+.ff-card:hover .ff-card__view-btn {
+    border-color: #fff;
+}
+
+.ff-card__verified {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: #2e7d32;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+}
+
+.ff-card__body {
+    padding: 1.1rem;
+}
+
+.ff-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.ff-card__name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.3;
+}
+
+.ff-card__rating {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.ff-card__location {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    margin-bottom: 0.6rem;
+}
+
+.ff-card__meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.ff-card__method {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #00695c;
+    background: #e0f2f1;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+}
+
+.ff-card__products {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+}
+
+@media (max-width: 600px) {
+    .ff-section {
+        padding: 3rem 0;
+    }
+
+    .ff-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .ff-card__img-wrap {
+        height: 150px;
+    }
+}

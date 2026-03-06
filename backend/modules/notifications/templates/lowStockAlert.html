@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+        }
+
+        .header {
+            background-color: #F44336;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .alert-box {
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            color: #c62828;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Low Stock Alert</h2>
+        </div>
+        <div class="content">
+            <p>Hello {{ farmerName }},</p>
+            <p>This is an automated alert about the stock level of one of your products.</p>
+
+            <div class="alert-box">
+                Product: {{ productName }}<br />
+                Current Stock: {{ currentStock }}
+            </div>
+
+            <p><strong>Recommended Action:</strong> {{ recommendedRestock }}</p>
+            <p>Update your inventory from the dashboard to continue receiving orders.</p>
+        </div>
+    </div>
+</body>
+
+</html>

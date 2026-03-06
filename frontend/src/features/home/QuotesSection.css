@@ -1,0 +1,86 @@
+/* ============================================
+   QUOTES SECTION
+   ============================================ */
+
+.quotes {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #1565c0 100%);
+    padding: 5rem 2rem;
+    text-align: center;
+}
+
+.quotes__container {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.quotes__icon {
+    font-size: 6rem;
+    color: rgba(255, 255, 255, 0.15);
+    line-height: 0.5;
+    font-family: Georgia, serif;
+    margin-bottom: -1rem;
+}
+
+.quotes__text {
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    color: #fff;
+    line-height: 1.7;
+    font-style: italic;
+    font-weight: 400;
+    animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.quotes__author {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: normal;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.quotes__dots {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.quotes__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.quotes__dot--active {
+    background: #fff;
+    width: 22px;
+    border-radius: 4px;
+}
+
+@media (max-width: 480px) {
+    .quotes {
+        padding: 3rem 1.5rem;
+    }
+
+    .quotes__icon {
+        font-size: 4rem;
+    }
+}

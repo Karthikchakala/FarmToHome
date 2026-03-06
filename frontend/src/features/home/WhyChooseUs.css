@@ -1,0 +1,106 @@
+/* ============================================
+   WHY CHOOSE US
+   ============================================ */
+
+.why {
+    background: #fff;
+    padding: 5rem 0;
+}
+
+.why__container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.why__header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.why__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+/* Card */
+.why-card {
+    background: var(--why-bg, #f1f8e9);
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.why-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.09);
+}
+
+.why-card__icon-wrap {
+    width: 68px;
+    height: 68px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s;
+}
+
+.why-card:hover .why-card__icon-wrap {
+    transform: rotate(-5deg) scale(1.05);
+}
+
+.why-card__icon {
+    font-size: 2rem;
+}
+
+.why-card__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.6rem;
+}
+
+.why-card__desc {
+    font-size: 0.88rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.why-card__bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--why-accent, #2e7d32);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.why-card:hover .why-card__bar {
+    opacity: 1;
+}
+
+@media (max-width: 900px) {
+    .why__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 520px) {
+    .why {
+        padding: 3rem 0;
+    }
+
+    .why__grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}

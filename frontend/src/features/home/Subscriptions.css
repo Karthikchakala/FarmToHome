@@ -1,0 +1,189 @@
+/* ============================================
+   SUBSCRIPTIONS
+   ============================================ */
+
+.subs {
+    background: #fff;
+    padding: 5rem 0;
+}
+
+.subs__container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.subs__header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.subs__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Card */
+.subs-card {
+    border: 2px solid #e8e8e8;
+    border-radius: 20px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: relative;
+    transition: all 0.3s;
+    background: #fff;
+}
+
+.subs-card:hover {
+    border-color: #a5d6a7;
+    box-shadow: 0 12px 40px rgba(46, 125, 50, 0.1);
+    transform: translateY(-4px);
+}
+
+.subs-card--popular {
+    border-color: #2e7d32;
+    background: #f9fbe7;
+    transform: scale(1.03);
+}
+
+.subs-card--popular:hover {
+    transform: scale(1.03) translateY(-4px);
+}
+
+.subs-card__badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2e7d32;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 1rem;
+    border-radius: 50px;
+    white-space: nowrap;
+}
+
+.subs-card__name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 0.3rem;
+}
+
+.subs-card__desc {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.subs-card__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.1rem;
+}
+
+.subs-card__currency {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+.subs-card__price {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.subs-card__period {
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.subs-card__contents {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    flex: 1;
+}
+
+.subs-card__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.88rem;
+    color: #4b5563;
+}
+
+.subs-card__check {
+    width: 20px;
+    height: 20px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.subs-card__btn {
+    padding: 0.85rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    text-align: center;
+    border: 2px solid transparent;
+}
+
+.subs-card__btn--primary {
+    background: #2e7d32;
+    color: #fff;
+    border-color: #2e7d32;
+}
+
+.subs-card__btn--primary:hover {
+    background: #1b5e20;
+}
+
+.subs-card__btn--outline {
+    background: transparent;
+    color: #2e7d32;
+    border-color: #2e7d32;
+}
+
+.subs-card__btn--outline:hover {
+    background: #e8f5e9;
+}
+
+@media (max-width: 900px) {
+    .subs__grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .subs-card--popular {
+        transform: none;
+    }
+
+    .subs-card--popular:hover {
+        transform: translateY(-4px);
+    }
+}
+
+@media (max-width: 480px) {
+    .subs {
+        padding: 3rem 0;
+    }
+}

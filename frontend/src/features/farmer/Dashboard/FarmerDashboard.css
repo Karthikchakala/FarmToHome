@@ -1,0 +1,126 @@
+.farmer-dashboard {
+    padding: 32px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #111827;
+}
+
+.dashboard-header {
+    margin-bottom: 32px;
+}
+
+.dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.dashboard-header p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.dashboard-content-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+.dashboard-panel {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.panel-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.badge-count {
+    background-color: #fee2e2;
+    color: #ef4444;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-left: 12px;
+}
+
+.low-stock-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.low-stock-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.low-stock-item:last-child {
+    border-bottom: none;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-name {
+    font-weight: 500;
+    color: #374151;
+}
+
+.item-unit {
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.empty-state {
+    padding: 32px 0;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.farmer-dashboard-loading,
+.farmer-dashboard-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 1.25rem;
+    color: #6b7280;
+}
+
+.farmer-dashboard-error {
+    color: #ef4444;
+}
+
+@media (min-width: 1024px) {
+    .dashboard-content-row {
+        grid-template-columns: 2fr 1fr;
+    }
+}

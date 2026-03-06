@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+        }
+
+        .header {
+            background-color: #FF9800;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .details {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>New Order Received!</h2>
+        </div>
+        <div class="content">
+            <p>Hello {{ farmerName }},</p>
+            <p>You have received a new order (<strong>{{ orderId }}</strong>) on the platform.</p>
+
+            <div class="details">
+                <h3>Order Information</h3>
+                <p><strong>Products Ordered:</strong><br />{{ productsOrdered }}</p>
+                <p><strong>Consumer Details:</strong><br />{{ consumerDetails }}</p>
+            </div>
+
+            <p>Please log in to your Farmer Dashboard to confirm and process this order.</p>
+        </div>
+    </div>
+</body>
+
+</html>

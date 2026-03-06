@@ -1,0 +1,26 @@
+.farmer-orders-page {
+    padding: 32px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #111827;
+}
+
+.filter-select {
+    padding: 10px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #374151;
+    background-color: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+    border-color: #059669;
+}
+
+.orders-list {
+    margin-top: 24px;
+}

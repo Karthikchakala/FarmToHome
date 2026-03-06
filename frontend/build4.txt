@@ -1,0 +1,45 @@
+﻿
+> frontend@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 1866 modules transformed.
+node.exe : [31mΓ£ù[39m Build failed in 2.57s
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 
+   [31mΓ£ù[39m Build failed in 2.57s:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandEr 
+   ror
+ 
+[31merror during build:
+[31mCould not resolve "../../features/notific
+ations/notificationsSlice" from "src/features/
+notifications/components/NotificationCard.jsx"
+[31m
+file: [36mC:/Users/bharg/OneDrive/Desktop/Cod
+ing/FarmToHome-main/FarmToHome-main/frontend/s
+rc/features/notifications/components/Notificat
+ionCard.jsx[31m
+    at getRollupError (file:///C:/Users/bharg/
+OneDrive/Desktop/Coding/FarmToHome-main/FarmTo
+Home-main/frontend/node_modules/rollup/dist/es
+/shared/parseAst.js:402:41)
+    at error (file:///C:/Users/bharg/OneDrive/
+Desktop/Coding/FarmToHome-main/FarmToHome-main
+/frontend/node_modules/rollup/dist/es/shared/p
+arseAst.js:398:42)
+    at ModuleLoader.handleInvalidResolvedId (f
+ile:///C:/Users/bharg/OneDrive/Desktop/Coding/
+FarmToHome-main/FarmToHome-main/frontend/node_
+modules/rollup/dist/es/shared/node-entry.js:21
+710:24)
+    at file:///C:/Users/bharg/OneDrive/Desktop
+/Coding/FarmToHome-main/FarmToHome-main/fronte
+nd/node_modules/rollup/dist/es/shared/node-ent
+ry.js:21670:26[39m

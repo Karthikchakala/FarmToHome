@@ -1,0 +1,14 @@
+// Barrel export for all home feature components
+export { default as Navbar } from './Navbar.jsx';
+export { default as HeroSection } from './HeroSection.jsx';
+export { default as CategorySection } from './CategorySection.jsx';
+export { default as FeaturedProducts } from './FeaturedProducts.jsx';
+export { default as FarmersNearYou } from './FarmersNearYou.jsx';
+export { default as WhyChooseUs } from './WhyChooseUs.jsx';
+export { default as HowItWorks } from './HowItWorks.jsx';
+export { default as Testimonials } from './Testimonials.jsx';
+export { default as FeaturedFarmers } from './FeaturedFarmers.jsx';
+export { default as Subscriptions } from './Subscriptions.jsx';
+export { default as QuotesSection } from './QuotesSection.jsx';
+export { default as CTASection } from './CTASection.jsx';
+export { default as Footer } from './Footer.jsx';

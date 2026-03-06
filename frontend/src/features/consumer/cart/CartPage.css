@@ -1,0 +1,117 @@
+.cart-page-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.cart-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.cart-page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+}
+
+.btn-clear-cart {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: opacity 0.2s;
+}
+
+.btn-clear-cart:hover {
+    opacity: 0.8;
+}
+
+.cart-page-content {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 32px;
+    align-items: start;
+}
+
+.cart-items-section {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+}
+
+.cart-summary-section {
+    position: relative;
+}
+
+/* Empty State */
+.cart-empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    border: 1px dashed #ccc;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 24px;
+    opacity: 0.5;
+}
+
+.cart-empty-state h2 {
+    font-size: 1.8rem;
+    color: #111;
+    margin-bottom: 12px;
+}
+
+.cart-empty-state p {
+    color: #666;
+    margin-bottom: 32px;
+    font-size: 1.1rem;
+}
+
+.btn-continue-shopping {
+    background-color: #27ae60;
+    color: #fff;
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-continue-shopping:hover {
+    background-color: #219653;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
+}
+
+.cart-page-loading,
+.cart-page-error {
+    text-align: center;
+    padding: 60px;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.cart-page-error {
+    color: #e74c3c;
+}
+
+@media (max-width: 1024px) {
+    .cart-page-content {
+        grid-template-columns: 1fr;
+    }
+}

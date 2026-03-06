@@ -1,0 +1,96 @@
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\components\farmer\ProductForm\ProductForm.jsx
+  21:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  19 |     useEffect(() => {
+  20 |         if (initialData) {
+> 21 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  22 |                 productName: initialData.name || '',
+  23 |                 description: initialData.description || '',
+  24 |                 category: initialData.category || 'Vegetables',  react-hooks/set-state-in-effect
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\features\delivery\LocationPicker.jsx
+   7:12  error  'manualMode' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+   7:24  error  'setManualMode' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  30:14  error  'err' is defined but never used                                                                no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\features\home\FarmersNearYou.jsx
+  53:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  51 |     useEffect(() => {
+  52 |         if (!navigator.geolocation) {
+> 53 |             setLocationStatus('denied');
+     |             ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  54 |             return;
+  55 |         }
+  56 |         setLocationStatus('requesting');  react-hooks/set-state-in-effect
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\features\home\FeaturedProducts.jsx
+  2:10  error  'useDispatch' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\features\subscriptions\subscriptionsSlice.js
+   8:12  error  '_' is defined but never used                no-unused-vars
+   8:17  error  'rejectWithValue' is defined but never used  no-unused-vars
+  16:18  error  'rejectWithValue' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\admin\Dashboard\Dashboard.jsx
+  47:18  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\admin\DeliveryZonesPage.jsx
+  31:18  error  'err' is defined but never used  no-unused-vars
+  39:18  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\admin\FeedbackPage.jsx
+  14:25  error  'id' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\admin\PriceControlPage.jsx
+  21:14  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\admin\RevenueAnalyticsPage.jsx
+  74:80  error  'i' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\consumer\Dashboard\Dashboard.jsx
+  51:18  error  'e' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\consumer\PaymentPage.jsx
+  14:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  12 |     useEffect(() => {
+  13 |         if (document.getElementById('razorpay-checkout-js')) {
+> 14 |             setIsLoaded(true);
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  15 |             return;
+  16 |         }
+  17 |         const script = document.createElement('script');  react-hooks/set-state-in-effect
+  35:26  error  'currentOrder' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\consumer\Products\Products.jsx
+  23:18  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\consumer\SelectLocationPage.jsx
+  31:22  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\bharg\OneDrive\Desktop\Coding\FarmToHome-main\FarmToHome-main\frontend\src\pages\farmer\Dashboard\Dashboard.jsx
+  42:18  error  'err' is defined but never used  no-unused-vars
+
+✖ 21 problems (21 errors, 0 warnings)
+

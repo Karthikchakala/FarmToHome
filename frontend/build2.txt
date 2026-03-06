@@ -1,0 +1,70 @@
+﻿
+> frontend@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 73 modules transformed.
+node.exe : [31mΓ£ù[39m Build failed in 355ms
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 
+   [31mΓ£ù[39m Build failed in 355ms:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandEr 
+   ror
+ 
+[31merror during build:
+[31m[vite]: Rollup failed to resolve import 
+"lucide-react" from "C:/Users/bharg/OneDrive/D
+esktop/Coding/FarmToHome-main/FarmToHome-main/
+frontend/src/pages/admin/TopProductsPage.jsx".
+This is most likely unintended because it can 
+break your application at runtime.
+If you do want to externalize this module 
+explicitly add it to
+`build.rollupOptions.external`[31m
+    at viteLog (file:///C:/Users/bharg/OneDriv
+e/Desktop/Coding/FarmToHome-main/FarmToHome-ma
+in/frontend/node_modules/vite/dist/node/chunks
+/config.js:33635:57)
+    at file:///C:/Users/bharg/OneDrive/Desktop
+/Coding/FarmToHome-main/FarmToHome-main/fronte
+nd/node_modules/vite/dist/node/chunks/config.j
+s:33669:73
+    at onwarn (file:///C:/Users/bharg/OneDrive
+/Desktop/Coding/FarmToHome-main/FarmToHome-mai
+n/frontend/node_modules/@vitejs/plugin-react-s
+wc/index.js:76:7)
+    at file:///C:/Users/bharg/OneDrive/Desktop
+/Coding/FarmToHome-main/FarmToHome-main/fronte
+nd/node_modules/vite/dist/node/chunks/config.j
+s:33669:28
+    at onRollupLog (file:///C:/Users/bharg/One
+Drive/Desktop/Coding/FarmToHome-main/FarmToHom
+e-main/frontend/node_modules/vite/dist/node/ch
+unks/config.js:33664:63)
+    at onLog (file:///C:/Users/bharg/OneDrive/
+Desktop/Coding/FarmToHome-main/FarmToHome-main
+/frontend/node_modules/vite/dist/node/chunks/c
+onfig.js:33467:4)
+    at file:///C:/Users/bharg/OneDrive/Desktop
+/Coding/FarmToHome-main/FarmToHome-main/fronte
+nd/node_modules/rollup/dist/es/shared/node-ent
+ry.js:20981:32
+    at Object.logger [as onLog] (file:///C:/Us
+ers/bharg/OneDrive/Desktop/Coding/FarmToHome-m
+ain/FarmToHome-main/frontend/node_modules/roll
+up/dist/es/shared/node-entry.js:22968:9)
+    at ModuleLoader.handleInvalidResolvedId (f
+ile:///C:/Users/bharg/OneDrive/Desktop/Coding/
+FarmToHome-main/FarmToHome-main/frontend/node_
+modules/rollup/dist/es/shared/node-entry.js:21
+712:26)
+    at file:///C:/Users/bharg/OneDrive/Desktop
+/Coding/FarmToHome-main/FarmToHome-main/fronte
+nd/node_modules/rollup/dist/es/shared/node-ent
+ry.js:21670:26[39m

@@ -1,0 +1,96 @@
+.farmer-products-page {
+    padding: 32px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #111827;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.header-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.header-info p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.btn-add-product {
+    background-color: #059669;
+    color: white;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-add-product:hover {
+    background-color: #047857;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.empty-catalog-state {
+    text-align: center;
+    padding: 80px 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    border: 1px dashed #d1d5db;
+}
+
+.empty-catalog-state .empty-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 24px;
+    opacity: 0.5;
+}
+
+.empty-catalog-state h2 {
+    font-size: 1.5rem;
+    color: #374151;
+    margin-bottom: 12px;
+}
+
+.empty-catalog-state p {
+    color: #6b7280;
+    max-width: 400px;
+    margin: 0 auto;
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+.page-loading,
+.page-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 1.25rem;
+    color: #6b7280;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+}

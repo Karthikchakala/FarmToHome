@@ -1,0 +1,229 @@
+/* ============================================
+   AUTH LAYOUT — Split Panel Design
+   ============================================ */
+
+.auth-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* ---- LEFT PANEL ---- */
+.auth-layout__panel {
+    background: linear-gradient(145deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+}
+
+.auth-layout__panel-content {
+    position: relative;
+    z-index: 1;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    width: 100%;
+}
+
+/* Logo */
+.auth-layout__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    text-decoration: none;
+}
+
+.auth-layout__logo-icon {
+    font-size: 2.2rem;
+}
+
+.auth-layout__logo-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+.auth-layout__logo-tagline {
+    font-size: 0.68rem;
+    color: #a5d6a7;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Panel Text */
+.auth-layout__panel-title {
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.auth-layout__panel-sub {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.6;
+    margin-top: 0.5rem;
+}
+
+/* Stats */
+.auth-layout__stats {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 1.2rem 1.5rem;
+}
+
+.auth-layout__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.auth-layout__stat-val {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+}
+
+.auth-layout__stat-label {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+}
+
+.auth-layout__stat-div {
+    width: 1px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Testimonial */
+.auth-layout__testimonial {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin-top: auto;
+}
+
+.auth-layout__testimonial-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.auth-layout__testimonial-text {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.auth-layout__testimonial-author {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 600;
+    margin-top: 0.3rem;
+}
+
+/* Floating Shapes */
+.auth-layout__shapes {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.auth-layout__shape {
+    position: absolute;
+    font-size: 2rem;
+    opacity: 0.12;
+    animation: authShapeFloat 6s ease-in-out infinite;
+}
+
+.auth-layout__shape--1 {
+    top: 8%;
+    right: 10%;
+    animation-delay: 0s;
+    font-size: 2.5rem;
+}
+
+.auth-layout__shape--2 {
+    top: 35%;
+    right: 5%;
+    animation-delay: 1.5s;
+}
+
+.auth-layout__shape--3 {
+    bottom: 20%;
+    right: 15%;
+    animation-delay: 3s;
+    font-size: 1.8rem;
+}
+
+.auth-layout__shape--4 {
+    bottom: 8%;
+    right: 5%;
+    animation-delay: 0.8s;
+}
+
+@keyframes authShapeFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-16px) rotate(10deg);
+    }
+}
+
+/* ---- RIGHT FORM PANEL ---- */
+.auth-layout__form-panel {
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 2rem;
+    overflow-y: auto;
+}
+
+.auth-layout__form-wrap {
+    width: 100%;
+    max-width: 440px;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 900px) {
+    .auth-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-layout__panel {
+        display: none;
+    }
+
+    .auth-layout__form-panel {
+        min-height: 100vh;
+        padding: 2rem 1.25rem;
+    }
+}

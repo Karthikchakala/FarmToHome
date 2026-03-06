@@ -1,0 +1,17 @@
+.farmer-layout {
+    display: flex;
+    min-height: calc(100vh - 72px);
+    /* Considering top navbar */
+    background-color: #f9fafb;
+}
+
+.farmer-layout-content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .farmer-layout {
+        flex-direction: column;
+    }
+}

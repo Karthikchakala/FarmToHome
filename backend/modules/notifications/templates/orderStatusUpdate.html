@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+        }
+
+        .header {
+            background-color: #2196F3;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .status-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Order Status Update</h2>
+        </div>
+        <div class="content">
+            <p>Hi {{ consumerName }},</p>
+            <p>There is an update regarding your order: <strong>{{ orderId }}</strong>.</p>
+
+            <div class="status-box">
+                Current Status: {{ currentStatus }}
+            </div>
+
+            <p><strong>Estimated Delivery:</strong> {{ estimatedDelivery }}</p>
+            <p>Log in to your account for more tracking details updates.</p>
+        </div>
+    </div>
+</body>
+
+</html>
