@@ -203,7 +203,7 @@
   color: #004085;
 }
 
-.status-preparing {
+.status-packed {
   background: #e2e3e5;
   color: #383d41;
 }
@@ -293,7 +293,7 @@
   background: #cce5ff;
 }
 
-.status-icon.preparing {
+.status-icon.packed {
   background: #e2e3e5;
 }
 

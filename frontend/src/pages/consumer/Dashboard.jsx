@@ -19,7 +19,7 @@ const ConsumerDashboard = () => {
           total_orders: 42,
           placed: 5,
           confirmed: 3,
-          preparing: 2,
+          packed: 2,
           delivered: 32
         },
         spending: {
@@ -260,10 +260,10 @@ const ConsumerDashboard = () => {
             </div>
             
             <div className="status-card">
-              <div className="status-icon preparing">👨‍🍳</div>
+              <div className="status-icon packed">�</div>
               <div className="status-info">
-                <div className="status-count">{analytics.orders.preparing}</div>
-                <div className="status-label">Preparing</div>
+                <div className="status-count">{analytics.orders.packed}</div>
+                <div className="status-label">Packed</div>
               </div>
             </div>
             
