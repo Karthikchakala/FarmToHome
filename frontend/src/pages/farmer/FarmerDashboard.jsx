@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { notificationAPI } from '../../services/notificationAPI'
+import { farmerAPI } from '../../services/farmerAPI'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import './FarmerDashboard.css'
 
@@ -26,8 +27,9 @@ const FarmerDashboard = () => {
         setLoading(true)
         
         // Fetch real data from APIs
-        const [notificationsResponse] = await Promise.all([
-          notificationAPI.getNotifications({ limit: 5 })
+        const [notificationsResponse, analyticsResponse] = await Promise.all([
+          notificationAPI.getNotifications({ limit: 5 }),
+          farmerAPI.getAnalytics('30days')
         ])
         
         // Set notifications data
@@ -38,8 +40,22 @@ const FarmerDashboard = () => {
           setNotifications(notificationsData)
         }
         
-        // TODO: Add farmer dashboard data API call when available
-        // For now, keep dashboard data as is (will be updated when API is ready)
+        // Set analytics data
+        if (analyticsResponse.data.success) {
+          const analytics = analyticsResponse.data.data
+          console.log('FarmerDashboard - Analytics data received:', analytics)
+          
+          setDashboardData({
+            totalProducts: analytics.overview?.totalProducts || 0,
+            activeOrders: analytics.overview?.totalOrders || 0,
+            pendingOrders: 0, // Would need order status breakdown
+            completedOrders: 0, // Would need order status breakdown
+            totalRevenue: analytics.overview?.totalRevenue || 0,
+            monthlyRevenue: analytics.overview?.totalRevenue || 0, // Using total for now
+            totalCustomers: analytics.overview?.activeCustomers || 0,
+            lowStockItems: 0 // Would need separate low stock query
+          })
+        }
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error)

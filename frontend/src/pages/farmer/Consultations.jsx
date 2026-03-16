@@ -109,12 +109,12 @@ const FarmerConsultations = () => {
       setBookingLoading(true);
       
       const consultationData = {
-        expertid: selectedExpertId,
-        consultationtype: bookingData.consultationType,
+        expertId: selectedExpertId,
+        consultationType: bookingData.consultationType,
         title: bookingData.topic,
         description: bookingData.message,
         status: 'pending',
-        durationminutes: bookingData.durationMinutes
+        durationMinutes: bookingData.durationMinutes
       };
 
       const response = await expertAPI.createConsultation(consultationData);

@@ -86,7 +86,7 @@ const OrderManagement = () => {
             <option value="all">All Orders</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
-            <option value="preparing">Preparing</option>
+            <option value="packed">Packed</option>
             <option value="ready">Ready for Delivery</option>
             <option value="out-for-delivery">Out for Delivery</option>
             <option value="delivered">Delivered</option>

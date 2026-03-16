@@ -18,7 +18,7 @@ const FarmerOrders = () => {
   const statusOptions = [
     { value: 'PLACED', label: '📋 Placed', color: '#FFA500' },
     { value: 'CONFIRMED', label: '✅ Confirmed', color: '#4CAF50' },
-    { value: 'PREPARING', label: '👨‍🍳 Preparing', color: '#2196F3' },
+    { value: 'PACKED', label: '� Packed', color: '#2196F3' },
     { value: 'OUT_FOR_DELIVERY', label: '🚚 Out for Delivery', color: '#9C27B0' },
     { value: 'DELIVERED', label: '🎉 Delivered', color: '#8BC34A' },
     { value: 'CANCELLED', label: '❌ Cancelled', color: '#F44336' }
@@ -47,7 +47,7 @@ const FarmerOrders = () => {
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       setUpdatingOrderId(orderId)
-      const response = await orderAPI.updateOrderStatus(orderId, { status: newStatus })
+      const response = await orderAPI.updateOrderStatus(orderId, newStatus)
       if (response.data.success) {
         toast.success('Order status updated successfully')
         fetchOrders() // Refresh orders
@@ -87,8 +87,8 @@ const FarmerOrders = () => {
   const getNextStatus = (currentStatus) => {
     const statusFlow = {
       'PLACED': 'CONFIRMED',
-      'CONFIRMED': 'PREPARING',
-      'PREPARING': 'OUT_FOR_DELIVERY',
+      'CONFIRMED': 'PACKED',
+      'PACKED': 'OUT_FOR_DELIVERY',
       'OUT_FOR_DELIVERY': 'DELIVERED',
       'DELIVERED': null,
       'CANCELLED': null
@@ -97,7 +97,7 @@ const FarmerOrders = () => {
   }
 
   const canUpdate = (status) => {
-    return ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY'].includes(status)
+    return ['PLACED', 'CONFIRMED', 'PACKED', 'OUT_FOR_DELIVERY'].includes(status)
   }
 
   if (loading) {
