@@ -1,0 +1,283 @@
+/* Cart Summary Styles */
+.cart-summary {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 2rem;
+  max-height: fit-content;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.summary-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.clear-cart-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.clear-cart-btn:hover {
+  background-color: #f8d7da;
+}
+
+/* Empty Cart */
+.empty-cart {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.empty-cart-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-cart h4 {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.empty-cart p {
+  color: #999;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* Summary Content */
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.summary-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.summary-row span:first-child {
+  color: #666;
+}
+
+.summary-row span:last-child {
+  font-weight: 600;
+  color: #333;
+}
+
+.delivery-row {
+  position: relative;
+}
+
+.free-delivery {
+  background: #28a745;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
+
+.free-delivery-text {
+  color: #28a745 !important;
+}
+
+.delivery-tip {
+  background: #e8f5e8;
+  color: #2c7a2c;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Total */
+.summary-total {
+  padding: 1rem 0;
+  border-top: 2px solid #e1e5e9;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+}
+
+.total-row span:first-child {
+  font-weight: 600;
+  color: #333;
+}
+
+.total-amount {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2c7a2c;
+}
+
+/* Actions */
+.summary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+/* Trust Badges */
+.trust-badges {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid #e1e5e9;
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.badge-icon {
+  font-size: 1.2rem;
+}
+
+.badge-text {
+  font-size: 0.7rem;
+  color: #666;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Savings Info */
+.savings-info {
+  text-align: center;
+  padding: 0.75rem;
+  background: #d4edda;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.savings-message {
+  color: #155724;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .cart-summary {
+    position: static;
+    margin-top: 2rem;
+  }
+
+  .summary-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .trust-badges {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .badge {
+    min-width: 80px;
+  }
+
+  .checkout-btn {
+    font-size: 1rem;
+    padding: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-summary {
+    padding: 1rem;
+  }
+
+  .empty-cart {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .empty-cart-icon {
+    font-size: 2.5rem;
+  }
+
+  .summary-row {
+    font-size: 0.9rem;
+  }
+
+  .total-row {
+    font-size: 1rem;
+  }
+
+  .total-amount {
+    font-size: 1.2rem;
+  }
+
+  .checkout-btn {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  .trust-badges {
+    gap: 0.25rem;
+  }
+
+  .badge-text {
+    font-size: 0.65rem;
+  }
+
+  .delivery-tip {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  .savings-message {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+}

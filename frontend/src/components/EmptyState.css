@@ -1,0 +1,451 @@
+/* Empty State Styles */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Size Variants */
+.empty-state-small {
+  padding: 2rem 1.5rem;
+}
+
+.empty-state-medium {
+  padding: 3rem 2rem;
+}
+
+.empty-state-large {
+  padding: 4rem 3rem;
+}
+
+.empty-state-xlarge {
+  padding: 5rem 4rem;
+}
+
+/* Icon */
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.empty-state-small .empty-state-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-large .empty-state-icon {
+  font-size: 5rem;
+  margin-bottom: 2rem;
+}
+
+.empty-state-xlarge .empty-state-icon {
+  font-size: 6rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Title */
+.empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.empty-state-small .empty-state-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-large .empty-state-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-xlarge .empty-state-title {
+  font-size: 2rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Description */
+.empty-state-description {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+  max-width: 400px;
+}
+
+.empty-state-small .empty-state-description {
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  max-width: 300px;
+}
+
+.empty-state-large .empty-state-description {
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+  max-width: 500px;
+}
+
+.empty-state-xlarge .empty-state-description {
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  max-width: 600px;
+}
+
+/* Action */
+.empty-state-action {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Card Empty State */
+.empty-state-card {
+  background: #f8f9fa;
+  border: 2px dashed #e1e5e9;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.empty-state-card .empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-card .empty-state-title {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-card .empty-state-description {
+  font-size: 0.9rem;
+  color: #999;
+  margin-bottom: 1.5rem;
+}
+
+/* Table Empty State */
+.empty-state-table {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 4rem 2rem;
+  margin: 2rem 0;
+}
+
+.empty-state-table .empty-state-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.empty-state-table .empty-state-title {
+  font-size: 1.3rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state-table .empty-state-description {
+  font-size: 0.95rem;
+  margin-bottom: 1.75rem;
+}
+
+/* Inline Empty State */
+.empty-state-inline {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.empty-state-inline .empty-state-icon {
+  font-size: 2rem;
+  margin-bottom: 0;
+  opacity: 0.6;
+}
+
+.empty-state-inline .empty-state-title {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.empty-state-inline .empty-state-description {
+  font-size: 0.85rem;
+  margin-bottom: 0;
+  max-width: none;
+}
+
+.empty-state-inline .empty-state-action {
+  justify-content: flex-start;
+  margin-top: 0.5rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .empty-state {
+    padding: 2rem 1.5rem;
+  margin: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .empty-state-small {
+    padding: 1.5rem 1rem;
+  }
+
+  .empty-state-medium {
+    padding: 2rem 1.5rem;
+  }
+
+  .empty-state-large {
+    padding: 2.5rem 2rem;
+  }
+
+  .empty-state-xlarge {
+    padding: 3rem 2rem;
+  }
+
+  .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state-small .empty-state-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-state-large .empty-state-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .empty-state-xlarge .empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .empty-state-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state-small .empty-state-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .empty-state-large .empty-state-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-state-xlarge .empty-state-title {
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state-description {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    max-width: 300px;
+  }
+
+  .empty-state-small .empty-state-description {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    max-width: 250px;
+  }
+
+  .empty-state-large .empty-state-description {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    max-width: 350px;
+  }
+
+  .empty-state-xlarge .empty-state-description {
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+    max-width: 400px;
+  }
+
+  .empty-state-action {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .empty-state-card {
+    padding: 1.5rem;
+  }
+
+  .empty-state-table {
+    padding: 3rem 1.5rem;
+    margin: 1rem 0;
+  }
+
+  .empty-state-table .empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state-table .empty-state-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state-table .empty-state-description {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .empty-state-inline {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .empty-state-inline .empty-state-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state-inline .empty-state-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .empty-state-inline .empty-state-description {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-state-inline .empty-state-action {
+    justify-content: center;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .empty-state {
+    padding: 1.5rem 1rem;
+    margin: 0.5rem;
+  }
+
+  .empty-state-small {
+    padding: 1rem 0.75rem;
+  }
+
+  .empty-state-medium {
+    padding: 1.5rem 1rem;
+  }
+
+  .empty-state-large {
+    padding: 2rem 1.5rem;
+  }
+
+  .empty-state-xlarge {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-state-small .empty-state-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state-large .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state-xlarge .empty-state-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .empty-state-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .empty-state-small .empty-state-title {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .empty-state-large .empty-state-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .empty-state-xlarge .empty-state-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .empty-state-description {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    max-width: 250px;
+  }
+
+  .empty-state-small .empty-state-description {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    max-width: 200px;
+  }
+
+  .empty-state-large .empty-state-description {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    max-width: 280px;
+  }
+
+  .empty-state-xlarge .empty-state-description {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    max-width: 320px;
+  }
+
+  .empty-state-card {
+    padding: 1rem;
+  }
+
+  .empty-state-table {
+    padding: 2rem 1rem;
+    margin: 0.5rem 0;
+  }
+
+  .empty-state-table .empty-state-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-state-table .empty-state-title {
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .empty-state-table .empty-state-description {
+    font-size: 0.8rem;
+    margin-bottom: 1.25rem;
+  }
+}

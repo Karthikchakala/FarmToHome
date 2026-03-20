@@ -1,0 +1,23 @@
+/* App Layout Styles */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  padding-top: 0; /* Header is fixed, so no padding needed */
+}
+
+/* Ensure footer stays at bottom */
+.footer {
+  margin-top: auto;
+}

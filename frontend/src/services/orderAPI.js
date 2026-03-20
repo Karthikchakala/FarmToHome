@@ -1,0 +1,31 @@
+import api from './api'
+
+// Order API calls
+export const orderAPI = {
+  // Place new order
+  placeOrder: (orderData) => {
+    return api.post('/orders', orderData)
+  },
+
+  // Get user orders
+  getOrders: (params = {}) => {
+    return api.get('/orders', { params })
+  },
+
+  // Get order by ID
+  getOrderById: (orderId) => {
+    return api.get(`/orders/${orderId}`)
+  },
+
+  // Cancel order
+  cancelOrder: (orderId, reason) => {
+    return api.delete(`/orders/${orderId}/cancel`, { data: { reason } })
+  },
+
+  // Update order status (for farmers/admins)
+  updateOrderStatus: (orderId, status, notes) => {
+    return api.put(`/orders/${orderId}/status`, { status, notes })
+  }
+}
+
+export default orderAPI

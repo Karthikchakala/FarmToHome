@@ -1,0 +1,447 @@
+/* Review Form Component Styles */
+.review-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* Header */
+.review-form-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.review-form-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.farmer-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #2c7a2c;
+}
+
+.order-number {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Form Content */
+.review-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Rating Section */
+.rating-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.rating-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.rating-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  text-align: center;
+}
+
+/* Comment Section */
+.comment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comment-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.comment-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #2c7a2c;
+  box-shadow: 0 0 0 3px rgba(44, 122, 44, 0.1);
+}
+
+.comment-textarea.error {
+  border-color: #dc3545;
+}
+
+.comment-textarea.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.comment-hint {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: right;
+}
+
+/* Error Message */
+.error-message {
+  padding: 0.75rem;
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-actions .btn {
+  min-width: 120px;
+}
+
+/* Footer */
+.review-form-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e1e5e9;
+}
+
+.review-guidelines {
+  text-align: center;
+}
+
+.review-guidelines h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 0.75rem;
+}
+
+.review-guidelines ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.review-guidelines li {
+  font-size: 0.85rem;
+  color: #666;
+  padding: 0.25rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.review-guidelines li::before {
+  content: '•';
+  color: #2c7a2c;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .review-form {
+    padding: 1rem;
+  }
+
+  .review-form-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .order-info {
+    gap: 0.2rem;
+  }
+
+  .farmer-name {
+    font-size: 1rem;
+  }
+
+  .order-number {
+    font-size: 0.85rem;
+  }
+
+  .rating-label {
+    font-size: 1rem;
+  }
+
+  .rating-text {
+    font-size: 0.9rem;
+  }
+
+  .comment-label {
+    font-size: 0.9rem;
+  }
+
+  .comment-textarea {
+    font-size: 0.9rem;
+    padding: 0.65rem;
+  }
+
+  .comment-hint {
+    font-size: 0.8rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .review-guidelines ul {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .review-guidelines li {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-form {
+    padding: 0.75rem;
+  }
+
+  .review-form-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .farmer-name {
+    font-size: 0.95rem;
+  }
+
+  .order-number {
+    font-size: 0.8rem;
+  }
+
+  .rating-label {
+    font-size: 0.95rem;
+  }
+
+  .rating-text {
+    font-size: 0.85rem;
+  }
+
+  .comment-label {
+    font-size: 0.85rem;
+  }
+
+  .comment-textarea {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+
+  .comment-hint {
+    font-size: 0.75rem;
+  }
+
+  .review-form-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .review-guidelines h4 {
+    font-size: 0.9rem;
+  }
+
+  .review-guidelines li {
+    font-size: 0.75rem;
+  }
+}
+
+/* Loading State */
+.review-form.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Success State */
+.review-form.success {
+  border: 2px solid #28a745;
+  background: #d4edda;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .review-form {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .review-form-header h3 {
+    color: #e2e8f0;
+  }
+
+  .farmer-name {
+    color: #68d391;
+  }
+
+  .order-number {
+    color: #a0aec0;
+  }
+
+  .rating-label {
+    color: #e2e8f0;
+  }
+
+  .rating-text {
+    color: #a0aec0;
+  }
+
+  .comment-label {
+    color: #e2e8f0;
+  }
+
+  .comment-textarea {
+    background: #4a5568;
+    border-color: #718096;
+    color: #e2e8f0;
+  }
+
+  .comment-textarea:focus {
+    border-color: #68d391;
+    box-shadow: 0 0 0 3px rgba(104, 211, 145, 0.1);
+  }
+
+  .comment-hint {
+    color: #a0aec0;
+  }
+
+  .error-message {
+    background: #742a2a;
+    color: #fc8181;
+    border-color: #9b2c2c;
+  }
+
+  .review-form-footer {
+    border-color: #4a5568;
+  }
+
+  .review-guidelines h4 {
+    color: #a0aec0;
+  }
+
+  .review-guidelines li {
+    color: #a0aec0;
+  }
+
+  .review-guidelines li::before {
+    color: #68d391;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .review-form {
+    border: 2px solid #000;
+  }
+
+  .comment-textarea {
+    border: 2px solid #000;
+  }
+
+  .comment-textarea:focus {
+    border-color: #000;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .error-message {
+    border: 2px solid #000;
+  }
+
+  .review-form-footer {
+    border-color: #000;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .comment-textarea {
+    transition: none;
+  }
+
+  .review-form {
+    transition: none;
+  }
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.review-form {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Focus Management */
+.review-form:focus-within {
+  outline: none;
+}
+
+/* Accessibility */
+.review-form[aria-label] {
+  position: relative;
+}
+
+.review-form::before {
+  content: attr(aria-label);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

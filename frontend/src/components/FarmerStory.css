@@ -1,0 +1,305 @@
+/* Farmer Stories Section Styles */
+.farmer-stories-section {
+  padding: 5rem 0;
+  background: white;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c7a2c;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.stories-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+.farmer-story {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 3rem;
+  align-items: center;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 16px;
+  position: relative;
+}
+
+.farmer-story.reverse {
+  direction: rtl;
+}
+
+.farmer-story.reverse > * {
+  direction: ltr;
+}
+
+.farmer-image {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.farmer-avatar {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c8 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-emoji {
+  font-size: 3rem;
+}
+
+.farm-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge.organic {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.verified {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.farmer-content {
+  padding: 1rem;
+}
+
+.farmer-header {
+  margin-bottom: 1.5rem;
+}
+
+.farmer-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.farm-name {
+  font-size: 1.1rem;
+  color: #2c7a2c;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.farmer-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stars {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.rating-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.farmer-story-text {
+  position: relative;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.story-quote {
+  font-size: 3rem;
+  color: #2c7a2c;
+  line-height: 1;
+  font-family: Georgia, serif;
+  opacity: 0.3;
+  position: absolute;
+}
+
+.story-quote:first-child {
+  top: -10px;
+  left: -1rem;
+}
+
+.story-quote:last-child {
+  bottom: -30px;
+  right: -1rem;
+}
+
+.story-content {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #555;
+  font-style: italic;
+  margin: 0 1rem;
+}
+
+.farmer-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c7a2c;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.farmer-location {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.location-icon {
+  font-size: 1rem;
+}
+
+.section-footer {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .farmer-stories-section {
+    padding: 3rem 0;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+  }
+
+  .stories-container {
+    gap: 2rem;
+  }
+
+  .farmer-story {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 1.5rem;
+  }
+
+  .farmer-story.reverse {
+    direction: ltr;
+  }
+
+  .farmer-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .avatar-emoji {
+    font-size: 2.5rem;
+  }
+
+  .farmer-name {
+    font-size: 1.3rem;
+  }
+
+  .farm-name {
+    font-size: 1rem;
+  }
+
+  .story-content {
+    font-size: 1rem;
+  }
+
+  .farmer-stats {
+    gap: 1.5rem;
+  }
+
+  .stat-number {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .farmer-story {
+    padding: 1rem;
+  }
+
+  .farmer-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .avatar-emoji {
+    font-size: 2rem;
+  }
+
+  .farmer-name {
+    font-size: 1.2rem;
+  }
+
+  .story-content {
+    font-size: 0.95rem;
+  }
+
+  .farmer-stats {
+    gap: 1rem;
+  }
+
+  .stat-number {
+    font-size: 1.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+}

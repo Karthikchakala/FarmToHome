@@ -1,0 +1,264 @@
+/* Loading Spinner Styles */
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  z-index: 9999;
+}
+
+.spinner {
+  display: inline-block;
+  position: relative;
+}
+
+/* Size Variants */
+.spinner-small {
+  width: 20px;
+  height: 20px;
+}
+
+.spinner-medium {
+  width: 40px;
+  height: 40px;
+}
+
+.spinner-large {
+  width: 60px;
+  height: 60px;
+}
+
+.spinner-xlarge {
+  width: 80px;
+  height: 80px;
+}
+
+/* Color Variants */
+.spinner-primary .spinner-circle {
+  border-color: #2c7a2c transparent transparent transparent;
+}
+
+.spinner-secondary .spinner-circle {
+  border-color: #6c757d transparent transparent transparent;
+}
+
+.spinner-success .spinner-circle {
+  border-color: #28a745 transparent transparent transparent;
+}
+
+.spinner-danger .spinner-circle {
+  border-color: #dc3545 transparent transparent transparent;
+}
+
+.spinner-warning .spinner-circle {
+  border-color: #ffc107 transparent transparent transparent;
+}
+
+.spinner-info .spinner-circle {
+  border-color: #17a2b8 transparent transparent transparent;
+}
+
+.spinner-light .spinner-circle {
+  border-color: #f8f9fa transparent transparent transparent;
+}
+
+.spinner-dark .spinner-circle {
+  border-color: #343a40 transparent transparent transparent;
+}
+
+/* Spinning Animation */
+.spinner-circle {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  border: 3px solid;
+  border-radius: 50%;
+  animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: currentColor transparent transparent transparent;
+}
+
+.spinner-circle:nth-child(1) {
+  animation-delay: -0.45s;
+}
+
+.spinner-circle:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.spinner-circle:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Text Styles */
+.spinner-text {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  text-align: center;
+}
+
+.spinner-overlay .spinner-text {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Inline Spinner */
+.spinner-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner-inline .spinner {
+  width: 16px;
+  height: 16px;
+}
+
+.spinner-inline .spinner-circle {
+  border-width: 2px;
+}
+
+.spinner-inline .spinner-text {
+  font-size: 0.85rem;
+  margin: 0;
+  color: inherit;
+}
+
+/* Button Spinner */
+.btn-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-spinner .spinner {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-spinner .spinner-circle {
+  border-width: 2px;
+  border-color: white transparent transparent transparent;
+}
+
+/* Card Spinner */
+.card-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.card-spinner .spinner {
+  width: 32px;
+  height: 32px;
+}
+
+.card-spinner .spinner-circle {
+  border-width: 3px;
+}
+
+/* Table Spinner */
+.table-spinner {
+  padding: 2rem;
+  text-align: center;
+}
+
+.table-spinner .spinner {
+  margin: 0 auto;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .spinner-container {
+    padding: 1.5rem;
+  }
+
+  .spinner-text {
+    font-size: 0.85rem;
+  }
+
+  .spinner-overlay .spinner-text {
+    font-size: 0.95rem;
+  }
+
+  .spinner-small {
+    width: 16px;
+    height: 16px;
+  }
+
+  .spinner-medium {
+    width: 32px;
+    height: 32px;
+  }
+
+  .spinner-large {
+    width: 48px;
+    height: 48px;
+  }
+
+  .spinner-xlarge {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .spinner-container {
+    padding: 1rem;
+  }
+
+  .spinner-text {
+    font-size: 0.8rem;
+  }
+
+  .spinner-overlay .spinner-text {
+    font-size: 0.9rem;
+  }
+
+  .spinner-small {
+    width: 14px;
+    height: 14px;
+  }
+
+  .spinner-medium {
+    width: 28px;
+    height: 28px;
+  }
+
+  .spinner-large {
+    width: 40px;
+    height: 40px;
+  }
+
+  .spinner-xlarge {
+    width: 56px;
+    height: 56px;
+  }
+}

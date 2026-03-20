@@ -1,0 +1,564 @@
+/* Input Component Styles */
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: fit-content;
+}
+
+.input-container-small {
+  gap: 0.375rem;
+}
+
+.input-container-medium {
+  gap: 0.5rem;
+}
+
+.input-container-large {
+  gap: 0.625rem;
+}
+
+.input-container-full-width {
+  width: 100%;
+}
+
+/* Input Label */
+.input-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.input-container-small .input-label {
+  font-size: 0.8rem;
+}
+
+.input-container-medium .input-label {
+  font-size: 0.9rem;
+}
+
+.input-container-large .input-label {
+  font-size: 1rem;
+}
+
+.input-required {
+  color: #dc3545;
+  font-size: 0.8em;
+}
+
+/* Input Wrapper */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Input Field */
+.input {
+  width: 100%;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #333;
+  background: white;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #2c7a2c;
+  box-shadow: 0 0 0 3px rgba(44, 122, 44, 0.1);
+}
+
+.input:hover:not(:disabled):not(.input-disabled) {
+  border-color: #adb5bd;
+}
+
+.input:disabled,
+.input-disabled {
+  background: #f8f9fa;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.input:disabled:hover,
+.input-disabled:hover {
+  border-color: #e1e5e9;
+}
+
+.input-error {
+  border-color: #dc3545;
+}
+
+.input-error:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+/* Input Variants */
+.input-outlined {
+  background: transparent;
+  border: 2px solid #e1e5e9;
+}
+
+.input-outlined:focus {
+  background: white;
+  border-color: #2c7a2c;
+  box-shadow: 0 0 0 3px rgba(44, 122, 44, 0.1);
+}
+
+.input-filled {
+  background: #f8f9fa;
+  border: 2px solid transparent;
+}
+
+.input-filled:focus {
+  background: white;
+  border-color: #2c7a2c;
+  box-shadow: 0 0 0 3px rgba(44, 122, 44, 0.1);
+}
+
+.input-standard {
+  border: none;
+  border-bottom: 2px solid #e1e5e9;
+  border-radius: 0;
+  background: transparent;
+}
+
+.input-standard:focus {
+  border-bottom-color: #2c7a2c;
+  box-shadow: none;
+}
+
+.input-standard:hover:not(:disabled):not(.input-disabled) {
+  border-bottom-color: #adb5bd;
+}
+
+/* Input Sizes */
+.input-small {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  min-height: 36px;
+}
+
+.input-medium {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  min-height: 44px;
+}
+
+.input-large {
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  min-height: 52px;
+}
+
+.input-xlarge {
+  padding: 1.25rem 1.5rem;
+  font-size: 1.1rem;
+  min-height: 60px;
+}
+
+/* Input with Icons */
+.input-with-start-icon {
+  padding-left: 2.5rem;
+}
+
+.input-with-end-icon {
+  padding-right: 2.5rem;
+}
+
+.input-with-start-icon.input-small {
+  padding-left: 2rem;
+}
+
+.input-with-end-icon.input-small {
+  padding-right: 2rem;
+}
+
+.input-with-start-icon.input-medium {
+  padding-left: 2.5rem;
+}
+
+.input-with-end-icon.input-medium {
+  padding-right: 2.5rem;
+}
+
+.input-with-start-icon.input-large {
+  padding-left: 3rem;
+}
+
+.input-with-end-icon.input-large {
+  padding-right: 3rem;
+}
+
+.input-with-start-icon.input-xlarge {
+  padding-left: 3.5rem;
+}
+
+.input-with-end-icon.input-xlarge {
+  padding-right: 3.5rem;
+}
+
+/* Input Icons */
+.input-icon {
+  position: absolute;
+  color: #666;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.input-start-icon {
+  left: 0.75rem;
+}
+
+.input-end-icon {
+  right: 0.75rem;
+}
+
+.input-small .input-start-icon {
+  left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.input-small .input-end-icon {
+  right: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.input-medium .input-start-icon {
+  left: 0.75rem;
+  font-size: 1rem;
+}
+
+.input-medium .input-end-icon {
+  right: 0.75rem;
+  font-size: 1rem;
+}
+
+.input-large .input-start-icon {
+  left: 1rem;
+  font-size: 1.1rem;
+}
+
+.input-large .input-end-icon {
+  right: 1rem;
+  font-size: 1.1rem;
+}
+
+.input-xlarge .input-start-icon {
+  left: 1.25rem;
+  font-size: 1.2rem;
+}
+
+.input-xlarge .input-end-icon {
+  right: 1.25rem;
+  font-size: 1.2rem;
+}
+
+/* Input Helper Text */
+.input-helper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.input-helper-text {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.3;
+}
+
+.input-error-text {
+  font-size: 0.8rem;
+  color: #dc3545;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+/* Input Full Width */
+.input-full-width {
+  width: 100%;
+}
+
+.input-container-full-width {
+  width: 100%;
+}
+
+/* Textarea Specific Styles */
+.input[type="textarea"],
+textarea.input {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.input[type="textarea"].small,
+textarea.input.small {
+  min-height: 40px;
+}
+
+.input[type="textarea"].medium,
+textarea.input.medium {
+  min-height: 60px;
+}
+
+.input[type="textarea"].large,
+textarea.input.large {
+  min-height: 120px;
+}
+
+.input[type="textarea"].xlarge,
+textarea.input.xlarge {
+  min-height: 160px;
+}
+
+/* Search Input */
+.input[type="search"].input {
+  padding-left: 1rem;
+  border-radius: 24px;
+}
+
+.input[type="search"].input-with-start-icon {
+  padding-left: 2.5rem;
+  border-radius: 24px;
+}
+
+.input[type="search"].input-small {
+  padding-left: 0.75rem;
+  border-radius: 18px;
+}
+
+.input[type="search"].input-small.input-with-start-icon {
+  padding-left: 2rem;
+  border-radius: 18px;
+}
+
+.input[type="search"].input-large {
+  padding-left: 1.25rem;
+  border-radius: 30px;
+}
+
+.input[type="search"].input-large.input-with-start-icon {
+  padding-left: 3rem;
+  border-radius: 30px;
+}
+
+/* Number Input */
+.input[type="number"].input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.input[type="number"].input::-webkit-outer-spin-button,
+.input[type="number"].input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input[type="number"].input::-moz-number-spin-box {
+  -moz-appearance: textfield;
+}
+
+/* Password Input */
+.input[type="password"].input {
+  font-family: monospace;
+}
+
+/* Date Input */
+.input[type="date"].input,
+.input[type="time"].input,
+.input[type="datetime-local"].input {
+  cursor: pointer;
+}
+
+/* File Input */
+.input[type="file"].input {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border: 2px dashed #e1e5e9;
+  background: #f8f9fa;
+}
+
+.input[type="file"].input:hover {
+  border-color: #2c7a2c;
+  background: #e8f5e8;
+}
+
+/* Checkbox and Radio */
+.input[type="checkbox"].input,
+.input[type="radio"].input {
+  width: auto;
+  height: auto;
+  min-height: auto;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .input-container {
+    gap: 0.375rem;
+  }
+
+  .input-label {
+    font-size: 0.85rem;
+  }
+
+  .input-small {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  .input-medium {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+
+  .input-large {
+    padding: 0.875rem 1.125rem;
+    font-size: 0.95rem;
+    min-height: 48px;
+  }
+
+  .input-xlarge {
+    padding: 1rem 1.375rem;
+    font-size: 1rem;
+    min-height: 56px;
+  }
+
+  .input-with-start-icon.input-small {
+    padding-left: 1.75rem;
+  }
+
+  .input-with-end-icon.input-small {
+    padding-right: 1.75rem;
+  }
+
+  .input-with-start-icon.input-medium {
+    padding-left: 2.25rem;
+  }
+
+  .input-with-end-icon.input-medium {
+    padding-right: 2.25rem;
+  }
+
+  .input-with-start-icon.input-large {
+    padding-left: 2.75rem;
+  }
+
+  .input-with-end-icon.input-large {
+    padding-right: 2.75rem;
+  }
+
+  .input-with-start-icon.input-xlarge {
+    padding-left: 3.25rem;
+  }
+
+  .input-with-end-icon.input-xlarge {
+    padding-right: 3.25rem;
+  }
+
+  .input-start-icon {
+    left: 0.5rem;
+  }
+
+  .input-end-icon {
+    right: 0.5rem;
+  }
+
+  .input-helper-text,
+  .input-error-text {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-container {
+    gap: 0.25rem;
+  }
+
+  .input-label {
+    font-size: 0.8rem;
+  }
+
+  .input-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    min-height: 28px;
+  }
+
+  .input-medium {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+
+  .input-large {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+  }
+
+  .input-xlarge {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+    min-height: 52px;
+  }
+
+  .input-with-start-icon.input-small {
+    padding-left: 1.5rem;
+  }
+
+  .input-with-end-icon.input-small {
+    padding-right: 1.5rem;
+  }
+
+  .input-with-start-icon.input-medium {
+    padding-left: 2rem;
+  }
+
+  .input-with-end-icon.input-medium {
+    padding-right: 2rem;
+  }
+
+  .input-with-start-icon.input-large {
+    padding-left: 2.5rem;
+  }
+
+  .input-with-end-icon.input-large {
+    padding-right: 2.5rem;
+  }
+
+  .input-with-start-icon.input-xlarge {
+    padding-left: 3rem;
+  }
+
+  .input-with-end-icon.input-xlarge {
+    padding-right: 3rem;
+  }
+
+  .input-start-icon {
+    left: 0.375rem;
+  }
+
+  .input-end-icon {
+    right: 0.375rem;
+  }
+
+  .input-helper-text,
+  .input-error-text {
+    font-size: 0.7rem;
+  }
+}

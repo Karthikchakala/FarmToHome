@@ -1,0 +1,417 @@
+/* Subscriptions Page Styles */
+.subscriptions {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 2rem 1rem;
+}
+
+/* Header */
+.subscriptions-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.subscriptions-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c7a2c;
+  margin-bottom: 0.5rem;
+}
+
+.subscriptions-header p {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+.stat-icon.status-active {
+  color: #28a745;
+}
+
+.stat-icon.status-paused {
+  color: #ffc107;
+}
+
+.stat-icon.status-cancelled {
+  color: #dc3545;
+}
+
+/* Filters Card */
+.filters-card {
+  margin-bottom: 2rem;
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.filters-header h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.filters-content {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.filter-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.filter-select {
+  padding: 0.5rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  color: #333;
+  transition: border-color 0.3s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #2c7a2c;
+  box-shadow: 0 0 0 3px rgba(44, 122, 44, 0.1);
+}
+
+/* Subscriptions List */
+.subscriptions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .subscriptions {
+    padding: 1rem 0.5rem;
+  }
+
+  .subscriptions-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .subscriptions-header p {
+    font-size: 0.9rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .stat-icon {
+    font-size: 1.5rem;
+  }
+
+  .filters-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .filters-content {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .filter-group {
+    min-width: auto;
+  }
+
+  .subscriptions-list {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .subscriptions {
+    padding: 0.5rem;
+  }
+
+  .subscriptions-header {
+    margin-bottom: 1rem;
+  }
+
+  .subscriptions-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .subscriptions-header p {
+    font-size: 0.85rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-card {
+    padding: 0.75rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .stat-number {
+    font-size: 1.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .stat-icon {
+    font-size: 1.3rem;
+  }
+
+  .filters-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .filters-header h2 {
+    font-size: 1rem;
+  }
+
+  .filter-group {
+    gap: 0.25rem;
+  }
+
+  .filter-group label {
+    font-size: 0.8rem;
+  }
+
+  .filter-select {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .subscriptions-list {
+    gap: 0.5rem;
+  }
+}
+
+/* Loading State */
+.subscriptions.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+/* Error State */
+.subscriptions.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+/* Empty State */
+.subscriptions.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stats-grid,
+.filters-card,
+.subscriptions-list {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Hover Effects */
+.stat-card {
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .subscriptions {
+    background: #1a202c;
+  }
+
+  .subscriptions-header h1 {
+    color: #e2e8f0;
+  }
+
+  .subscriptions-header p {
+    color: #a0aec0;
+  }
+
+  .stat-card {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .stat-number {
+    color: #e2e8f0;
+  }
+
+  .stat-label {
+    color: #a0aec0;
+  }
+
+  .filters-card {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .filters-header h2 {
+    color: #e2e8f0;
+  }
+
+  .filter-group label {
+    color: #a0aec0;
+  }
+
+  .filter-select {
+    background: #4a5568;
+    border-color: #718096;
+    color: #e2e8f0;
+  }
+
+  .filter-select:focus {
+    border-color: #68d391;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .stat-card {
+    border: 2px solid #000;
+  }
+
+  .filters-card {
+    border: 2px solid #000;
+  }
+
+  .filter-select {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .stats-grid,
+  .filters-card,
+  .subscriptions-list {
+    animation: none;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
+
+  .stat-card:hover .stat-icon {
+    transform: none;
+  }
+}
