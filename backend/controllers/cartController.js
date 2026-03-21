@@ -23,20 +23,20 @@ const addToCart = async (req, res, next) => {
       });
     }
 
-    // Check if product exists and is available
-    const productResult = await query(
-      'SELECT _id, name, priceperunit, stockquantity, isavailable FROM products WHERE _id = $1 AND isavailable = true',
-      [productId]
-    );
+    // Check if product exists and is available using Supabase
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('_id, name, priceperunit, stockquantity, isavailable')
+      .eq('_id', productId)
+      .eq('isavailable', true)
+      .single();
 
-    if (productResult.rows.length === 0) {
+    if (productError || !product) {
       return res.status(404).json({
         success: false,
         error: 'Product not found or not available'
       });
     }
-
-    const product = productResult.rows[0];
 
     // Check if requested quantity is available
     if (product.stockquantity < quantity) {
@@ -46,16 +46,18 @@ const addToCart = async (req, res, next) => {
       });
     }
 
-    // Check if item already exists in cart
-    const existingItemResult = await query(
-      'SELECT quantity FROM cart WHERE userid = $1 AND productid = $2',
-      [userId, productId]
-    );
+    // Check if item already exists in cart using Supabase
+    const { data: existingItem, error: existingError } = await supabase
+      .from('cart')
+      .select('quantity')
+      .eq('userid', userId)
+      .eq('productid', productId)
+      .single();
 
     let result;
-    if (existingItemResult.rows.length > 0) {
+    if (existingItem) {
       // Update existing quantity
-      const newQuantity = existingItemResult.rows[0].quantity + quantity;
+      const newQuantity = existingItem.quantity + quantity;
       
       // Check stock again
       if (product.stockquantity < newQuantity) {
@@ -65,30 +67,49 @@ const addToCart = async (req, res, next) => {
         });
       }
 
-      result = await query(
-        'UPDATE cart SET quantity = $1, updatedat = CURRENT_TIMESTAMP WHERE userid = $2 AND productid = $3 RETURNING *',
-        [newQuantity, userId, productId]
-      );
+      const { data: updatedItem, error: updateError } = await supabase
+        .from('cart')
+        .update({ quantity: newQuantity, updatedat: new Date().toISOString() })
+        .eq('userid', userId)
+        .eq('productid', productId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+      result = updatedItem;
     } else {
-      // Add new item to cart
-      result = await query(
-        'INSERT INTO cart (userid, productid, quantity) VALUES ($1, $2, $3) RETURNING *',
-        [userId, productId, quantity]
-      );
+      // Add new item to cart using Supabase
+      const { data: newItem, error: insertError } = await supabase
+        .from('cart')
+        .insert({
+          userid: userId,
+          productid: productId,
+          quantity: quantity,
+          createdat: new Date().toISOString(),
+          updatedat: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      result = newItem;
     }
 
     logger.info(`Item added to cart: userId=${userId}, productId=${productId}, quantity=${quantity}`);
 
     res.status(200).json({
       success: true,
-      message: existingItemResult.rows.length > 0 ? 'Cart updated successfully' : 'Item added to cart',
+      message: existingItem ? 'Cart updated successfully' : 'Item added to cart',
       data: {
-        cartItem: result.rows[0]
+        cartItem: result
       }
     });
 
   } catch (error) {
     logger.error('Add to cart error:', error);
+    console.error('Cart error details:', error);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
     next(error);
   }
 };
@@ -165,6 +186,11 @@ const getCart = async (req, res, next) => {
       };
     });
 
+    // Calculate additional fees
+    const deliveryCharge = totalAmount > 0 ? 40 : 0; // ₹40 delivery charge if cart not empty
+    const platformCommission = totalAmount * 0.02; // 2% platform fee
+    const finalAmount = totalAmount + deliveryCharge + platformCommission;
+
     res.status(200).json({
       success: true,
       data: {
@@ -172,6 +198,9 @@ const getCart = async (req, res, next) => {
         summary: {
           totalItems,
           totalAmount,
+          deliveryCharge,
+          platformCommission,
+          finalAmount,
           itemCount: formattedItems.length
         }
       }
@@ -203,20 +232,19 @@ const updateCartItem = async (req, res, next) => {
       });
     }
 
-    // Check if product exists and get stock
-    const productResult = await query(
-      'SELECT stockquantity, isavailable FROM products WHERE _id = $1',
-      [productId]
-    );
+    // Check if product exists and get stock using Supabase
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('stockquantity, isavailable')
+      .eq('_id', productId)
+      .single();
 
-    if (productResult.rows.length === 0) {
+    if (productError || !product) {
       return res.status(404).json({
         success: false,
         error: 'Product not found'
       });
     }
-
-    const product = productResult.rows[0];
 
     if (!product.isavailable) {
       return res.status(400).json({
@@ -232,13 +260,16 @@ const updateCartItem = async (req, res, next) => {
       });
     }
 
-    // Update cart item
-    const result = await query(
-      'UPDATE cart SET quantity = $1, updatedat = CURRENT_TIMESTAMP WHERE userid = $2 AND productid = $3 RETURNING *',
-      [quantity, userId, productId]
-    );
+    // Update cart item using Supabase
+    const { data: result, error: updateError } = await supabase
+      .from('cart')
+      .update({ quantity: quantity, updatedat: new Date().toISOString() })
+      .eq('userid', userId)
+      .eq('productid', productId)
+      .select()
+      .single();
 
-    if (result.rows.length === 0) {
+    if (updateError || !result) {
       return res.status(404).json({
         success: false,
         error: 'Cart item not found'
@@ -251,7 +282,7 @@ const updateCartItem = async (req, res, next) => {
       success: true,
       message: 'Cart updated successfully',
       data: {
-        cartItem: result.rows[0]
+        cartItem: result
       }
     });
 
@@ -274,12 +305,16 @@ const removeFromCart = async (req, res, next) => {
       });
     }
 
-    const result = await query(
-      'DELETE FROM cart WHERE userid = $1 AND productid = $2 RETURNING *',
-      [userId, productId]
-    );
+    // Delete from cart using Supabase
+    const { data: result, error: deleteError } = await supabase
+      .from('cart')
+      .delete()
+      .eq('userid', userId)
+      .eq('productid', productId)
+      .select()
+      .single();
 
-    if (result.rows.length === 0) {
+    if (deleteError || !result) {
       return res.status(404).json({
         success: false,
         error: 'Cart item not found'
@@ -292,7 +327,7 @@ const removeFromCart = async (req, res, next) => {
       success: true,
       message: 'Item removed from cart',
       data: {
-        deletedItem: result.rows[0]
+        deletedItem: result
       }
     });
 
@@ -307,18 +342,25 @@ const clearCart = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
-    const result = await query(
-      'DELETE FROM cart WHERE userid = $1 RETURNING *',
-      [userId]
-    );
+    // Delete all cart items for user using Supabase
+    const { data: result, error: deleteError } = await supabase
+      .from('cart')
+      .delete()
+      .eq('userid', userId)
+      .select();
 
-    logger.info(`Cart cleared: userId=${userId}, itemsRemoved=${result.rows.length}`);
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    const itemsRemoved = result ? result.length : 0;
+    logger.info(`Cart cleared: userId=${userId}, itemsRemoved=${itemsRemoved}`);
 
     res.status(200).json({
       success: true,
       message: 'Cart cleared successfully',
       data: {
-        removedItems: result.rows.length
+        removedItems: itemsRemoved
       }
     });
 
@@ -333,18 +375,24 @@ const getCartSummary = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
-    const result = await query(
-      'SELECT COUNT(*) as item_count, COALESCE(SUM(quantity), 0) as total_items FROM cart WHERE userid = $1',
-      [userId]
-    );
+    // Get cart items count using Supabase
+    const { data: cartItems, error } = await supabase
+      .from('cart')
+      .select('quantity')
+      .eq('userid', userId);
 
-    const summary = result.rows[0];
+    if (error) {
+      throw error;
+    }
+
+    const itemCount = cartItems ? cartItems.length : 0;
+    const totalItems = cartItems ? cartItems.reduce((sum, item) => sum + item.quantity, 0) : 0;
 
     res.status(200).json({
       success: true,
       data: {
-        itemCount: parseInt(summary.item_count),
-        totalItems: parseInt(summary.total_items)
+        itemCount: itemCount,
+        totalItems: totalItems
       }
     });
 

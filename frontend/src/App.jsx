@@ -1,7 +1,9 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { useState, useContext, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -27,6 +29,7 @@ import FarmerDashboard from './pages/farmer/FarmerDashboard'
 import ProductManagement from './pages/farmer/ProductManagement'
 import StockManagement from './pages/farmer/StockManagement'
 import OrderManagement from './pages/farmer/OrderManagement'
+import FarmerOrders from './pages/farmer/FarmerOrders'
 import SubscriptionManagement from './pages/farmer/SubscriptionManagement'
 import ReviewManagement from './pages/farmer/ReviewManagement'
 import Analytics from './pages/farmer/Analytics'
@@ -92,8 +95,10 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
           <Route path="/contact" element={<Contact />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/orders" element={<Orders />} />
+          <Route path="/checkout" element={<Navigate to="/customer/checkout" replace />} />
+          <Route path="/customer/checkout" element={<Checkout />} />
+          <Route path="/orders" element={<Navigate to="/customer/orders" replace />} />
+          <Route path="/customer/orders" element={<Orders />} />
           <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/chat" element={<Chat />} />
           
@@ -128,7 +133,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
               <Route path="/farmer/products/new" element={<ProductManagement />} />
               <Route path="/farmer/products/edit/:id" element={<ProductManagement />} />
               <Route path="/farmer/stock" element={<StockManagement />} />
-              <Route path="/farmer/orders" element={<OrderManagement />} />
+              <Route path="/farmer/orders" element={<FarmerOrders />} />
               <Route path="/farmer/orders/pending" element={<OrderManagement />} />
               <Route path="/farmer/subscriptions" element={<SubscriptionManagement />} />
               <Route path="/farmer/reviews" element={<ReviewManagement />} />
@@ -143,6 +148,17 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
         </Routes>
       </main>
       <Footer />
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   )
 }

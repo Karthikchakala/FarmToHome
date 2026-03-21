@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { productAPI } from '../../services/api'
+import { cartAPI } from '../../services/cartAPI'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import './CustomerProducts.css'
 
@@ -108,10 +109,13 @@ const CustomerProducts = () => {
       setError(null)
       
       const currentLocation = location || customerLocation
+      console.log('Loading products with location:', currentLocation)
+      
       let response
       
       if (currentLocation) {
         // Get nearby products based on customer location (5-7km radius)
+        console.log('Fetching nearby products...')
         response = await productAPI.getNearbyProducts({
           latitude: currentLocation.latitude,
           longitude: currentLocation.longitude,
@@ -119,10 +123,15 @@ const CustomerProducts = () => {
         })
       } else {
         // Fallback to all products if no location
+        console.log('Fetching all products...')
         response = await productAPI.getProducts()
       }
       
+      console.log('API Response:', response)
+      console.log('Response data:', response.data)
+      
       if (response.data.success) {
+        console.log('Products loaded:', response.data.data?.length || 0)
         setProducts(response.data.data || [])
       } else {
         setError('Failed to load products')
@@ -179,6 +188,37 @@ const CustomerProducts = () => {
     return `${distance.toFixed(1)} km`
   }
 
+  const [addedProducts, setAddedProducts] = useState({})
+  const [addingToCart, setAddingToCart] = useState({})
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+
+  const handleAddToCart = async (product) => {
+    try {
+      setAddingToCart(prev => ({ ...prev, [product._id]: true }))
+      
+      const response = await cartAPI.addToCart(product._id, 1)
+      
+      if (response.data.success) {
+        setAddedProducts(prev => ({ ...prev, [product._id]: true }))
+        setToastMessage(`✅ ${product.name} added to cart!`)
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 3000)
+      } else {
+        setToastMessage(`❌ Failed to add ${product.name} to cart`)
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 3000)
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      setToastMessage(`❌ ${error.response?.data?.message || 'Failed to add to cart'}`)
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 3000)
+    } finally {
+      setAddingToCart(prev => ({ ...prev, [product._id]: false }))
+    }
+  }
+
   if (loading) {
     return (
       <div className="customer-products">
@@ -201,8 +241,23 @@ const CustomerProducts = () => {
 
   return (
     <div className="customer-products">
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="toast-notification">
+          <div className="toast-message">{toastMessage}</div>
+        </div>
+      )}
+      
       <div className="page-header">
-        <h1>🥬 Products Near You</h1>
+        <div className="header-top">
+          <h1>🥬 Products Near You</h1>
+          <button 
+            onClick={() => window.location.href = '/customer/cart'}
+            className="btn btn-primary cart-btn"
+          >
+            🛒 Go to Cart
+          </button>
+        </div>
         <p>Discover fresh products from farmers within 7km radius</p>
         
         {/* Location Permission Status */}
@@ -352,14 +407,13 @@ const CustomerProducts = () => {
                   View Details
                 </Link>
                 <button 
-                  className="btn btn-primary"
-                  disabled={!product.isavailable}
-                  onClick={() => {
-                    // Add to cart functionality
-                    console.log('Add to cart:', product._id)
-                  }}
+                  className={`btn ${addedProducts[product._id] ? 'btn-success' : 'btn-primary'}`}
+                  disabled={!product.isavailable || addingToCart[product._id] || addedProducts[product._id]}
+                  onClick={() => handleAddToCart(product)}
                 >
-                  {product.isavailable ? 'Add to Cart' : 'Out of Stock'}
+                  {addingToCart[product._id] ? 'Adding...' : 
+                   addedProducts[product._id] ? '✅ Added to cart' : 
+                   (product.isavailable ? 'Add to Cart' : 'Out of Stock')}
                 </button>
               </div>
             </div>

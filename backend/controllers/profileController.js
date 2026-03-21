@@ -11,101 +11,158 @@ const {
   calculateDistance,
   isWithinRadius
 } = require('../utils/locationUtils');
+const supabase = require('../config/supabaseClient');
 
 // Get user profile
 const getUserProfile = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const userRole = req.user.role;
 
-  let profileQuery, profileData;
+  try {
+    let profileData;
 
-  if (userRole === 'consumer') {
-    profileQuery = `
-      SELECT 
-        u._id,
-        u.name,
-        u.email,
-        u.phone,
-        u.role,
-        c._id as consumer_id,
-        c.defaultaddress,
-        c.preferences,
-        c.createdat as consumer_created_at
-      FROM users u
-      LEFT JOIN consumers c ON u._id = c.userid
-      WHERE u._id = $1
-    `;
-  } else if (userRole === 'farmer') {
-    profileQuery = `
-      SELECT 
-        u._id,
-        u.name,
-        u.email,
-        u.phone,
-        u.role,
-        f._id as farmer_id,
-        f.farmname,
-        f.description,
-        f.farmingtype,
-        f.location,
-        f.latitude,
-        f.longitude,
-        f.deliveryradius,
-        f.isapproved,
-        f.verificationstatus,
-        f.ratingaverage,
-        f.createdat as farmer_created_at
-      FROM users u
-      LEFT JOIN farmers f ON u._id = f.userid
-      WHERE u._id = $1
-    `;
-  } else {
-    // Admin profile
-    profileQuery = `
-      SELECT 
-        _id,
-        name,
-        email,
-        phone,
-        role,
-        createdat
-      FROM users
-      WHERE _id = $1
-    `;
-  }
+    if (userRole === 'consumer') {
+      // Get consumer profile using Supabase
+      console.log('Fetching consumer profile for userId:', userId);
+      
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select(`
+          _id,
+          name,
+          email,
+          phone,
+          role,
+          createdat
+        `)
+        .eq('_id', userId)
+        .single();
 
-  const result = await query(profileQuery, [userId]);
+      if (userError) {
+        console.error('Error fetching user:', userError);
+        logger.error('Error fetching user profile:', userError);
+        throw new Error(`Failed to fetch user profile: ${userError.message}`);
+      }
 
-  if (result.rows.length === 0) {
-    throw new NotFoundError('User profile not found');
-  }
+      profileData = userData;
 
-  profileData = result.rows[0];
+      // Get consumer data separately
+      if (profileData) {
+        let { data: consumerData, error: consumerError } = await supabase
+          .from('consumers')
+          .select(`
+            _id,
+            defaultaddressstreet,
+            defaultaddresscity,
+            defaultaddressstate,
+            defaultaddresspostalcode,
+            defaultaddresslocation,
+            walletbalance,
+            totalorders,
+            createdat,
+            updatedat,
+            consumerid,
+            latitude,
+            longitude
+          `)
+          .eq('userid', userId)
+          .single();
 
-  // Parse location if exists
-  if (profileData.location) {
-    profileData.location = parseLocation(profileData.location);
-  }
+        console.log('Consumer data fetch result:', { data: consumerData, error: consumerError });
 
-  // Parse default address if exists
-  if (profileData.defaultaddress) {
-    try {
-      profileData.defaultaddress = JSON.parse(profileData.defaultaddress);
-    } catch (error) {
-      profileData.defaultaddress = null;
+        if (consumerError && consumerError.code !== 'PGRST116') {
+          console.error('Error fetching consumer data:', consumerError);
+          logger.error('Error fetching consumer data:', consumerError);
+          throw new Error(`Failed to fetch consumer data: ${consumerError.message}`);
+        }
+
+        // Reconstruct address object
+        if (consumerData) {
+          consumerData.defaultaddress = {
+            street: consumerData.defaultaddressstreet,
+            city: consumerData.defaultaddresscity,
+            state: consumerData.defaultaddressstate,
+            pincode: consumerData.defaultaddresspostalcode,
+            latitude: consumerData.latitude,
+            longitude: consumerData.longitude
+          };
+        } else {
+          // Create empty consumer data if none exists
+          consumerData = {
+            defaultaddress: {
+              street: null,
+              city: null,
+              state: null,
+              pincode: null,
+              latitude: null,
+              longitude: null
+            }
+          };
+        }
+
+        profileData.consumers = consumerData;
+      }
+
+    } else if (userRole === 'farmer') {
+      // Get farmer profile using Supabase
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select(`
+          *,
+          farmers!left(
+            _id as farmer_id,
+            farmname,
+            description,
+            farmingtype,
+            location,
+            latitude,
+            longitude,
+            deliveryradius,
+            isapproved,
+            verificationstatus,
+            ratingaverage,
+            createdat as farmer_created_at
+          )
+        `)
+        .eq('_id', userId)
+        .single();
+
+      if (userError) {
+        logger.error('Error fetching user profile:', userError);
+        throw new Error('Failed to fetch user profile');
+      }
+
+      profileData = userData;
+
+      // Parse location if exists
+      if (profileData.farmers?.location) {
+        profileData.farmers.location = parseLocation(profileData.farmers.location);
+      }
+
+    } else {
+      // Admin profile - just get user data
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('_id, name, email, phone, role, createdat')
+        .eq('_id', userId)
+        .single();
+
+      if (userError) {
+        logger.error('Error fetching user profile:', userError);
+        throw new Error('Failed to fetch user profile');
+      }
+
+      profileData = userData;
     }
-  }
 
-  // Parse preferences if exists
-  if (profileData.preferences) {
-    try {
-      profileData.preferences = JSON.parse(profileData.preferences);
-    } catch (error) {
-      profileData.preferences = null;
-    }
-  }
+    return responseHelper.success(res, profileData, 'Profile retrieved successfully');
 
-  return responseHelper.success(res, profileData, 'Profile retrieved successfully');
+  } catch (error) {
+    logger.error('Get user profile error:', error);
+    console.error('Profile API 500 Error:', error);
+    console.error('Error stack:', error.stack);
+    throw error;
+  }
 });
 
 // Update customer profile
@@ -113,19 +170,33 @@ const updateCustomerProfile = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { name, phone } = req.body;
 
-  // Update user basic info
-  const userUpdateQuery = `
-    UPDATE users 
-    SET name = COALESCE($1, name), 
-        phone = COALESCE($2, phone),
-        updatedat = CURRENT_TIMESTAMP
-    WHERE _id = $3
-    RETURNING *
-  `;
+  try {
+    // Update user basic info using Supabase
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .update({
+        name: name || undefined,
+        phone: phone || undefined,
+        updatedat: new Date().toISOString()
+      })
+      .eq('_id', userId)
+      .select()
+      .single();
 
-  await query(userUpdateQuery, [name, phone, userId]);
+    if (userError) {
+      logger.error('Error updating customer profile:', userError);
+      throw new Error('Failed to update customer profile');
+    }
 
-  return responseHelper.success(res, { message: 'Profile updated successfully' });
+    return responseHelper.success(res, { 
+      user: userData,
+      message: 'Profile updated successfully' 
+    });
+
+  } catch (error) {
+    logger.error('Update customer profile error:', error);
+    throw error;
+  }
 });
 
 // Update customer location
@@ -139,64 +210,118 @@ const updateCustomerLocation = asyncHandler(async (req, res) => {
   }
 
   // Validate address
-  const addressValidation = validateAddress(address);
+  const addressValidation = validateAddress({
+    home: address?.street || address?.home || null,
+    street: address?.street || null,
+    city: address?.city || null,
+    state: address?.state || null,
+    pincode: address?.pincode || null
+  });
   if (!addressValidation.isValid) {
     throw new ValidationError('Invalid address', addressValidation.errors);
   }
 
-  // Get current address
-  const currentAddressQuery = `
-    SELECT defaultaddress
-    FROM consumers
-    WHERE userid = $1
-  `;
+  try {
+    // Get current consumer profile
+    const { data: currentConsumer, error: fetchError } = await supabase
+      .from('consumers')
+      .select(`
+        defaultaddressstreet,
+        defaultaddresscity,
+        defaultaddressstate,
+        defaultaddresspostalcode,
+        latitude,
+        longitude
+      `)
+      .eq('userid', userId)
+      .single();
 
-  const currentAddressResult = await query(currentAddressQuery, [userId]);
+    console.log('Current consumer fetch:', { data: currentConsumer, error: fetchError });
 
-  if (currentAddressResult.rows.length === 0) {
-    throw new NotFoundError('Consumer profile not found');
-  }
-
-  let currentAddress = currentAddressResult.rows[0].defaultaddress;
-  
-  // Parse existing address or create new one
-  if (currentAddress) {
-    try {
-      currentAddress = JSON.parse(currentAddress);
-    } catch (error) {
-      currentAddress = {};
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      logger.error('Error fetching consumer profile:', fetchError);
+      throw new Error(`Failed to fetch consumer profile: ${fetchError.message}`);
     }
-  } else {
-    currentAddress = {};
-  }
 
-  // Update address with new location data
-  const updatedAddress = {
-    ...currentAddress,
-    ...address,
-    latitude: parseFloat(latitude),
-    longitude: parseFloat(longitude)
-  };
+    // Parse existing address or create new one
+    let currentAddress = {};
+    if (currentConsumer) {
+      currentAddress = {
+        street: currentConsumer.defaultaddressstreet,
+        city: currentConsumer.defaultaddresscity,
+        state: currentConsumer.defaultaddressstate,
+        pincode: currentConsumer.defaultaddresspostalcode,
+        latitude: currentConsumer.latitude,
+        longitude: currentConsumer.longitude
+      };
+    }
 
-  // Update consumer profile with location
-  const updateQuery = `
-    UPDATE consumers 
-    SET defaultaddress = $1, updatedat = CURRENT_TIMESTAMP
-    WHERE userid = $2
-    RETURNING *
-  `;
-
-  const result = await query(updateQuery, [JSON.stringify(updatedAddress), userId]);
-
-  logger.info(`Customer location updated: userId=${userId}, lat=${latitude}, lng=${longitude}`);
-
-  return responseHelper.success(res, {
-    location: {
+    // Update address with new location data
+    const updatedAddress = {
+      ...currentAddress,
+      street: address?.street || currentAddress.street,
+      city: address?.city || currentAddress.city,
+      state: address?.state || currentAddress.state,
+      pincode: address?.pincode || currentAddress.pincode,
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude)
-    },
-    address: updatedAddress
-  }, 'Location updated successfully');
+    };
+
+    // Update or create consumer profile with location
+    const { data: consumerData, error: updateError } = await supabase
+      .from('consumers')
+      .upsert({
+        userid: userId,
+        defaultaddressstreet: address?.street || null,
+        defaultaddresscity: address?.city || null,
+        defaultaddressstate: address?.state || null,
+        defaultaddresspostalcode: address?.pincode || null,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        updatedat: new Date().toISOString()
+      }, { onConflict: 'userid' })  // Specify conflict column
+      .select(`
+        _id,
+        defaultaddressstreet,
+        defaultaddresscity,
+        defaultaddressstate,
+        defaultaddresspostalcode,
+        latitude,
+        longitude,
+        createdat,
+        updatedat
+      `)
+      .single();
+
+    if (updateError) {
+      logger.error('Error updating customer location:', updateError);
+      console.error('Profile update error:', updateError);
+      console.error('Error message:', updateError.message);
+      console.error('Error details:', updateError.details);
+      throw new Error(`Failed to update customer location: ${updateError.message}`);
+    }
+
+    logger.info(`Customer location updated: userId=${userId}, lat=${latitude}, lng=${longitude}`);
+
+    return responseHelper.success(res, {
+      location: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      },
+      address: {
+        street: address?.street,
+        city: address?.city,
+        state: address?.state,
+        pincode: address?.pincode
+      },
+      consumer: consumerData,
+      message: 'Location updated successfully'
+    });
+
+  } catch (error) {
+    logger.error('Update customer location error:', error);
+    throw error;
+  }
 });
 
 // Update farmer profile
@@ -221,55 +346,71 @@ const updateFarmerProfile = asyncHandler(async (req, res) => {
     throw new ValidationError('Invalid farming type');
   }
 
-  // Update user basic info
-  const userUpdateQuery = `
-    UPDATE users 
-    SET name = COALESCE($1, name), 
-        phone = COALESCE($2, phone),
-        updatedat = CURRENT_TIMESTAMP
-    WHERE _id = $3
-    RETURNING *
-  `;
+  try {
+    // Update user basic info using Supabase
+    const userUpdateData = {};
+    if (name) userUpdateData.name = name;
+    if (phone) userUpdateData.phone = phone;
+    userUpdateData.updatedat = new Date().toISOString();
 
-  await query(userUpdateQuery, [name, phone, userId]);
+    console.log('Updating user with data:', userUpdateData);
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .update(userUpdateData)
+      .eq('_id', userId)
+      .select()
+      .single();
 
-  // Update farmer profile
-  const farmerUpdateQuery = `
-    UPDATE farmers 
-    SET 
-      farmname = COALESCE($1, farmname),
-      description = COALESCE($2, description),
-      farmingtype = COALESCE($3, farmingtype),
-      location = COALESCE($4, location),
-      latitude = COALESCE($5, latitudeValue),
-      longitude = COALESCE($6, longitudeValue),
-      deliveryradius = COALESCE($7, deliveryradius),
-      updatedat = CURRENT_TIMESTAMP
-    WHERE userid = $8
-    RETURNING *
-  `;
+    if (userError) {
+      console.error('Error updating user:', userError);
+      logger.error('Error updating user:', userError);
+      throw new Error(`Failed to update user profile: ${userError.message}`);
+    }
 
-  const locationObject = location ? createLocationObject(location.latitude, location.longitude) : null;
-  const latitudeValue = location && location.latitude ? parseFloat(location.latitude) : null;
-  const longitudeValue = location && location.longitude ? parseFloat(location.longitude) : null;
+    // Update farmer profile using Supabase
+    const farmerUpdateData = {};
+    if (farmname) farmerUpdateData.farmname = farmname;
+    if (description) farmerUpdateData.description = description;
+    if (farmingtype) farmerUpdateData.farmingtype = farmingtype;
+    if (deliveryradius) farmerUpdateData.deliveryradius = deliveryradius;
+    
+    // Handle location data
+    if (location && location.latitude && location.longitude) {
+      // Only store latitude and longitude, skip the location field for now
+      farmerUpdateData.latitude = parseFloat(location.latitude);
+      farmerUpdateData.longitude = parseFloat(location.longitude);
+    }
+    
+    farmerUpdateData.updatedat = new Date().toISOString();
 
-  const farmerResult = await query(farmerUpdateQuery, [
-    farmname,
-    description,
-    farmingtype,
-    locationObject,
-    latitudeValue,
-    longitudeValue,
-    deliveryradius,
-    userId
-  ]);
+    console.log('Updating farmer with data:', farmerUpdateData);
+    const { data: farmerData, error: farmerError } = await supabase
+      .from('farmers')
+      .update(farmerUpdateData)
+      .eq('userid', userId)
+      .select()
+      .single();
 
-  logger.info(`Farmer profile updated: userId=${userId}, farmname=${farmname}`);
+    if (farmerError) {
+      console.error('Error updating farmer:', farmerError);
+      logger.error('Error updating farmer:', farmerError);
+      throw new Error(`Failed to update farmer profile: ${farmerError.message}`);
+    }
 
-  return responseHelper.success(res, {
-    profile: farmerResult.rows[0],
-    message: 'Profile updated successfully'
-  });
+    console.log('Successfully updated farmer profile:', farmerData);
+    logger.info(`Farmer profile updated: userId=${userId}, farmname=${farmname}`);
+
+    return responseHelper.success(res, {
+      profile: farmerData,
+      user: userData,
+      message: 'Profile updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update farmer profile error:', error);
+    logger.error('Update farmer profile error:', error);
+    throw error;
+  }
 });
 
 // Get nearby farmers for a customer

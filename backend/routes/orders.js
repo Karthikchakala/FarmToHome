@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   placeOrder,
   getUserOrders,
+  getFarmerOrders,
   getOrderById,
   cancelOrder,
   updateOrderStatus
@@ -15,6 +16,7 @@ router.use(authenticate);
 // Order CRUD operations
 router.post('/', placeOrder);
 router.get('/', getUserOrders);
+router.get('/farmer', authorize(['farmer']), getFarmerOrders);
 router.get('/:id', getOrderById);
 router.delete('/:id/cancel', cancelOrder);
 

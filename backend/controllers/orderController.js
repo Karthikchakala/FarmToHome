@@ -12,33 +12,43 @@ const {
 const { sendOrderConfirmationEmails } = require('../services/emailService');
 const supabase = require('../config/supabaseClient');
 
-// Place new order with delivery validation
+// Place new order with delivery validation - CONVERTED TO SUPABASE
 const placeOrder = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { deliveryAddress, paymentMethod = 'COD', notes } = req.body;
+
+  console.log('DEBUG: Received order request:', { deliveryAddress, paymentMethod, notes, userId });
 
   // Validate input
   if (!deliveryAddress) {
     throw new ValidationError('Delivery address is required');
   }
 
+  // Get consumer record (needed for consumerid foreign key)
+  const { data: consumerRecord, error: consumerRecordError } = await supabase
+    .from('consumers')
+    .select('_id, latitude, longitude, defaultaddressstreet, defaultaddresscity, defaultaddressstate, defaultaddresspostalcode')
+    .eq('userid', userId)
+    .single();
+  
+  if (consumerRecordError) {
+    throw new Error('Consumer profile not found. Please update your profile.');
+  }
+  
+  const consumerId = consumerRecord._id;
+
   // Get customer's default address if not provided
   let customerAddress = deliveryAddress;
-  if (!customerAddress.latitude || !customerAddress.longitude) {
-    const customerQuery = `
-      SELECT defaultaddress FROM consumers WHERE userid = $1
-    `;
-    const customerResult = await query(customerQuery, [userId]);
-    
-    if (customerResult.rows.length > 0 && customerResult.rows[0].defaultaddress) {
-      const defaultAddress = JSON.parse(customerResult.rows[0].defaultaddress);
-      if (defaultAddress.latitude && defaultAddress.longitude) {
-        customerAddress = {
-          ...customerAddress,
-          latitude: defaultAddress.latitude,
-          longitude: defaultAddress.longitude
-        };
-      }
+  if (typeof deliveryAddress === 'string' || !deliveryAddress.latitude || !deliveryAddress.longitude) {
+    if (consumerRecord?.latitude && consumerRecord?.longitude) {
+      customerAddress = {
+        street: consumerRecord.defaultaddressstreet || deliveryAddress,
+        city: consumerRecord.defaultaddresscity,
+        state: consumerRecord.defaultaddressstate,
+        pincode: consumerRecord.defaultaddresspostalcode,
+        latitude: consumerRecord.latitude,
+        longitude: consumerRecord.longitude
+      };
     }
   }
 
@@ -47,79 +57,86 @@ const placeOrder = asyncHandler(async (req, res) => {
     throw new ValidationError('Customer location coordinates are required');
   }
 
-  // Get cart items with stock validation
-  const cartQuery = `
-    SELECT 
-      c._id,
-      c.quantity,
-      c.productid,
-      p.name as product_name,
-      p.priceperunit,
-      p.stockquantity,
-      p.isavailable,
-      p.farmerid,
-      f.location as farmer_location,
-      f.deliveryradius,
-      f.farmname
-    FROM cart c
-    JOIN products p ON c.productid = p._id
-    JOIN farmers f ON p.farmerid = f._id
-    WHERE c.userid = $1
-  `;
+  // Get cart items with product and farmer details using Supabase
+  const { data: cartItems, error: cartError } = await supabase
+    .from('cart')
+    .select(`
+      _id,
+      quantity,
+      productid,
+      products!inner(
+        name,
+        priceperunit,
+        stockquantity,
+        isavailable,
+        farmerid,
+        farmers!inner(
+          farmname,
+          deliveryradius,
+          latitude,
+          longitude
+        )
+      )
+    `)
+    .eq('userid', userId);
 
-  const cartResult = await query(cartQuery, [userId]);
+  if (cartError) {
+    logger.error('Error fetching cart:', cartError);
+    throw new Error('Failed to fetch cart');
+  }
 
-  if (cartResult.rows.length === 0) {
+  if (!cartItems || cartItems.length === 0) {
     throw new ValidationError('Cart is empty');
   }
 
   // Validate stock availability and product availability
-  for (const cartItem of cartResult.rows) {
-    if (!cartItem.isavailable) {
-      throw new ValidationError(`${cartItem.product_name} is currently not available`);
+  for (const cartItem of cartItems) {
+    const product = cartItem.products;
+    if (!product.isavailable) {
+      throw new ValidationError(`${product.name} is currently not available`);
     }
     
-    if (cartItem.stockquantity < cartItem.quantity) {
+    if (product.stockquantity < cartItem.quantity) {
       throw new ValidationError(
-        `Insufficient stock for ${cartItem.product_name}. Available: ${cartItem.stockquantity}, Requested: ${cartItem.quantity}`
+        `Insufficient stock for ${product.name}. Available: ${product.stockquantity}, Requested: ${cartItem.quantity}`
       );
     }
   }
 
   // Validate delivery for each farmer
   const farmerValidationResults = [];
-  for (const cartItem of cartResult.rows) {
-    const farmerLocation = parseLocation(cartItem.farmer_location);
+  for (const cartItem of cartItems) {
+    const farmer = cartItem.products.farmers;
     
-    if (!farmerLocation) {
-      throw new ValidationError(`Farmer location not available for ${cartItem.farmname}`);
+    if (!farmer.latitude || !farmer.longitude) {
+      throw new ValidationError(`Farmer location not available for ${farmer.farmname}`);
     }
 
     const distance = calculateDistance(
       parseFloat(customerAddress.latitude),
       parseFloat(customerAddress.longitude),
-      farmerLocation.latitude,
-      farmerLocation.longitude
+      farmer.latitude,
+      farmer.longitude
     );
 
-    const deliveryRadius = cartItem.deliveryradius || 8;
+    const deliveryRadius = farmer.deliveryradius || 8;
     const canDeliver = isWithinRadius(
       parseFloat(customerAddress.latitude),
       parseFloat(customerAddress.longitude),
-      farmerLocation.latitude,
-      farmerLocation.longitude,
+      farmer.latitude,
+      farmer.longitude,
       deliveryRadius
     );
 
     if (!canDeliver) {
       throw new ValidationError(
-        `${cartItem.farmname} cannot deliver to your location. Distance: ${distance.toFixed(2)}km, Delivery radius: ${deliveryRadius}km`
+        `${farmer.farmname} cannot deliver to your location. Distance: ${distance.toFixed(2)}km, Delivery radius: ${deliveryRadius}km`
       );
     }
 
     farmerValidationResults.push({
-      farmerId: cartItem.farmerid,
-      farmerName: cartItem.farmname,
+      farmerId: cartItem.products.farmerid,
+      farmerName: farmer.farmname,
       distance: Math.round(distance * 100) / 100,
       deliveryRadius,
       deliveryCharge: calculateDeliveryCharge(distance),
@@ -132,25 +149,26 @@ const placeOrder = asyncHandler(async (req, res) => {
   let totalAmount = 0;
   let totalDeliveryCharge = 0;
 
-  for (const cartItem of cartResult.rows) {
-    const farmerId = cartItem.farmerid;
+  for (const cartItem of cartItems) {
+    const farmerId = cartItem.products.farmerid;
+    const farmer = cartItem.products.farmers;
     
     if (!cartByFarmer[farmerId]) {
       cartByFarmer[farmerId] = {
         farmerId,
-        farmerName: cartItem.farmname,
+        farmerName: farmer.farmname,
         items: [],
         subtotal: 0,
         deliveryCharge: 0
       };
     }
 
-    const itemTotal = cartItem.quantity * cartItem.priceperunit;
+    const itemTotal = cartItem.quantity * cartItem.products.priceperunit;
     cartByFarmer[farmerId].items.push({
       productId: cartItem.productid,
-      productName: cartItem.product_name,
+      productName: cartItem.products.name,
       quantity: cartItem.quantity,
-      pricePerUnit: cartItem.priceperunit,
+      pricePerUnit: cartItem.products.priceperunit,
       total: itemTotal
     });
 
@@ -173,162 +191,129 @@ const placeOrder = asyncHandler(async (req, res) => {
   const platformCommission = Math.round(totalAmount * 0.05);
   const finalAmount = totalAmount + totalDeliveryCharge + platformCommission;
 
-  // Start transaction
-  await query('BEGIN');
+  // Create orders for each farmer using Supabase
+  const orderIds = [];
+  const createdOrders = [];
 
   try {
-    // Create orders for each farmer
-    const orderIds = [];
-    const orderPromises = [];
-
     for (const farmerId in cartByFarmer) {
       const farmerOrder = cartByFarmer[farmerId];
       const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
+      const orderTotal = farmerOrder.subtotal + farmerOrder.deliveryCharge;
+      const orderPlatformCommission = Math.round(farmerOrder.subtotal * 0.05);
 
-      const orderQuery = `
-        INSERT INTO orders (
-          userid, 
-          farmerid, 
-          ordernumber, 
-          totalamount, 
-          deliveryaddress, 
-          paymentmethod, 
-          status, 
-          items, 
-          deliverycharge,
-          platformcommission,
-          notes,
-          createdat,
-          updatedat
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        RETURNING *
-      `;
+      const { data: newOrder, error: insertError } = await supabase
+        .from('orders')
+        .insert({
+          consumerid: consumerId,
+          farmerid: farmerId,
+          ordernumber: orderNumber,
+          totalamount: orderTotal,
+          finalamount: orderTotal,
+          deliveryaddressstreet: customerAddress.street || customerAddress,
+          deliveryaddresscity: customerAddress.city || null,
+          deliveryaddressstate: customerAddress.state || null,
+          deliveryaddresspostalcode: customerAddress.pincode || null,
+          paymentmethod: paymentMethod,
+          status: 'PLACED',
+          items: farmerOrder.items,
+          deliverycharge: farmerOrder.deliveryCharge,
+          platformcommission: orderPlatformCommission,
+          createdat: new Date().toISOString(),
+          updatedat: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-      const orderPromise = query(orderQuery, [
-        userId,
-        farmerId,
-        orderNumber,
-        farmerOrder.subtotal + farmerOrder.deliveryCharge,
-        JSON.stringify(customerAddress),
-        paymentMethod,
-        'pending',
-        JSON.stringify(farmerOrder.items),
-        farmerOrder.deliveryCharge,
-        Math.round(farmerOrder.subtotal * 0.05), // 5% commission per order
-        notes || null
-      ]);
+      if (insertError) {
+        logger.error('Error creating order:', insertError);
+        throw new Error(`Failed to create order: ${insertError.message}`);
+      }
 
-      orderPromises.push(orderPromise);
+      orderIds.push(newOrder._id);
+      createdOrders.push(newOrder);
     }
 
-    // Execute all order insertions
-    const orderResults = await Promise.all(orderPromises);
+    // Update product stock
+    for (const cartItem of cartItems) {
+      const newStock = cartItem.products.stockquantity - cartItem.quantity;
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({ 
+          stockquantity: newStock,
+          updatedat: new Date().toISOString()
+        })
+        .eq('_id', cartItem.productid);
 
-    // Extract order IDs
-    for (const result of orderResults) {
-      orderIds.push(result.rows[0]._id);
-    }
-
-    // Update product stock with atomic operation
-    const stockUpdatePromises = [];
-    for (const cartItem of cartResult.rows) {
-      const stockUpdateQuery = `
-        UPDATE products 
-        SET stockquantity = stockquantity - $1, 
-            updatedat = CURRENT_TIMESTAMP
-        WHERE _id = $2 AND stockquantity >= $1
-        RETURNING stockquantity
-      `;
-
-      stockUpdatePromises.push(query(stockUpdateQuery, [cartItem.quantity, cartItem.productid]));
-    }
-
-    const stockUpdateResults = await Promise.all(stockUpdatePromises);
-
-    // Verify all stock updates were successful
-    for (let i = 0; i < stockUpdateResults.length; i++) {
-      const result = stockUpdateResults[i];
-      if (result.rows.length === 0) {
-        throw new ValidationError(
-          `Failed to update stock for ${cartResult.rows[i].product_name}. Product may have gone out of stock.`
-        );
+      if (updateError) {
+        logger.error('Error updating stock:', updateError);
+        throw new ValidationError(`Failed to update stock for ${cartItem.products.name}`);
       }
     }
 
     // Clear cart
-    await query('DELETE FROM cart WHERE userid = $1', [userId]);
+    const { error: deleteError } = await supabase
+      .from('cart')
+      .delete()
+      .eq('userid', userId);
 
-    // Commit transaction
-    await query('COMMIT');
+    if (deleteError) {
+      logger.error('Error clearing cart:', deleteError);
+    }
 
-    // Get created orders with details
-    const ordersQuery = `
-      SELECT 
-        o.*,
-        f.farmname,
-        u.name as farmer_name
-      FROM orders o
-      LEFT JOIN farmers f ON o.farmerid = f._id
-      LEFT JOIN users u ON f.userid = u._id
-      WHERE o._id = ANY($1)
-      ORDER BY o.createdat DESC
-    `;
-
-    const ordersResult = await query(ordersQuery, [orderIds]);
-
-    const orders = ordersResult.rows.map(order => ({
+    // Format orders for response
+    const orders = createdOrders.map(order => ({
       ...order,
-      items: JSON.parse(order.items),
-      deliveryaddress: JSON.parse(order.deliveryaddress)
+      items: order.items || [],
+      deliveryaddress: {
+        street: order.deliveryaddressstreet,
+        city: order.deliveryaddresscity,
+        state: order.deliveryaddressstate,
+        postalCode: order.deliveryaddresspostalcode
+      }
     }));
 
-    // Send email notifications
+    // Send email notifications (non-blocking)
     try {
-      // Get customer and farmer emails
-      const customerQuery = 'SELECT email FROM users WHERE _id = $1';
-      const customerResult = await query(customerQuery, [userId]);
-      const customerEmail = customerResult.rows[0]?.email;
+      const { data: userData } = await supabase
+        .from('users')
+        .select('email, name')
+        .eq('_id', userId)
+        .single();
 
-      // Send emails for each order
       for (const order of orders) {
+        const { data: farmerUser } = await supabase
+          .from('farmers')
+          .select('users(email, name)')
+          .eq('_id', order.farmerid)
+          .single();
+
         const orderEmailData = {
           orderNumber: order.ordernumber,
-          customerName: customerResult.rows[0]?.name || 'Customer',
-          customerEmail: customerEmail,
-          farmerName: order.farmer_name || 'Farmer',
-          farmerEmail: null, // Will be fetched if needed
+          customerName: userData?.name || 'Customer',
+          customerEmail: userData?.email,
+          farmerName: farmerUser?.users?.name || 'Farmer',
+          farmerEmail: farmerUser?.users?.email,
           orderDate: order.createdat,
           totalAmount: order.totalamount,
           paymentMethod: order.paymentmethod,
           deliveryAddress: JSON.stringify(order.deliveryaddress),
           items: order.items.map(item => ({
-            name: item.name || 'Product',
+            name: item.productName || 'Product',
             quantity: item.quantity,
-            unit: item.unit || 'unit',
-            price: item.priceperunit,
-            total: item.quantity * item.priceperunit
+            unit: 'unit',
+            price: item.pricePerUnit,
+            total: item.total
           })),
           estimatedDelivery: getDeliveryTimeEstimate(order.deliveryaddress)
         };
 
-        // Get farmer email
-        const farmerEmailQuery = `
-          SELECT u.email 
-          FROM users u 
-          JOIN farmers f ON u._id = f.userid 
-          WHERE f._id = $1
-        `;
-        const farmerEmailResult = await query(farmerEmailQuery, [order.farmerid]);
-        orderEmailData.farmerEmail = farmerEmailResult.rows[0]?.email;
-
-        // Send emails (non-blocking)
         sendOrderConfirmationEmails(orderEmailData).catch(emailError => {
           logger.error(`Failed to send order confirmation emails for order ${order.ordernumber}:`, emailError);
         });
       }
     } catch (emailError) {
       logger.error('Error in email notification process:', emailError);
-      // Don't fail the order if email fails
     }
 
     logger.info(`Order placed successfully: userId=${userId}, orderCount=${orders.length}, totalAmount=${finalAmount}`);
@@ -336,7 +321,7 @@ const placeOrder = asyncHandler(async (req, res) => {
     return responseHelper.created(res, {
       orders,
       summary: {
-        totalItems: cartResult.rows.length,
+        totalItems: cartItems.length,
         totalAmount,
         totalDeliveryCharge,
         platformCommission,
@@ -346,7 +331,10 @@ const placeOrder = asyncHandler(async (req, res) => {
     }, 'Order placed successfully');
 
   } catch (error) {
-    await query('ROLLBACK');
+    logger.error('Place order error:', error);
+    console.error('Place Order 500 Error:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     throw error;
   }
 });
@@ -359,11 +347,35 @@ const getUserOrders = asyncHandler(async (req, res) => {
   const offset = (parseInt(page) - 1) * parseInt(limit);
 
   try {
-    // Build Supabase query - simplified without order_items join since table doesn't exist
+    // First, get the consumer record for this user
+    const { data: consumer, error: consumerError } = await supabase
+      .from('consumers')
+      .select('_id')
+      .eq('userid', userId)
+      .single();
+
+    if (consumerError || !consumer) {
+      // Return empty if no consumer record found
+      return responseHelper.success(res, {
+        orders: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          pages: 0,
+          hasNext: false,
+          hasPrev: false
+        }
+      }, 'Orders retrieved successfully');
+    }
+
+    const consumerId = consumer._id;
+
+    // Build Supabase query using consumerid
     let supabaseQuery = supabase
       .from('orders')
       .select('*', { count: 'exact' })
-      .eq('consumerid', userId)
+      .eq('consumerid', consumerId)
       .order('createdat', { ascending: false })
       .range(offset, offset + parseInt(limit) - 1);
 
@@ -405,26 +417,17 @@ const getUserOrders = asyncHandler(async (req, res) => {
       items: order.items || [] // Use items from orders table
     }));
 
-    const response = responseHelper.custom(
-      res,
-      {
-        success: true,
-        message: 'Orders retrieved successfully',
-        data: {
-          orders: formattedOrders,
-          pagination: {
-            page: parseInt(page),
-            limit: parseInt(limit),
-            total: count || 0,
-            pages: Math.ceil((count || 0) / parseInt(limit)),
-            hasNext: offset + parseInt(limit) < (count || 0),
-            hasPrev: parseInt(page) > 1
-          }
-        }
+    return responseHelper.success(res, {
+      orders: formattedOrders,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / parseInt(limit)),
+        hasNext: offset + parseInt(limit) < (count || 0),
+        hasPrev: parseInt(page) > 1
       }
-    );
-
-    res.status(200).json(response);
+    }, 'Orders retrieved successfully');
   } catch (error) {
     logger.error('Get user orders error:', error);
     throw error;
@@ -569,53 +572,151 @@ const cancelOrder = async (req, res, next) => {
 };
 
 // Update order status (for farmers/admins)
-const updateOrderStatus = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { status, notes } = req.body;
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { status, notes } = req.body;
 
-    // Validate status
-    const validStatuses = ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid status'
-      });
+  // Validate status
+  const validStatuses = ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid status'
+    });
+  }
+
+  try {
+    const { data: order, error } = await supabase
+      .from('orders')
+      .update({
+        status: status,
+        updatedat: new Date().toISOString()
+      })
+      .eq('_id', id)
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('Error updating order status:', error);
+      throw new Error('Failed to update order status');
     }
 
-    const result = await query(`
-      UPDATE orders 
-      SET status = $1, notes = COALESCE(notes, '') || ' | ' || COALESCE($2, ''), updatedat = CURRENT_TIMESTAMP
-      WHERE _id = $3
-      RETURNING *
-    `, [status, notes, id]);
-
-    if (result.rows.length === 0) {
+    if (!order) {
       return res.status(404).json({
         success: false,
         error: 'Order not found'
       });
     }
 
-    logger.info(`Order status updated: orderId=${id}, status=${status}`);
-
-    res.status(200).json({
-      success: true,
-      message: 'Order status updated successfully',
-      data: {
-        order: result.rows[0]
-      }
-    });
+    return responseHelper.success(res, {
+      order: order
+    }, 'Order status updated successfully');
 
   } catch (error) {
     logger.error('Update order status error:', error);
-    next(error);
+    throw error;
   }
-};
+});
+
+// Get farmer orders with pagination and filtering
+const getFarmerOrders = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { page = 1, limit = 10, status } = req.query;
+
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+
+  try {
+    // First, get the farmer record for this user
+    const { data: farmer, error: farmerError } = await supabase
+      .from('farmers')
+      .select('_id')
+      .eq('userid', userId)
+      .single();
+
+    if (farmerError || !farmer) {
+      return responseHelper.success(res, {
+        orders: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          pages: 0,
+          hasNext: false,
+          hasPrev: false
+        }
+      }, 'Orders retrieved successfully');
+    }
+
+    const farmerId = farmer._id;
+
+    // Build Supabase query using farmerid
+    let supabaseQuery = supabase
+      .from('orders')
+      .select('*', { count: 'exact' })
+      .eq('farmerid', farmerId)
+      .order('createdat', { ascending: false })
+      .range(offset, offset + parseInt(limit) - 1);
+
+    // Apply status filter if provided
+    if (status) {
+      supabaseQuery = supabaseQuery.eq('status', status);
+    }
+
+    const { data: orders, error, count } = await supabaseQuery;
+
+    if (error) {
+      logger.error('Error fetching farmer orders:', error);
+      throw new Error('Failed to fetch orders');
+    }
+
+    // Format orders for response
+    const formattedOrders = orders.map(order => ({
+      _id: order._id,
+      ordernumber: order.ordernumber,
+      consumerid: order.consumerid,
+      farmerid: order.farmerid,
+      items: order.items || [],
+      totalamount: order.totalamount,
+      platformcommission: order.platformcommission,
+      deliverycharge: order.deliverycharge,
+      finalamount: order.finalamount,
+      deliveryaddress: {
+        street: order.deliveryaddressstreet,
+        city: order.deliveryaddresscity,
+        state: order.deliveryaddressstate,
+        postalCode: order.deliveryaddresspostalcode
+      },
+      status: order.status,
+      paymentstatus: order.paymentstatus,
+      paymentmethod: order.paymentmethod,
+      ordertype: order.ordertype,
+      deliveredat: order.deliveredat,
+      createdat: order.createdat,
+      updatedat: order.updatedat
+    }));
+
+    return responseHelper.success(res, {
+      orders: formattedOrders,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / parseInt(limit)),
+        hasNext: offset + parseInt(limit) < (count || 0),
+        hasPrev: parseInt(page) > 1
+      }
+    }, 'Orders retrieved successfully');
+
+  } catch (error) {
+    logger.error('Get farmer orders error:', error);
+    throw error;
+  }
+});
 
 module.exports = {
   placeOrder,
   getUserOrders,
+  getFarmerOrders,
   getOrderById,
   cancelOrder,
   updateOrderStatus

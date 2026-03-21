@@ -22,14 +22,14 @@ const ProductManagement = () => {
     name: '',
     category: 'vegetables',
     description: '',
-    price: '',
+    priceperunit: '',
     unit: 'kg',
-    stockQuantity: '',
-    minimumOrder: '',
-    isAvailable: true,
+    stockquantity: '',
+    minorderquantity: '',
+    isavailable: true,
     images: [],
-    harvestDate: '',
-    expiryDate: ''
+    harvestdate: '',
+    expirydate: ''
   })
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
@@ -50,7 +50,7 @@ const ProductManagement = () => {
       try {
         setLoading(true)
         const response = await farmerAPI.getFarmerProducts()
-        setProducts(response.data.products || [])
+        setProducts(response.data.data?.products || [])
       } catch (error) {
         console.error('Error fetching products:', error)
         setProducts([])
@@ -70,8 +70,8 @@ const ProductManagement = () => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.category.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter = filterStatus === 'all' || 
-                         (filterStatus === 'available' && product.isAvailable) ||
-                         (filterStatus === 'out-of-stock' && product.stockQuantity === 0)
+                         (filterStatus === 'available' && product.isavailable) ||
+                         (filterStatus === 'out-of-stock' && product.stockquantity === 0)
     return matchesSearch && matchesFilter
   })
 
@@ -511,13 +511,13 @@ const ProductManagement = () => {
             className={`filter-btn ${filterStatus === 'available' ? 'active' : ''}`}
             onClick={() => setFilterStatus('available')}
           >
-            Available ({products.filter(p => p.isAvailable).length})
+            Available ({products.filter(p => p.isavailable).length})
           </button>
           <button
             className={`filter-btn ${filterStatus === 'out-of-stock' ? 'active' : ''}`}
             onClick={() => setFilterStatus('out-of-stock')}
           >
-            Out of Stock ({products.filter(p => p.stockQuantity === 0).length})
+            Out of Stock ({products.filter(p => p.stockquantity === 0).length})
           </button>
         </div>
       </div>
@@ -548,8 +548,8 @@ const ProductManagement = () => {
                   alt={product.name}
                   onError={(e) => e.target.src = '/placeholder-product.jpg'}
                 />
-                <div className={`availability-badge ${product.isAvailable ? 'available' : 'unavailable'}`}>
-                  {product.isAvailable ? '✅ Available' : '❌ Out of Stock'}
+                <div className={`availability-badge ${product.isavailable ? 'available' : 'unavailable'}`}>
+                  {product.isavailable ? '✅ Available' : '❌ Out of Stock'}
                 </div>
               </div>
               
@@ -561,12 +561,12 @@ const ProductManagement = () => {
                 <div className="product-details">
                   <div className="detail-item">
                     <span className="label">Price:</span>
-                    <span className="value">₹{product.pricePerUnit}/{product.unit}</span>
+                    <span className="value">₹{product.priceperunit}/{product.unit}</span>
                   </div>
                   <div className="detail-item">
                     <span className="label">Stock:</span>
-                    <span className={`value ${product.stockQuantity === 0 ? 'out-of-stock' : ''}`}>
-                      {product.stockQuantity} {product.unit}
+                    <span className={`value ${product.stockquantity === 0 ? 'out-of-stock' : ''}`}>
+                      {product.stockquantity} {product.unit}
                     </span>
                   </div>
                 </div>
@@ -578,9 +578,9 @@ const ProductManagement = () => {
                 </Link>
                 <button
                   onClick={() => toggleAvailability(product._id)}
-                  className={`btn ${product.isAvailable ? 'btn-warning' : 'btn-success'}`}
+                  className={`btn ${product.isavailable ? 'btn-warning' : 'btn-success'}`}
                 >
-                  {product.isAvailable ? '⏸️ Unlist' : '📢 List'}
+                  {product.isavailable ? '⏸️ Unlist' : '📢 List'}
                 </button>
                 <button
                   onClick={() => handleDeleteProduct(product)}

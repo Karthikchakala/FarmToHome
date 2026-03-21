@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { cartAPI, orderAPI } from '../../services/api'
+import { cartAPI, orderAPI, profileAPI } from '../../services/api'
 import SEO from '../../components/SEO'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
@@ -12,13 +12,49 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true)
   const [placingOrder, setPlacingOrder] = useState(false)
   const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryAddressObj, setDeliveryAddressObj] = useState(null)
   const [paymentMethod, setPaymentMethod] = useState('COD')
   const [notes, setNotes] = useState('')
+  const [userProfile, setUserProfile] = useState(null)
+  const [useDefaultAddress, setUseDefaultAddress] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
     loadCart()
+    loadUserProfile()
   }, [])
+
+  const loadUserProfile = async () => {
+    try {
+      const response = await profileAPI.getProfile()
+      console.log('DEBUG: Profile response:', response.data)
+      if (response.data.success) {
+        setUserProfile(response.data.data)
+        // Set default address if available
+        const consumer = response.data.data?.consumers
+        console.log('DEBUG: Consumer data:', consumer)
+        if (consumer?.defaultaddress) {
+          const addr = consumer.defaultaddress
+          console.log('DEBUG: Default address:', addr)
+          const addressString = `${addr.home || ''}, ${addr.street || ''}, ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}`.replace(/^,\s*|,\s*$/, '').replace(/,\s*,/g, ',')
+          setDeliveryAddress(addressString)
+          // Store address object with coordinates
+          const addressObj = {
+            street: addr.street || addressString,
+            city: addr.city || '',
+            state: addr.state || '',
+            pincode: addr.pincode || '',
+            latitude: addr.latitude,
+            longitude: addr.longitude
+          }
+          console.log('DEBUG: Setting address object:', addressObj)
+          setDeliveryAddressObj(addressObj)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error)
+    }
+  }
 
   const loadCart = async () => {
     try {
@@ -43,7 +79,7 @@ const Checkout = () => {
       setPlacingOrder(true)
       
       const orderData = {
-        deliveryAddress: deliveryAddress.trim(),
+        deliveryAddress: deliveryAddressObj || deliveryAddress.trim(),
         paymentMethod,
         notes: notes.trim() || null
       }
@@ -113,6 +149,69 @@ const Checkout = () => {
             <div className="checkout-form">
               <div className="form-section">
                 <h2>Delivery Information</h2>
+                
+                {/* Address Selection */}
+                {userProfile?.consumers?.defaultaddress && (
+                  <div className="address-selection">
+                    <label className="address-option">
+                      <input
+                        type="radio"
+                        name="addressType"
+                        value="default"
+                        checked={useDefaultAddress}
+                        onChange={() => {
+                          setUseDefaultAddress(true)
+                          const addr = userProfile.consumers.defaultaddress
+                          const addressString = `${addr.home || ''}, ${addr.street || ''}, ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}`.replace(/^,\s*|,\s*$/, '').replace(/,\s*,/g, ',')
+                          setDeliveryAddress(addressString)
+                          // Also set the address object with coordinates
+                          setDeliveryAddressObj({
+                            street: addr.street || addressString,
+                            city: addr.city || '',
+                            state: addr.state || '',
+                            pincode: addr.pincode || '',
+                            latitude: addr.latitude,
+                            longitude: addr.longitude
+                          })
+                        }}
+                      />
+                      <span className="address-label">
+                        <span className="address-icon">🏠</span>
+                        <span className="address-details">
+                          <span className="address-name">Default Address</span>
+                          <span className="address-text">
+                            {(() => {
+                              const addr = userProfile.consumers.defaultaddress
+                              return `${addr.home || ''}, ${addr.street || ''}, ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}`.replace(/^,\s*|,\s*$/, '').replace(/,\s*,/g, ',')
+                            })()}
+                          </span>
+                        </span>
+                      </span>
+                    </label>
+
+                    <label className="address-option">
+                      <input
+                        type="radio"
+                        name="addressType"
+                        value="new"
+                        checked={!useDefaultAddress}
+                        onChange={() => {
+                          setUseDefaultAddress(false)
+                          setDeliveryAddress('')
+                          setDeliveryAddressObj(null) // Clear address object when entering new address
+                        }}
+                      />
+                      <span className="address-label">
+                        <span className="address-icon">✏️</span>
+                        <span className="address-details">
+                          <span className="address-name">Enter New Address</span>
+                          <span className="address-text">Type a different delivery address</span>
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                )}
+
                 <div className="form-group">
                   <label htmlFor="deliveryAddress">Delivery Address *</label>
                   <textarea
@@ -122,6 +221,7 @@ const Checkout = () => {
                     placeholder="Enter your complete delivery address"
                     rows={3}
                     required
+                    disabled={useDefaultAddress && userProfile?.consumers?.defaultaddress}
                   />
                 </div>
 
@@ -186,10 +286,10 @@ const Checkout = () => {
                     <div key={item._id} className="summary-item">
                       <div className="item-info">
                         <h4>{item.name}</h4>
-                        <p>{item.quantity} {item.unit} × ₹{item.priceperunit}</p>
+                        <p>{item?.quantity || 0} {item?.unit || ''} × ₹{item?.priceperunit || 0}</p>
                       </div>
                       <div className="item-price">
-                        ₹{(item.quantity * item.priceperunit).toFixed(2)}
+                        ₹{((item?.quantity || 0) * (item?.priceperunit || 0)).toFixed(2)}
                       </div>
                     </div>
                   ))}
@@ -198,19 +298,19 @@ const Checkout = () => {
                 <div className="summary-totals">
                   <div className="total-row">
                     <span>Subtotal</span>
-                    <span>₹{cartData.totalAmount.toFixed(2)}</span>
+                    <span>₹{(cartData?.totalAmount || 0).toFixed(2)}</span>
                   </div>
                   <div className="total-row">
                     <span>Delivery Charge</span>
-                    <span>₹{cartData.deliveryCharge.toFixed(2)}</span>
+                    <span>₹{(cartData?.deliveryCharge || 0).toFixed(2)}</span>
                   </div>
                   <div className="total-row">
                     <span>Platform Fee</span>
-                    <span>₹{cartData.platformCommission.toFixed(2)}</span>
+                    <span>₹{(cartData?.platformCommission || 0).toFixed(2)}</span>
                   </div>
                   <div className="total-row grand-total">
                     <span>Total</span>
-                    <span>₹{cartData.finalAmount.toFixed(2)}</span>
+                    <span>₹{(cartData?.finalAmount || 0).toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -221,7 +321,7 @@ const Checkout = () => {
                   size="large"
                   className="place-order-btn"
                 >
-                  {placingOrder ? 'Placing Order...' : `Place Order • ₹${cartData.finalAmount.toFixed(2)}`}
+                  {placingOrder ? 'Placing Order...' : `Place Order • ₹${(cartData?.finalAmount || 0).toFixed(2)}`}
                 </Button>
 
                 <div className="checkout-actions">

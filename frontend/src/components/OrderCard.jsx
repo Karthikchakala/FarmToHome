@@ -8,6 +8,9 @@ const OrderCard = ({ order, onUpdate }) => {
   const [error, setError] = useState('')
 
   const formatPrice = (price) => {
+    if (price === null || price === undefined || isNaN(price)) {
+      return '₹0'
+    }
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -16,7 +19,10 @@ const OrderCard = ({ order, onUpdate }) => {
   }
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+    if (!dateString) return 'N/A'
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'N/A'
+    return date.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -81,7 +87,7 @@ const OrderCard = ({ order, onUpdate }) => {
         <div className="order-info">
           <div className="order-number">
             <span className="order-id">#{order.ordernumber}</span>
-            <span className="order-date">{formatDate(order.createdat)}</span>
+            <span className="order-date">{formatDate(order.createdat || order.createdAt)}</span>
           </div>
           <div className="order-status">
             <span 
@@ -114,7 +120,7 @@ const OrderCard = ({ order, onUpdate }) => {
         <div className="order-items-preview">
           <div className="items-header">
             <span className="items-count">{order.items?.length || 0} items</span>
-            <span className="total-amount">{formatPrice(order.totalamount)}</span>
+            <span className="total-amount">{formatPrice(order.totalamount || order.totalAmount)}</span>
           </div>
           
           {order.items && order.items.length > 0 && (
@@ -136,22 +142,27 @@ const OrderCard = ({ order, onUpdate }) => {
 
         <div className="order-details">
           <div className="detail-row">
+            <span className="detail-label">Total Amount:</span>
+            <span className="detail-value">{formatPrice(order.finalamount || order.finalAmount || order.totalamount)}</span>
+          </div>
+          
+          <div className="detail-row">
             <span className="detail-label">Payment:</span>
             <span className="detail-value">
-              {order.paymentmethod === 'COD' ? 'Cash on Delivery' : order.paymentmethod}
+              {order.paymentmethod === 'COD' ? 'Cash on Delivery' : (order.paymentmethod || order.paymentMethod)}
             </span>
           </div>
           
           <div className="detail-row">
             <span className="detail-label">Delivery:</span>
             <span className="detail-value">
-              {order.deliverycharge === 0 ? 'FREE' : formatPrice(order.deliverycharge)}
+              {(order.deliverycharge === 0 || order.deliveryCharge === 0) ? 'FREE' : formatPrice(order.deliverycharge || order.deliveryCharge)}
             </span>
           </div>
           
           <div className="detail-row">
             <span className="detail-label">Platform Fee:</span>
-            <span className="detail-value">{formatPrice(order.platformcommission)}</span>
+            <span className="detail-value">{formatPrice(order.platformcommission || order.platformCommission)}</span>
           </div>
         </div>
       </div>

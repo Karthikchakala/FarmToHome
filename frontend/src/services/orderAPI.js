@@ -12,6 +12,11 @@ export const orderAPI = {
     return api.get('/orders', { params })
   },
 
+  // Get farmer orders
+  getFarmerOrders: (params = {}) => {
+    return api.get('/orders/farmer', { params })
+  },
+
   // Get order by ID
   getOrderById: (orderId) => {
     return api.get(`/orders/${orderId}`)
@@ -23,8 +28,8 @@ export const orderAPI = {
   },
 
   // Update order status (for farmers/admins)
-  updateOrderStatus: (orderId, status, notes) => {
-    return api.put(`/orders/${orderId}/status`, { status, notes })
+  updateOrderStatus: (orderId, data) => {
+    return api.put(`/orders/${orderId}/status`, data)
   }
 }
 

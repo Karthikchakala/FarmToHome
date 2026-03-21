@@ -42,7 +42,8 @@ const getProducts = asyncHandler(async (req, res) => {
         farmname,
         verificationstatus,
         ratingaverage,
-        location,
+        latitude,
+        longitude,
         users!inner(
           name,
           email
@@ -79,6 +80,9 @@ const getProducts = asyncHandler(async (req, res) => {
 
   const { data: products, error, count } = await query;
 
+  console.log('Products fetched:', products?.length);
+  console.log('First product farmer:', products?.[0]?.farmers);
+
   if (error) {
     logger.error('Get products error:', error);
     throw new Error('Failed to fetch products');
@@ -96,17 +100,47 @@ const getProducts = asyncHandler(async (req, res) => {
     }
 
     filteredProducts = products.filter(product => {
-      if (!product.farmers.location) return false;
+      // Use latitude/longitude fields instead of location field
+      const farmerLat = product.farmers?.latitude;
+      const farmerLng = product.farmers?.longitude;
       
-      const farmerLocation = parseLocation(product.farmers.location);
-      if (!farmerLocation) return false;
+      console.log('Checking product:', product.name);
+      console.log('Raw farmer location:', farmerLat, farmerLng);
+      
+      // Check if location exists and is valid
+      if (farmerLat === null || farmerLat === undefined || isNaN(farmerLat) ||
+          farmerLng === null || farmerLng === undefined || isNaN(farmerLng)) {
+        console.log('Skipping - invalid location data');
+        return false;
+      }
+      
+      const farmerLatNum = parseFloat(farmerLat);
+      const farmerLngNum = parseFloat(farmerLng);
 
-      return isWithinRadius(
-        { latitude: userLat, longitude: userLng },
-        farmerLocation,
-        radiusKm * 1000 // Convert to meters
+      console.log('User location:', userLat, userLng);
+      console.log('Farmer location parsed:', farmerLatNum, farmerLngNum);
+      console.log('Radius:', radiusKm);
+
+      // Validate parsed coordinates
+      if (isNaN(farmerLatNum) || isNaN(farmerLngNum)) {
+        console.log('Skipping - NaN after parsing');
+        return false;
+      }
+
+      const withinRadius = isWithinRadius(
+        userLat, userLng,
+        farmerLatNum, farmerLngNum,
+        radiusKm
       );
+      
+      const distance = calculateDistance(userLat, userLng, farmerLatNum, farmerLngNum);
+      console.log('Distance calculated:', distance, 'km');
+      console.log('Radius:', radiusKm, 'km');
+      console.log('Is within radius:', withinRadius, '(distance <= radius):', distance <= radiusKm);
+      return distance <= radiusKm;
     });
+    
+    console.log('Filtered products count:', filteredProducts.length);
   }
 
   // Add distance information if location filtering is applied
@@ -115,15 +149,18 @@ const getProducts = asyncHandler(async (req, res) => {
     const userLng = parseFloat(lng);
 
     filteredProducts = filteredProducts.map(product => {
-      if (product.farmers.location) {
-        const farmerLocation = parseLocation(product.farmers.location);
-        if (farmerLocation) {
-          const distance = calculateDistance(
-            { latitude: userLat, longitude: userLng },
-            farmerLocation
-          );
-          product.distance = distance;
-        }
+      // Use latitude/longitude fields instead of location field
+      if (product.farmers.latitude && product.farmers.longitude) {
+        const farmerLocation = {
+          latitude: parseFloat(product.farmers.latitude),
+          longitude: parseFloat(product.farmers.longitude)
+        };
+        
+        const distance = calculateDistance(
+          { latitude: userLat, longitude: userLng },
+          farmerLocation
+        );
+        product.distance = distance;
       }
       return product;
     });
@@ -744,7 +781,8 @@ const getNearbyProducts = asyncHandler(async (req, res) => {
       
       logger.info(`Distance to ${product.name}: ${distance.toFixed(2)}km`);
       
-      return isWithinRadius(distance, parseFloat(radius));
+      // Check if within radius using simple comparison
+      return distance <= parseFloat(radius);
     });
 
     logger.info(`Found ${nearbyProducts.length} nearby products within ${radius}km`);
