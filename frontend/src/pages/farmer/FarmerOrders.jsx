@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { orderAPI } from '../../services/api'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './FarmerOrders.css'
 
 const FarmerOrders = () => {
+  const location = useLocation()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  // Set default filter to 'PLACED' if on pending route
+  const [filter, setFilter] = useState(location.pathname.includes('/pending') ? 'PLACED' : 'all')
   const [updatingOrderId, setUpdatingOrderId] = useState(null)
 
   const statusOptions = [
@@ -106,7 +109,7 @@ const FarmerOrders = () => {
   return (
     <div className="farmer-orders-container">
       <div className="orders-header">
-        <h1>📦 My Orders</h1>
+        <h1>{location.pathname.includes('/pending') ? '📋 Pending Orders' : '📦 My Orders'}</h1>
         <div className="filter-section">
           <label htmlFor="status-filter">Filter by Status:</label>
           <select 

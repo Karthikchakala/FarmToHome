@@ -4,7 +4,7 @@ import api from './api'
 export const subscriptionAPI = {
   // Create subscription
   createSubscription: (subscriptionData) => {
-    return api.post('/subscriptions', subscriptionData)
+    return api.post('/subscriptions/consumer', subscriptionData)
   },
 
   // Get user subscriptions
@@ -17,9 +17,29 @@ export const subscriptionAPI = {
     return api.put(`/subscriptions/${subscriptionId}`, updateData)
   },
 
+  // Modify subscription (quantity, frequency, etc.)
+  modifySubscription: (subscriptionId, modifyData) => {
+    return api.put(`/subscriptions/${subscriptionId}/modify`, modifyData)
+  },
+
   // Pause/Resume/Cancel subscription
   updateSubscriptionStatus: (subscriptionId, status) => {
     return api.patch(`/subscriptions/${subscriptionId}/status`, { status })
+  },
+
+  // Skip specific delivery
+  skipDelivery: (subscriptionId, skipData) => {
+    return api.post(`/subscriptions/${subscriptionId}/skip`, skipData)
+  },
+
+  // Approve/Skip upcoming delivery
+  approveDelivery: (subscriptionId, approveData) => {
+    return api.post(`/subscriptions/${subscriptionId}/approve`, approveData)
+  },
+
+  // Get farmer subscriptions (for farmers)
+  getFarmerSubscriptions: (params = {}) => {
+    return api.get('/subscriptions/farmer', { params })
   },
 
   // Get all subscriptions (admin only)

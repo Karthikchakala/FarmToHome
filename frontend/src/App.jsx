@@ -134,7 +134,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
               <Route path="/farmer/products/edit/:id" element={<ProductManagement />} />
               <Route path="/farmer/stock" element={<StockManagement />} />
               <Route path="/farmer/orders" element={<FarmerOrders />} />
-              <Route path="/farmer/orders/pending" element={<OrderManagement />} />
+              <Route path="/farmer/orders/pending" element={<FarmerOrders />} />
               <Route path="/farmer/subscriptions" element={<SubscriptionManagement />} />
               <Route path="/farmer/reviews" element={<ReviewManagement />} />
               <Route path="/farmer/profile" element={<FarmerProfile />} />

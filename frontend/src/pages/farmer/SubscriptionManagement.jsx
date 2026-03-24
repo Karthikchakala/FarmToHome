@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { subscriptionAPI } from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import './SubscriptionManagement.css'
 
@@ -15,9 +16,28 @@ const SubscriptionManagement = () => {
     const fetchSubscriptions = async () => {
       try {
         setLoading(true)
-        // TODO: Replace with actual API call
-        // For now, show no data state
-        setSubscriptions([])
+        const params = {
+          _t: Date.now() // Cache-busting parameter
+        }
+        if (filterStatus !== 'all') {
+          params.status = filterStatus
+        }
+        
+        const response = await subscriptionAPI.getFarmerSubscriptions(params)
+        
+        console.log('Farmer subscriptions API response:', response)
+        console.log('Response data:', response.data)
+        console.log('Response status:', response.status)
+        
+        if (response.data.success) {
+          const subscriptions = response.data.data.subscriptions || []
+          console.log('Raw subscriptions from API:', subscriptions)
+          console.log('Setting subscriptions:', subscriptions)
+          setSubscriptions(subscriptions)
+        } else {
+          console.error('Failed to fetch subscriptions:', response.data.error)
+          setSubscriptions([])
+        }
       } catch (error) {
         console.error('Error fetching subscriptions:', error)
         setSubscriptions([])
@@ -29,7 +49,7 @@ const SubscriptionManagement = () => {
     if (isAuthenticated) {
       fetchSubscriptions()
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, filterStatus])
 
   const filteredSubscriptions = subscriptions.filter(sub => {
     return filterStatus === 'all' || sub.status === filterStatus
@@ -165,9 +185,9 @@ const SubscriptionManagement = () => {
               <div key={subscription._id} className="subscription-card">
                 <div className="subscription-header">
                   <div className="customer-info">
-                    <h3>👤 {subscription.customer.name}</h3>
-                    <p className="customer-email">📧 {subscription.customer.email}</p>
-                    <p className="customer-phone">📱 {subscription.customer.phone}</p>
+                    <h3>👤 {subscription.consumerName}</h3>
+                    <p className="customer-email">📧 {subscription.consumerEmail}</p>
+                    <p className="customer-phone">📱 {subscription.consumerPhone}</p>
                   </div>
                   <div className="subscription-status">
                     <div 
@@ -182,13 +202,13 @@ const SubscriptionManagement = () => {
                 <div className="subscription-product">
                   <h4>🌾 Product Details</h4>
                   <div className="product-info">
-                    <div className="product-name">{subscription.product.name}</div>
+                    <div className="product-name">{subscription.productName}</div>
                     <div className="product-details">
                       <span className="detail-item">
-                        {subscription.quantity} {subscription.product.unit} × {getFrequencyLabel(subscription.frequency)}
+                        {subscription.quantity} {subscription.unit} × {getFrequencyLabel(subscription.frequency)}
                       </span>
                       <span className="detail-item price">
-                        ₹{subscription.product.pricePerUnit * subscription.quantity}/delivery
+                        ₹{subscription.pricePerUnit * subscription.quantity}/delivery
                       </span>
                     </div>
                   </div>
@@ -286,9 +306,9 @@ const SubscriptionManagement = () => {
             <div className="modal-body">
               <div className="subscription-detail-section">
                 <h4>👤 Customer Information</h4>
-                <p><strong>Name:</strong> {selectedSubscription.customer.name}</p>
-                <p><strong>Email:</strong> {selectedSubscription.customer.email}</p>
-                <p><strong>Phone:</strong> {selectedSubscription.customer.phone}</p>
+                <p><strong>Name:</strong> {selectedSubscription.consumerName}</p>
+                <p><strong>Email:</strong> {selectedSubscription.consumerEmail}</p>
+                <p><strong>Phone:</strong> {selectedSubscription.consumerPhone}</p>
               </div>
               
               <div className="subscription-detail-section">
@@ -300,11 +320,11 @@ const SubscriptionManagement = () => {
               
               <div className="subscription-detail-section">
                 <h4>🌾 Product Information</h4>
-                <p><strong>Product:</strong> {selectedSubscription.product.name}</p>
-                <p><strong>Category:</strong> {selectedSubscription.product.category}</p>
-                <p><strong>Quantity:</strong> {selectedSubscription.quantity} {selectedSubscription.product.unit}</p>
+                <p><strong>Product:</strong> {selectedSubscription.productName}</p>
+                <p><strong>Category:</strong> {selectedSubscription.category}</p>
+                <p><strong>Quantity:</strong> {selectedSubscription.quantity} {selectedSubscription.unit}</p>
                 <p><strong>Frequency:</strong> {getFrequencyLabel(selectedSubscription.frequency)}</p>
-                <p><strong>Price per Delivery:</strong> ₹{selectedSubscription.product.pricePerUnit * selectedSubscription.quantity}</p>
+                <p><strong>Price per Delivery:</strong> ₹{selectedSubscription.pricePerUnit * selectedSubscription.quantity}</p>
               </div>
               
               <div className="subscription-detail-section">

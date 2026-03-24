@@ -576,6 +576,8 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, notes } = req.body;
 
+  console.log('DEBUG: Update order status request:', { id, status, notes, user: req.user });
+
   // Validate status
   const validStatuses = ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
   if (!validStatuses.includes(status)) {
@@ -597,8 +599,9 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       .single();
 
     if (error) {
+      console.error('DEBUG: Supabase update error:', error);
       logger.error('Error updating order status:', error);
-      throw new Error('Failed to update order status');
+      throw new Error(`Failed to update order status: ${error.message}`);
     }
 
     if (!order) {
@@ -608,11 +611,13 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       });
     }
 
+    console.log('DEBUG: Order updated successfully:', order);
     return responseHelper.success(res, {
       order: order
     }, 'Order status updated successfully');
 
   } catch (error) {
+    console.error('DEBUG: Update order status error:', error);
     logger.error('Update order status error:', error);
     throw error;
   }
@@ -622,6 +627,8 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 const getFarmerOrders = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { page = 1, limit = 10, status } = req.query;
+
+  console.log('DEBUG: Get farmer orders request:', { userId, page, limit, status });
 
   const offset = (parseInt(page) - 1) * parseInt(limit);
 
@@ -633,7 +640,10 @@ const getFarmerOrders = asyncHandler(async (req, res) => {
       .eq('userid', userId)
       .single();
 
+    console.log('DEBUG: Farmer record:', { farmer, farmerError });
+
     if (farmerError || !farmer) {
+      console.log('DEBUG: No farmer record found, returning empty orders');
       return responseHelper.success(res, {
         orders: [],
         pagination: {
@@ -648,6 +658,7 @@ const getFarmerOrders = asyncHandler(async (req, res) => {
     }
 
     const farmerId = farmer._id;
+    console.log('DEBUG: Using farmerId:', farmerId);
 
     // Build Supabase query using farmerid
     let supabaseQuery = supabase
@@ -660,9 +671,12 @@ const getFarmerOrders = asyncHandler(async (req, res) => {
     // Apply status filter if provided
     if (status) {
       supabaseQuery = supabaseQuery.eq('status', status);
+      console.log('DEBUG: Applied status filter:', status);
     }
 
     const { data: orders, error, count } = await supabaseQuery;
+
+    console.log('DEBUG: Orders query result:', { orders: orders?.length || 0, count, error });
 
     if (error) {
       logger.error('Error fetching farmer orders:', error);

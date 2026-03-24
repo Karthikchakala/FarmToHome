@@ -112,6 +112,23 @@ class SubscriptionProcessor {
     const client = await transaction();
     
     try {
+      // Check if subscription requires approval
+      if (subscription.requireapproval) {
+        await this.createPendingApproval(client, subscription);
+        await client.query('COMMIT');
+        logger.info(`Created pending approval for subscription ${subscription._id}`);
+        return;
+      }
+
+      // Check if delivery is skipped
+      const isSkipped = await this.isDeliverySkipped(subscription._id, subscription.nextdeliverydate);
+      if (isSkipped) {
+        await this.skipDeliveryAndUpdateNext(client, subscription);
+        await client.query('COMMIT');
+        logger.info(`Skipped delivery for subscription ${subscription._id}`);
+        return;
+      }
+
       // Validate delivery distance
       const deliveryValidation = await this.validateDelivery(subscription);
       if (!deliveryValidation.canDeliver) {
@@ -129,6 +146,9 @@ class SubscriptionProcessor {
       // Update next delivery date
       await this.updateNextDeliveryDate(client, subscription);
       
+      // Create delivery record
+      await this.createDeliveryRecord(client, subscription, order._id, 'DELIVERED');
+      
       // Create notifications
       await this.createNotifications(subscription, order, deliveryValidation);
       
@@ -141,6 +161,76 @@ class SubscriptionProcessor {
       throw error;
     } finally {
       client.release();
+    }
+  }
+
+  // Create pending approval
+  async createPendingApproval(client, subscription) {
+    await client.query(`
+      INSERT INTO subscription_deliveries (subscriptionid, deliverydate, status)
+      VALUES ($1, $2, 'PENDING')
+      ON CONFLICT (subscriptionid, deliverydate) DO NOTHING
+    `, [subscription._id, subscription.nextdeliverydate]);
+
+    // Send approval request notification
+    await this.sendApprovalRequest(subscription);
+  }
+
+  // Check if delivery is skipped
+  async isDeliverySkipped(subscriptionId, deliveryDate) {
+    const result = await query(`
+      SELECT 1 FROM subscription_skips 
+      WHERE subscriptionid = $1 AND skipdate = $2
+    `, [subscriptionId, deliveryDate]);
+    
+    return result.rows.length > 0;
+  }
+
+  // Skip delivery and update next date
+  async skipDeliveryAndUpdateNext(client, subscription) {
+    await this.createDeliveryRecord(client, subscription, null, 'SKIPPED');
+    await this.updateNextDeliveryDate(client, subscription);
+  }
+
+  // Create delivery record
+  async createDeliveryRecord(client, subscription, orderId, status) {
+    await client.query(`
+      INSERT INTO subscription_deliveries (subscriptionid, orderid, deliverydate, status)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (subscriptionid, deliverydate) 
+      DO UPDATE SET orderid = $2, status = $4, updatedat = CURRENT_TIMESTAMP
+    `, [subscription._id, orderId, subscription.nextdeliverydate, status]);
+  }
+
+  // Send approval request
+  async sendApprovalRequest(subscription) {
+    try {
+      // Get consumer details
+      const consumerResult = await query(`
+        SELECT c.userid, c.name, c.email 
+        FROM consumers c 
+        WHERE c._id = $1
+      `, [subscription.consumerid]);
+
+      if (consumerResult.rows.length > 0) {
+        const consumer = consumerResult.rows[0];
+        
+        // Send email notification
+        await sendSubscriptionTriggeredEmail({
+          to: consumer.email,
+          subject: 'Action Required: Approve Your Upcoming Delivery',
+          template: 'subscription-approval',
+          data: {
+            customerName: consumer.name,
+            productName: subscription.product_name,
+            deliveryDate: subscription.nextdeliverydate,
+            quantity: subscription.quantity,
+            approvalLink: `${process.env.FRONTEND_URL}/customer/subscriptions/${subscription._id}/approve`
+          }
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to send approval request:', error);
     }
   }
 

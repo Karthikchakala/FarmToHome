@@ -93,7 +93,7 @@ app.use('/api/products', searchLimiter, productRoutes);
 app.use('/api/products-test', testProductsRoutes);
 app.use('/api/test-auth', testAuthRoutes);
 app.use('/api/cart', authenticate, cartRoutes);
-app.use('/api/orders', authenticate, orderLimiter, orderRoutes);
+app.use('/api/orders', authenticate, orderRoutes);
 app.use('/api/messages', authenticate, messageLimiter, messageRoutes);
 app.use('/api/profile', authenticate, profileRoutes);
 app.use('/api/subscriptions', authenticate, subscriptionRoutes);

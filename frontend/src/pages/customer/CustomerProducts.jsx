@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { productAPI } from '../../services/api'
 import { cartAPI } from '../../services/cartAPI'
+import { subscriptionAPI } from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import './CustomerProducts.css'
+import './CustomerProductsSubscription.css'
 
 const CustomerProducts = () => {
   const { user } = useAuth()
@@ -16,6 +18,29 @@ const CustomerProducts = () => {
   const [sortBy, setSortBy] = useState('name')
   const [customerLocation, setCustomerLocation] = useState(null)
   const [locationPermission, setLocationPermission] = useState('prompting') // 'prompting', 'granted', 'denied'
+  
+  // Subscription modal state
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [subscriptionData, setSubscriptionData] = useState({
+    frequency: 'WEEKLY',
+    deliveryDay: 'MONDAY',
+    quantity: 1,
+    addressOption: 'new', // 'default' or 'new'
+    deliveryAddress: {
+      street: '',
+      doorNo: '',
+      city: '',
+      state: '',
+      pincode: '',
+      latitude: null,
+      longitude: null
+    },
+    requireApproval: false
+  })
+  const [creatingSubscription, setCreatingSubscription] = useState(false)
+  const [detectingLocation, setDetectingLocation] = useState(false)
+  const [defaultAddress, setDefaultAddress] = useState(null)
 
   useEffect(() => {
     requestLocationPermission()
@@ -219,6 +244,212 @@ const CustomerProducts = () => {
     }
   }
 
+  // Subscription handlers
+  const handleOpenSubscriptionModal = async (product) => {
+    setSelectedProduct(product)
+    
+    // Load default address
+    await loadDefaultAddress()
+    
+    setSubscriptionData({
+      frequency: 'WEEKLY',
+      deliveryDay: 'MONDAY',
+      quantity: 1,
+      addressOption: defaultAddress ? 'default' : 'new',
+      deliveryAddress: {
+        street: '',
+        doorNo: '',
+        city: '',
+        state: '',
+        pincode: '',
+        latitude: null,
+        longitude: null
+      },
+      requireApproval: true
+    })
+    setShowSubscriptionModal(true)
+  }
+
+  const loadDefaultAddress = async () => {
+    try {
+      // Get consumer profile with default address
+      const response = await fetch(`http://localhost:5005/api/profile/`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Profile response:', data)
+        
+        if (data.success && data.data) {
+          // Check if defaultaddress exists in consumers data
+          const defaultAddr = data.data.consumers?.defaultaddress
+          console.log('Default address found:', defaultAddr)
+          
+          if (defaultAddr && defaultAddr.street) {
+            setDefaultAddress({
+              street: defaultAddr.street || '',
+              doorNo: defaultAddr.doorNo || '',
+              city: defaultAddr.city || '',
+              state: defaultAddr.state || '',
+              pincode: defaultAddr.pincode || '',
+              latitude: defaultAddr.latitude?.toString() || null,
+              longitude: defaultAddr.longitude?.toString() || null
+            })
+          } else {
+            console.log('No valid default address found')
+            setDefaultAddress(null)
+          }
+        }
+      } else {
+        console.error('Profile API error:', response.status, response.statusText)
+      }
+    } catch (error) {
+      console.error('Failed to load default address:', error)
+      setDefaultAddress(null)
+    }
+  }
+
+  const detectCurrentLocation = async () => {
+    setDetectingLocation(true)
+    
+    try {
+      if (!navigator.geolocation) {
+        alert('Location services are not supported by your browser')
+        return
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords
+          
+          // Use reverse geocoding to get address details
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+              {
+                headers: {
+                  'User-Agent': 'FarmToHome/1.0'
+                }
+              }
+            )
+            
+            if (response.ok) {
+              const data = await response.json()
+              const address = data.address || {}
+              
+              setSubscriptionData(prev => ({
+                ...prev,
+                deliveryAddress: {
+                  ...prev.deliveryAddress,
+                  street: address.road || address.street || '',
+                  city: address.city || address.town || address.village || '',
+                  state: address.state || '',
+                  pincode: address.postcode || '',
+                  latitude: latitude.toString(),
+                  longitude: longitude.toString()
+                }
+              }))
+            }
+          } catch (geocodeError) {
+            console.error('Failed to get address from coordinates:', geocodeError)
+            // Still set coordinates even if geocoding fails
+            setSubscriptionData(prev => ({
+              ...prev,
+              deliveryAddress: {
+                ...prev.deliveryAddress,
+                latitude: latitude.toString(),
+                longitude: longitude.toString()
+              }
+            }))
+          }
+          
+          setDetectingLocation(false)
+        },
+        (error) => {
+          console.error('Location detection failed:', error)
+          alert('Failed to detect location. Please enter address manually.')
+          setDetectingLocation(false)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      )
+    } catch (error) {
+      console.error('Location detection error:', error)
+      alert('Failed to detect location. Please enter address manually.')
+      setDetectingLocation(false)
+    }
+  }
+
+  const handleAddressOptionChange = (option) => {
+    setSubscriptionData(prev => ({
+      ...prev,
+      addressOption: option,
+      deliveryAddress: option === 'default' && defaultAddress ? defaultAddress : {
+        street: '',
+        doorNo: '',
+        city: '',
+        state: '',
+        pincode: '',
+        latitude: null,
+        longitude: null
+      }
+    }))
+  }
+
+  const handleCloseSubscriptionModal = () => {
+    setShowSubscriptionModal(false)
+    setSelectedProduct(null)
+  }
+
+  const handleCreateSubscription = async () => {
+    if (!selectedProduct) return
+
+    // Validate delivery address
+    if (!subscriptionData.deliveryAddress.street || 
+        !subscriptionData.deliveryAddress.city || 
+        !subscriptionData.deliveryAddress.state || 
+        !subscriptionData.deliveryAddress.pincode) {
+      alert('Please fill in all delivery address fields')
+      return
+    }
+
+    try {
+      setCreatingSubscription(true)
+      const response = await subscriptionAPI.createSubscription({
+        productId: selectedProduct._id,
+        frequency: subscriptionData.frequency,
+        deliveryDay: subscriptionData.deliveryDay,
+        quantity: subscriptionData.quantity,
+        deliveryAddress: subscriptionData.deliveryAddress,
+        requireApproval: subscriptionData.requireApproval
+      })
+
+      if (response.data.success) {
+        setToastMessage(`✅ Subscription created for ${selectedProduct.name}!`)
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 3000)
+        handleCloseSubscriptionModal()
+      } else {
+        setToastMessage(`❌ Failed to create subscription`)
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 3000)
+      }
+    } catch (error) {
+      console.error('Error creating subscription:', error)
+      setToastMessage(`❌ ${error.response?.data?.error || 'Failed to create subscription'}`)
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 3000)
+    } finally {
+      setCreatingSubscription(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="customer-products">
@@ -415,11 +646,212 @@ const CustomerProducts = () => {
                    addedProducts[product._id] ? '✅ Added to cart' : 
                    (product.isavailable ? 'Add to Cart' : 'Out of Stock')}
                 </button>
+                <button 
+                  className="btn btn-subscription"
+                  disabled={!product.isavailable}
+                  onClick={() => handleOpenSubscriptionModal(product)}
+                >
+                  🔄 Subscribe
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Subscription Modal */}
+      {showSubscriptionModal && selectedProduct && (
+        <div className="modal-overlay">
+          <div className="subscription-modal">
+            <div className="modal-header">
+              <h3>🔄 Subscribe to {selectedProduct.name}</h3>
+              <button className="close-btn" onClick={handleCloseSubscriptionModal}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="product-info">
+                <p><strong>Price:</strong> ₹{selectedProduct.priceperUnit}/{selectedProduct.unit}</p>
+                <p><strong>Farmer:</strong> {selectedProduct.farmerName || 'Local Farmer'}</p>
+              </div>
+
+              <div className="form-group">
+                <label>Frequency:</label>
+                <select 
+                  value={subscriptionData.frequency}
+                  onChange={(e) => setSubscriptionData(prev => ({...prev, frequency: e.target.value}))}
+                >
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="BIWEEKLY">Bi-weekly</option>
+                  <option value="MONTHLY">Monthly</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Delivery Day:</label>
+                <select 
+                  value={subscriptionData.deliveryDay}
+                  onChange={(e) => setSubscriptionData(prev => ({...prev, deliveryDay: e.target.value}))}
+                >
+                  <option value="MONDAY">Monday</option>
+                  <option value="TUESDAY">Tuesday</option>
+                  <option value="WEDNESDAY">Wednesday</option>
+                  <option value="THURSDAY">Thursday</option>
+                  <option value="FRIDAY">Friday</option>
+                  <option value="SATURDAY">Saturday</option>
+                  <option value="SUNDAY">Sunday</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Quantity ({selectedProduct.unit}):</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={subscriptionData.quantity}
+                  onChange={(e) => setSubscriptionData(prev => ({...prev, quantity: parseInt(e.target.value) || 1}))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Delivery Address:</label>
+                
+                {/* Address Option Selection */}
+                <div className="address-options">
+                  <label className="radio-option">
+                    <input 
+                      type="radio"
+                      name="addressOption"
+                      value="default"
+                      checked={subscriptionData.addressOption === 'default'}
+                      onChange={() => handleAddressOptionChange('default')}
+                      disabled={!defaultAddress}
+                    />
+                    Use Default Address
+                  </label>
+                  <label className="radio-option">
+                    <input 
+                      type="radio"
+                      name="addressOption"
+                      value="new"
+                      checked={subscriptionData.addressOption === 'new'}
+                      onChange={() => handleAddressOptionChange('new')}
+                    />
+                    Enter New Address
+                  </label>
+                </div>
+
+                {subscriptionData.addressOption === 'default' && defaultAddress ? (
+                  <div className="default-address-display">
+                    <p><strong>Street:</strong> {defaultAddress.street || 'N/A'}</p>
+                    <p><strong>Door No:</strong> {defaultAddress.doorNo || 'N/A'}</p>
+                    <p><strong>City:</strong> {defaultAddress.city || 'N/A'}</p>
+                    <p><strong>State:</strong> {defaultAddress.state || 'N/A'}</p>
+                    <p><strong>Pincode:</strong> {defaultAddress.pincode || 'N/A'}</p>
+                  </div>
+                ) : (
+                  <div className="new-address-form">
+                    <div className="location-detection">
+                      <button 
+                        type="button"
+                        className="btn btn-outline detect-location-btn"
+                        onClick={detectCurrentLocation}
+                        disabled={detectingLocation}
+                      >
+                        {detectingLocation ? '🔄 Detecting...' : '📍 Detect Current Location'}
+                      </button>
+                      <small>We'll auto-fill city, state, pincode, and coordinates</small>
+                    </div>
+
+                    <div className="address-inputs">
+                      <div className="address-row">
+                        <input 
+                          type="text" 
+                          placeholder="Door/Flat No."
+                          value={subscriptionData.deliveryAddress.doorNo}
+                          onChange={(e) => setSubscriptionData(prev => ({
+                            ...prev, 
+                            deliveryAddress: {...prev.deliveryAddress, doorNo: e.target.value}
+                          }))}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Street Address*"
+                          value={subscriptionData.deliveryAddress.street}
+                          onChange={(e) => setSubscriptionData(prev => ({
+                            ...prev, 
+                            deliveryAddress: {...prev.deliveryAddress, street: e.target.value}
+                          }))}
+                        />
+                      </div>
+                      
+                      <div className="address-row">
+                        <input 
+                          type="text" 
+                          placeholder="City*"
+                          value={subscriptionData.deliveryAddress.city}
+                          onChange={(e) => setSubscriptionData(prev => ({
+                            ...prev, 
+                            deliveryAddress: {...prev.deliveryAddress, city: e.target.value}
+                          }))}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="State*"
+                          value={subscriptionData.deliveryAddress.state}
+                          onChange={(e) => setSubscriptionData(prev => ({
+                            ...prev, 
+                            deliveryAddress: {...prev.deliveryAddress, state: e.target.value}
+                          }))}
+                        />
+                      </div>
+                      
+                      <input 
+                        type="text" 
+                        placeholder="Pincode*"
+                        value={subscriptionData.deliveryAddress.pincode}
+                        onChange={(e) => setSubscriptionData(prev => ({
+                          ...prev, 
+                          deliveryAddress: {...prev.deliveryAddress, pincode: e.target.value}
+                        }))}
+                      />
+                      
+                      {subscriptionData.deliveryAddress.latitude && (
+                        <div className="coordinates-display">
+                          <small>📍 Location detected: {subscriptionData.deliveryAddress.latitude}, {subscriptionData.deliveryAddress.longitude}</small>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>
+                  <input 
+                    type="checkbox"
+                    checked={subscriptionData.requireApproval}
+                    onChange={(e) => setSubscriptionData(prev => ({...prev, requireApproval: e.target.checked}))}
+                  />
+                  Require approval before each delivery
+                </label>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={handleCloseSubscriptionModal}>
+                Cancel
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={handleCreateSubscription}
+                disabled={creatingSubscription}
+              >
+                {creatingSubscription ? 'Creating...' : 'Create Subscription'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

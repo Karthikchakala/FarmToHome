@@ -28,6 +28,7 @@ const authenticate = async (req, res, next) => {
     }
 
     const decoded = verifyToken(token);
+    console.log('DEBUG: Decoded JWT token:', decoded);
     
     // Get user from Supabase
     const { data: user, error } = await supabase
@@ -86,6 +87,7 @@ const authenticate = async (req, res, next) => {
     // }
 
     req.user = user;
+    console.log('DEBUG: Authenticated user:', { id: user._id, email: user.email, role: user.role });
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
@@ -99,6 +101,8 @@ const authenticate = async (req, res, next) => {
 // Role-based authorization middleware
 const authorize = (...roles) => {
   return (req, res, next) => {
+    console.log('DEBUG: Authorize check - User role:', req.user?.role, 'Required roles:', roles);
+    
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -107,12 +111,14 @@ const authorize = (...roles) => {
     }
 
     if (!roles.includes(req.user.role)) {
+      console.log('DEBUG: Authorization failed - User role not in required roles');
       return res.status(403).json({
         success: false,
         error: 'Access denied. Insufficient permissions.'
       });
     }
 
+    console.log('DEBUG: Authorization successful');
     next();
   };
 };
