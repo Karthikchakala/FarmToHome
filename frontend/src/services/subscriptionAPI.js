@@ -24,7 +24,13 @@ export const subscriptionAPI = {
 
   // Pause/Resume/Cancel subscription
   updateSubscriptionStatus: (subscriptionId, status) => {
-    return api.patch(`/subscriptions/${subscriptionId}/status`, { status })
+    // Check if user is farmer and use farmer-specific endpoint
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const endpoint = user.role === 'farmer' 
+      ? `/subscriptions/${subscriptionId}/farmer-status`
+      : `/subscriptions/${subscriptionId}/status`;
+    
+    return api.patch(endpoint, { status })
   },
 
   // Skip specific delivery

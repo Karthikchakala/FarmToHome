@@ -57,17 +57,49 @@ const SubscriptionManagement = () => {
 
   const updateSubscriptionStatus = async (subscriptionId, newStatus) => {
     try {
-      // API call to update subscription status
-      setSubscriptions(subscriptions.map(sub => 
-        sub._id === subscriptionId ? { ...sub, status: newStatus } : sub
-      ))
+      // Make API call to update subscription status
+      const response = await subscriptionAPI.updateSubscriptionStatus(subscriptionId, newStatus)
+      
+      if (response.data.success) {
+        // Update local state on successful API call
+        setSubscriptions(subscriptions.map(sub => 
+          sub._id === subscriptionId ? { ...sub, status: newStatus } : sub
+        ))
+      } else {
+        console.error('Failed to update subscription status:', response.data.error)
+      }
     } catch (error) {
       console.error('Error updating subscription status:', error)
     }
   }
 
   const viewSubscriptionDetails = (subscription) => {
-    setSelectedSubscription(subscription)
+    // Calculate monthly revenue based on frequency
+    const pricePerDelivery = subscription.pricePerUnit * subscription.quantity
+    let monthlyRevenue = 0
+    
+    switch (subscription.frequency) {
+      case 'daily':
+        monthlyRevenue = pricePerDelivery * 30 // Approximate 30 days per month
+        break
+      case 'weekly':
+        monthlyRevenue = pricePerDelivery * 4 // Approximate 4 weeks per month
+        break
+      case 'biweekly':
+        monthlyRevenue = pricePerDelivery * 2 // 2 deliveries per month
+        break
+      case 'monthly':
+        monthlyRevenue = pricePerDelivery
+        break
+      default:
+        monthlyRevenue = pricePerDelivery
+    }
+    
+    // Add calculated revenue to subscription object
+    setSelectedSubscription({
+      ...subscription,
+      monthlyRevenue: monthlyRevenue
+    })
     setShowModal(true)
   }
 
@@ -100,8 +132,32 @@ const SubscriptionManagement = () => {
     }
   }
 
+  const calculateMonthlyRevenue = (subscription) => {
+    const pricePerDelivery = subscription.pricePerUnit * subscription.quantity
+    let monthlyRevenue = 0
+    
+    switch (subscription.frequency) {
+      case 'daily':
+        monthlyRevenue = pricePerDelivery * 30 // Approximate 30 days per month
+        break
+      case 'weekly':
+        monthlyRevenue = pricePerDelivery * 4 // Approximate 4 weeks per month
+        break
+      case 'biweekly':
+        monthlyRevenue = pricePerDelivery * 2 // 2 deliveries per month
+        break
+      case 'monthly':
+        monthlyRevenue = pricePerDelivery
+        break
+      default:
+        monthlyRevenue = pricePerDelivery
+    }
+    
+    return monthlyRevenue
+  }
+
   const calculateTotalRevenue = () => {
-    return subscriptions.reduce((total, sub) => total + sub.monthlyRevenue, 0)
+    return subscriptions.reduce((total, sub) => total + calculateMonthlyRevenue(sub), 0)
   }
 
   if (!isAuthenticated) {
@@ -132,7 +188,7 @@ const SubscriptionManagement = () => {
             <span className="stat-label">Active</span>
           </div>
           <div className="stat-card">
-            <span className="stat-number">₹{calculateTotalRevenue()}</span>
+            <span className="stat-number">₹{calculateTotalRevenue().toLocaleString('en-IN')}</span>
             <span className="stat-label">Monthly Revenue</span>
           </div>
         </div>
@@ -237,7 +293,7 @@ const SubscriptionManagement = () => {
                   <div className="revenue-details">
                     <div className="revenue-item">
                       <span className="label">Monthly Revenue:</span>
-                      <span className="value monthly">₹{subscription.monthlyRevenue}</span>
+                      <span className="value monthly">₹{calculateMonthlyRevenue(subscription).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </div>
@@ -337,8 +393,8 @@ const SubscriptionManagement = () => {
               
               <div className="subscription-detail-section">
                 <h4>💰 Revenue Information</h4>
-                <p><strong>Monthly Revenue:</strong> ₹{selectedSubscription.monthlyRevenue}</p>
-                <p><strong>Annual Revenue:</strong> ₹{selectedSubscription.monthlyRevenue * 12}</p>
+                <p><strong>Monthly Revenue:</strong> ₹{(selectedSubscription.monthlyRevenue || 0).toLocaleString('en-IN')}</p>
+                <p><strong>Annual Revenue:</strong> ₹{((selectedSubscription.monthlyRevenue || 0) * 12).toLocaleString('en-IN')}</p>
               </div>
               
               {selectedSubscription.notes && (

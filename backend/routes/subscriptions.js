@@ -27,8 +27,11 @@ router.get('/', authenticate, authorize('consumer'), getUserSubscriptions);
 // Update subscription
 router.put('/:id', authenticate, authorize('consumer'), validateId, updateSubscription);
 
-// Pause/Resume/Cancel subscription
+// Pause/Resume/Cancel subscription (consumer only)
 router.patch('/:id/status', authenticate, authorize('consumer'), validateId, toggleSubscriptionStatus);
+
+// Pause/Resume/Cancel subscription (farmer only)
+router.patch('/:id/farmer-status', authenticate, authorize('farmer'), validateId, toggleSubscriptionStatus);
 
 // Modify subscription (quantity, frequency, delivery day, etc.)
 router.put('/:id/modify', authenticate, authorize('consumer'), validateId, modifySubscription);

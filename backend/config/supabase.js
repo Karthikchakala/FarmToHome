@@ -1,5 +1,6 @@
 // Supabase configuration and utilities
 require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
 
 const supabaseConfig = {
   url: process.env.SUPABASE_URL,
@@ -27,6 +28,14 @@ const supabaseConfig = {
     require: true
   }
 };
+
+// Create Supabase client
+const supabase = createClient(supabaseConfig.url, supabaseConfig.serviceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 // Validate Supabase configuration
 const validateSupabaseConfig = () => {
@@ -102,6 +111,7 @@ const supabaseHelpers = {
 };
 
 module.exports = {
+  supabase,
   supabaseConfig,
   validateSupabaseConfig,
   getSupabaseConnectionString,

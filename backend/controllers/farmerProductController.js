@@ -240,76 +240,62 @@ const updateProduct = asyncHandler(async (req, res) => {
     images: updatedProduct.images ? JSON.parse(updatedProduct.images) : []
   }, 'Product updated successfully');
 });
-
 // Update stock quantity (Farmer only)
 const updateStock = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const { productId } = req.params;
-  const { stockquantity, operation = 'set' } = req.body; // operation: 'set', 'add', 'subtract'
+  const { id } = req.params;
+  const { stockquantity, priceperunit } = req.body;
 
   // Validate input
   if (stockquantity === undefined || stockquantity < 0) {
     throw new ValidationError('Valid stock quantity is required');
   }
 
-  if (!['set', 'add', 'subtract'].includes(operation)) {
-    throw new ValidationError('Invalid operation. Must be set, add, or subtract');
-  }
+  // Get farmer ID by userid
+  const { data: farmer, error: farmerError } = await supabase
+    .from('farmers')
+    .select('_id, isapproved')
+    .eq('userid', userId)
+    .single();
 
-  // Get farmer ID
-  const farmerQuery = 'SELECT _id FROM farmers WHERE _id = $1 AND isapproved = true';
-  const farmerResult = await query(farmerQuery, [userId]);
-
-  if (farmerResult.rows.length === 0) {
+  if (farmerError || !farmer) {
     throw new NotFoundError('Farmer profile not found or not approved');
   }
 
-  const farmerId = farmerResult.rows[0]._id;
+  if (!farmer.isapproved) {
+    throw new NotFoundError('Farmer profile not approved');
+  }
+
+  const farmerId = farmer._id;
 
   // Check if product exists and belongs to farmer
-  const productCheckQuery = 'SELECT _id, stockquantity FROM products WHERE _id = $1 AND farmerid = $2';
-  const productCheckResult = await query(productCheckQuery, [productId, farmerId]);
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('_id')
+    .eq('_id', id)
+    .eq('farmerid', farmerId)
+    .single();
 
-  if (productCheckResult.rows.length === 0) {
+  if (productError || !product) {
     throw new NotFoundError('Product not found or access denied');
   }
 
-  const currentProduct = productCheckResult.rows[0];
-  let newStockQuantity;
+  // Update stock quantity and price
+  const updateData = { stockquantity };
+  if (priceperunit !== undefined) updateData.priceperunit = priceperunit;
 
-  // Calculate new stock based on operation
-  switch (operation) {
-    case 'set':
-      newStockQuantity = parseInt(stockquantity);
-      break;
-    case 'add':
-      newStockQuantity = currentProduct.stockquantity + parseInt(stockquantity);
-      break;
-    case 'subtract':
-      newStockQuantity = currentProduct.stockquantity - parseInt(stockquantity);
-      if (newStockQuantity < 0) {
-        throw new ValidationError('Cannot subtract more than current stock');
-      }
-      break;
+  const { data: updatedProduct, error: updateError } = await supabase
+    .from('products')
+    .update(updateData)
+    .eq('_id', id)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error('Failed to update stock');
   }
 
-  // Update stock with atomic operation
-  const updateQuery = `
-    UPDATE products 
-    SET stockquantity = $1, updatedat = CURRENT_TIMESTAMP
-    WHERE _id = $2 AND farmerid = $3
-    RETURNING *
-  `;
-
-  const updateResult = await query(updateQuery, [newStockQuantity, productId, farmerId]);
-  const updatedProduct = updateResult.rows[0];
-
-  logger.info(`Stock updated: productId=${productId}, oldStock=${currentProduct.stockquantity}, newStock=${newStockQuantity}`);
-
-  return responseHelper.success(res, {
-    ...updatedProduct,
-    images: updatedProduct.images ? JSON.parse(updatedProduct.images) : []
-  }, 'Stock updated successfully');
+  return responseHelper.success(res, updatedProduct, 'Stock updated successfully');
 });
 
 // Toggle product availability (Farmer only)
@@ -429,56 +415,112 @@ const getLowStockAlerts = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { threshold = 10 } = req.query;
 
-  // Get farmer ID
-  const farmerQuery = 'SELECT _id FROM farmers WHERE _id = $1 AND isapproved = true';
-  const farmerResult = await query(farmerQuery, [userId]);
+  // Get farmer ID by userid (not _id)
+  const { data: farmer, error: farmerError } = await supabase
+    .from('farmers')
+    .select('_id, isapproved')
+    .eq('userid', userId)
+    .single();
 
-  if (farmerResult.rows.length === 0) {
-    throw new NotFoundError('Farmer profile not found or not approved');
+  if (farmerError || !farmer) {
+    // Check if user exists and is farmer
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('_id, email, role')
+      .eq('_id', userId)
+      .single();
+    
+    if (userError || !user) {
+      throw new NotFoundError('User not found');
+    }
+    
+    if (user.role !== 'farmer') {
+      throw new NotFoundError('User is not a farmer');
+    }
+    
+    throw new NotFoundError('Farmer profile not found. Please complete your farmer registration.');
   }
 
-  const farmerId = farmerResult.rows[0]._id;
+  if (!farmer.isapproved) {
+    throw new NotFoundError('Farmer profile not approved. Please wait for admin approval.');
+  }
+
+  const farmerId = farmer._id;
 
   // Get products with low stock
-  const lowStockQuery = `
-    SELECT 
+  const { data: lowStockProducts, error: lowStockError } = await supabase
+    .from('products')
+    .select(`
       _id,
       name,
       category,
       stockquantity,
       unit,
-      priceperunit,
-      isavailable,
-      updatedat
-    FROM products
-    WHERE farmerid = $1 
-      AND stockquantity <= $2
-      AND isavailable = true
-    ORDER BY stockquantity ASC
-  `;
+      priceperunit
+    `)
+    .eq('farmerid', farmerId)
+    .lte('stockquantity', threshold)
+    .gt('stockquantity', 0)
+    .order('stockquantity', { ascending: true });
 
-  const lowStockResult = await query(lowStockQuery, [farmerId, parseInt(threshold)]);
+  if (lowStockError) {
+    throw new Error(`Failed to fetch low stock alerts: ${lowStockError.message}`);
+  }
 
-  return responseHelper.success(res, {
-    lowStockProducts: lowStockResult.rows,
-    threshold: parseInt(threshold),
-    count: lowStockResult.rows.length
-  }, 'Low stock alerts retrieved successfully');
+  // If no products found, return empty array
+  if (!lowStockProducts || lowStockProducts.length === 0) {
+    return responseHelper.success(res, [], 'No low stock alerts found');
+  }
+
+  const alerts = lowStockProducts.map(product => ({
+    _id: product._id,
+    productName: product.name,
+    category: product.category,
+    currentStock: product.stockquantity,
+    unit: product.unit,
+    pricePerUnit: product.priceperunit,
+    minStockAlert: threshold, // Use threshold since minstockalert column doesn't exist
+    threshold: parseInt(threshold)
+  }));
+
+  return responseHelper.success(res, alerts, 'Low stock alerts retrieved successfully');
 });
 
 // Get stock statistics for farmer
 const getStockStatistics = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  // Get farmer ID
-  const farmerQuery = 'SELECT _id FROM farmers WHERE _id = $1 AND isapproved = true';
-  const farmerResult = await query(farmerQuery, [userId]);
+  // Get farmer ID by userid (not _id)
+  const { data: farmer, error: farmerError } = await supabase
+    .from('farmers')
+    .select('_id, isapproved')
+    .eq('userid', userId)
+    .single();
 
-  if (farmerResult.rows.length === 0) {
+  if (farmerError || !farmer) {
+    // Check if user exists and is farmer
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('_id, email, role')
+      .eq('_id', userId)
+      .single();
+    
+    if (userError || !user) {
+      throw new NotFoundError('User not found');
+    }
+    
+    if (user.role !== 'farmer') {
+      throw new NotFoundError('User is not a farmer');
+    }
+    
     throw new NotFoundError('Farmer profile not found or not approved');
   }
 
-  const farmerId = farmerResult.rows[0]._id;
+  if (!farmer.isapproved) {
+    throw new NotFoundError('Farmer profile not approved');
+  }
+
+  const farmerId = farmer._id;
 
   // Get stock statistics
   const [
@@ -489,34 +531,375 @@ const getStockStatistics = asyncHandler(async (req, res) => {
     totalStock,
     categoryStats
   ] = await Promise.all([
-    query('SELECT COUNT(*) as count FROM products WHERE farmerid = $1', [farmerId]),
-    query('SELECT COUNT(*) as count FROM products WHERE farmerid = $1 AND isavailable = true', [farmerId]),
-    query('SELECT COUNT(*) as count FROM products WHERE farmerid = $1 AND stockquantity = 0', [farmerId]),
-    query('SELECT COUNT(*) as count FROM products WHERE farmerid = $1 AND stockquantity <= 10 AND stockquantity > 0', [farmerId]),
-    query('SELECT SUM(stockquantity) as total FROM products WHERE farmerid = $1', [farmerId]),
-    query(`
-      SELECT category, COUNT(*) as count, SUM(stockquantity) as total_stock
-      FROM products 
-      WHERE farmerid = $1 
-      GROUP BY category
-      ORDER BY count DESC
-    `, [farmerId])
+    supabase.from('products').select('*', { count: 'exact' }).eq('farmerid', farmerId),
+    supabase.from('products').select('*', { count: 'exact' }).eq('farmerid', farmerId).eq('isavailable', true),
+    supabase.from('products').select('*', { count: 'exact' }).eq('farmerid', farmerId).eq('stockquantity', 0),
+    supabase.from('products').select('*', { count: 'exact' }).eq('farmerid', farmerId).lt('stockquantity', 10).gt('stockquantity', 0),
+    supabase.from('products').select('stockquantity').eq('farmerid', farmerId),
+    supabase.from('products').select('category').eq('farmerid', farmerId)
   ]);
 
+  // Check for errors in any of the queries
+  if (totalProducts.error) {
+    throw new Error('Failed to fetch total products count');
+  }
+  if (availableProducts.error) {
+    throw new Error('Failed to fetch available products count');
+  }
+  if (outOfStockProducts.error) {
+    throw new Error('Failed to fetch out of stock products count');
+  }
+  if (lowStockProducts.error) {
+    throw new Error('Failed to fetch low stock products count');
+  }
+  if (totalStock.error) {
+    throw new Error('Failed to fetch total stock');
+  }
+  if (categoryStats.error) {
+    throw new Error('Failed to fetch category statistics');
+  }
+
+  // Calculate category statistics
+  const categoryMap = {};
+  categoryStats.data?.forEach(product => {
+    if (product.category) {
+      categoryMap[product.category] = (categoryMap[product.category] || 0) + 1;
+    }
+  });
+
   const statistics = {
-    totalProducts: parseInt(totalProducts.rows[0].count) || 0,
-    availableProducts: parseInt(availableProducts.rows[0].count) || 0,
-    outOfStockProducts: parseInt(outOfStockProducts.rows[0].count) || 0,
-    lowStockProducts: parseInt(lowStockProducts.rows[0].count) || 0,
-    totalStock: parseInt(totalStock.rows[0].total) || 0,
-    categoryStats: categoryStats.rows.map(row => ({
-      category: row.category,
-      count: parseInt(row.count),
-      totalStock: parseInt(row.total_stock)
+    totalProducts: totalProducts.count || 0,
+    availableProducts: availableProducts.count || 0,
+    outOfStockProducts: outOfStockProducts.count || 0,
+    lowStockProducts: lowStockProducts.count || 0,
+    totalStock: totalStock.data?.reduce((sum, item) => sum + (item.stockquantity || 0), 0) || 0,
+    categoryStats: Object.entries(categoryMap).map(([category, count]) => ({
+      category,
+      count,
+      total_stock: 0 // We can calculate this if needed
     }))
   };
 
   return responseHelper.success(res, statistics, 'Stock statistics retrieved successfully');
+});
+
+// Get farmer analytics
+const getFarmerAnalytics = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { timeRange = '30days' } = req.query;
+
+  console.log('Getting farmer analytics for user:', userId, 'timeRange:', timeRange);
+  console.log('User object:', req.user);
+  console.log('User role:', req.user?.role);
+
+  try {
+    // Get farmer record
+    const { data: farmer, error: farmerError } = await supabase
+      .from('farmers')
+      .select('_id')
+      .eq('userid', userId)
+      .single();
+
+    if (farmerError || !farmer) {
+      console.log('No farmer record found for user:', userId);
+      
+      // Try to get analytics data directly without farmer record
+      try {
+        const { data: orders, error: ordersError } = await supabase
+          .from('orders')
+          .select('totalamount, status, createdat, items, userid')
+          .gte('createdat', startDate.toISOString())
+          .lte('createdat', now.toISOString())
+          .order('createdat', { ascending: false });
+
+        if (!ordersError && orders) {
+          console.log('Found orders directly:', orders?.length || 0);
+          
+          // Calculate analytics from orders directly
+          let totalRevenue = 0;
+          let totalOrders = 0;
+          const customerIds = new Set();
+          const productSales = {};
+          const customerOrders = new Map();
+
+          orders?.forEach(order => {
+            totalRevenue += parseFloat(order.totalamount) || 0;
+            totalOrders += 1;
+            customerIds.add(order.userid);
+            
+            // Track product sales
+            order.items?.forEach(item => {
+              if (item.productid) {
+                if (!productSales[item.productid]) {
+                  productSales[item.productid] = {
+                    name: item.productname || 'Unknown Product',
+                    sales: 0,
+                    revenue: 0
+                  };
+                }
+                productSales[item.productid].sales += parseInt(item.quantity) || 0;
+                productSales[item.productid].revenue += (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0);
+              }
+            });
+            
+            // Track customer orders
+            if (!customerOrders.has(order.userid)) {
+              customerOrders.set(order.userid, 0);
+            }
+            customerOrders.set(order.userid, customerOrders.get(order.userid) + 1);
+          });
+
+          // Calculate customer insights
+          let newCustomers = 0;
+          let returningCustomers = 0;
+          customerOrders.forEach((orderCount, userId) => {
+            if (orderCount === 1) {
+              newCustomers += 1;
+            } else {
+              returningCustomers += 1;
+            }
+          });
+
+          // Get product count
+          const { count: productCount, error: productError } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('farmerid', userId);
+
+          const analytics = {
+            overview: {
+              totalRevenue,
+              totalOrders,
+              totalProducts: productCount || 0,
+              activeCustomers: customerIds.size
+            },
+            salesData: [],
+            productPerformance: Object.values(productSales).slice(0, 5),
+            recentOrders: orders?.slice(0, 5).map(order => ({
+              id: order.ordernumber || order._id,
+              customer: 'Customer', // We don't have user names
+              amount: order.totalamount,
+              status: order.status,
+              date: order.createdat
+            })) || [],
+            customerInsights: {
+              newCustomers,
+              returningCustomers,
+              topLocations: [] // Would need address data
+            }
+          };
+
+          console.log('Analytics calculated from orders:', analytics);
+          return responseHelper.success(res, analytics, 'Analytics retrieved successfully');
+        }
+      } catch (directError) {
+        console.log('Error getting direct analytics:', directError);
+      }
+      
+      return responseHelper.success(res, {
+        overview: {
+          totalRevenue: 0,
+          totalOrders: 0,
+          totalProducts: 0,
+          activeCustomers: 0
+        },
+        salesData: [],
+        productPerformance: [],
+        recentOrders: [],
+        customerInsights: {
+          newCustomers: 0,
+          returningCustomers: 0,
+          topLocations: []
+        }
+      }, 'Analytics retrieved successfully');
+    }
+
+    const farmerId = farmer._id;
+
+    // Calculate date range
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (timeRange) {
+      case '7days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case '30days':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case '90days':
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case '1year':
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 30);
+    }
+
+    // Get orders within date range
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('totalamount, status, createdat, items, userid')
+      .eq('farmerid', farmerId)
+      .gte('createdat', startDate.toISOString())
+      .lte('createdat', now.toISOString())
+      .order('createdat', { ascending: false });
+
+    if (ordersError) {
+      console.error('Error fetching orders:', ordersError);
+    }
+
+    // Calculate overview metrics
+    let totalRevenue = 0;
+    let totalOrders = 0;
+    const customerIds = new Set();
+    const productSales = {};
+
+    orders?.forEach(order => {
+      totalRevenue += parseFloat(order.totalamount) || 0;
+      totalOrders += 1;
+      customerIds.add(order.userid);
+
+      // Track product sales
+      order.items?.forEach(item => {
+        if (item.productid) {
+          if (!productSales[item.productid]) {
+            productSales[item.productid] = {
+              name: item.productname || 'Unknown Product',
+              sales: 0,
+              revenue: 0
+            };
+          }
+          productSales[item.productid].sales += parseInt(item.quantity) || 0;
+          productSales[item.productid].revenue += (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0);
+        }
+      });
+    });
+
+    // Get product count
+    const { count: productCount, error: productError } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('farmerid', farmerId);
+
+    if (productError) {
+      console.error('Error fetching product count:', productError);
+    }
+
+    // Get active customers count (unique customers with orders)
+    const { data: uniqueCustomers, error: customersError } = await supabase
+      .from('orders')
+      .select('userid', { count: 'exact' })
+      .eq('farmerid', farmerId)
+      .gte('createdat', startDate.toISOString());
+
+    if (customersError) {
+      console.error('Error fetching customers:', customersError);
+    }
+
+    // Calculate daily sales data
+    const salesData = [];
+    const dailyMap = new Map();
+
+    orders?.forEach(order => {
+      const date = order.createdat.split('T')[0];
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { revenue: 0, orders: 0 });
+      }
+      const day = dailyMap.get(date);
+      day.revenue += parseFloat(order.totalamount) || 0;
+      day.orders += 1;
+    });
+
+    // Convert to array and sort by date
+    Array.from(dailyMap.entries())
+      .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+      .forEach(([date, data]) => {
+        salesData.push({
+          date,
+          revenue: data.revenue,
+          orders: data.orders
+        });
+      });
+
+    // Get product performance (top 5 products)
+    const productPerformance = Object.values(productSales)
+      .sort((a, b) => b.sales - a.sales)
+      .slice(0, 5);
+
+    // Get recent orders (last 5)
+    const recentOrders = orders?.slice(0, 5).map(order => ({
+      id: order.ordernumber || order._id,
+      customer: 'Customer', // We'll need to join with users table for names
+      amount: order.totalamount,
+      status: order.status,
+      date: order.createdat
+    })) || [];
+
+    // Calculate customer insights
+    const customerOrders = new Map();
+    orders?.forEach(order => {
+      if (!customerOrders.has(order.userid)) {
+        customerOrders.set(order.userid, 0);
+      }
+      customerOrders.set(order.userid, customerOrders.get(order.userid) + 1);
+    });
+
+    let newCustomers = 0;
+    let returningCustomers = 0;
+
+    customerOrders.forEach((orderCount, userId) => {
+      if (orderCount === 1) {
+        newCustomers += 1;
+      } else {
+        returningCustomers += 1;
+      }
+    });
+
+    // Get top locations (from orders)
+    const locationMap = new Map();
+    orders?.forEach(order => {
+      const city = order.deliveryaddresscity || 'Unknown';
+      const state = order.deliveryaddressstate || 'Unknown';
+      const location = `${city}, ${state}`;
+      
+      if (!locationMap.has(location)) {
+        locationMap.set(location, 0);
+      }
+      locationMap.set(location, locationMap.get(location) + 1);
+    });
+
+    const topLocations = Array.from(locationMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([location, orders]) => ({ location, orders }));
+
+    const analytics = {
+      overview: {
+        totalRevenue,
+        totalOrders,
+        totalProducts: productCount || 0,
+        activeCustomers: customerIds.size
+      },
+      salesData,
+      productPerformance,
+      recentOrders,
+      customerInsights: {
+        newCustomers,
+        returningCustomers,
+        topLocations
+      }
+    };
+
+    console.log('Farmer analytics calculated:', analytics);
+
+    return responseHelper.success(res, analytics, 'Analytics retrieved successfully');
+
+  } catch (error) {
+    console.error('Error getting farmer analytics:', error);
+    return responseHelper.error(res, 'Failed to get analytics', 500);
+  }
 });
 
 module.exports = {
@@ -527,5 +910,6 @@ module.exports = {
   getFarmerProducts,
   getLowStockAlerts,
   getStockStatistics,
-  checkTableSchema
+  checkTableSchema,
+  getFarmerAnalytics
 };

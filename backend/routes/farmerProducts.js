@@ -10,7 +10,8 @@ const {
   getFarmerProducts,
   getLowStockAlerts,
   getStockStatistics,
-  checkTableSchema
+  checkTableSchema,
+  getFarmerAnalytics
 } = require('../controllers/farmerProductController');
 
 // Add product (Farmer only)
@@ -33,6 +34,9 @@ router.get('/products/low-stock', authenticate, authorize('farmer'), getLowStock
 
 // Get stock statistics for farmer
 router.get('/products/statistics', authenticate, authorize('farmer'), getStockStatistics);
+
+// Get farmer analytics
+router.get('/analytics', authenticate, authorize('farmer'), getFarmerAnalytics);
 
 // Check table schema (for debugging)
 router.get('/schema', checkTableSchema);

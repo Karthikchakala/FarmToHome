@@ -220,13 +220,136 @@
   color: #333;
 }
 
+.coordinates-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.coordinates-input input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.coordinates-input input:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+}
+
+.coordinates-display {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.coordinates-display span {
+  color: #555;
+}
+
+.coordinates-hint {
+  display: block;
+  margin-top: 0.25rem;
+  color: #666;
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.location-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.location-actions .btn {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  position: relative;
+}
+
+.button-hint {
+  font-size: 0.75rem;
+  color: #666;
+  font-style: italic;
+  margin-left: 0.25rem;
+}
+
+.location-help {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-left: 3px solid #2e7d32;
+  border-radius: 0 4px 4px 0;
+}
+
+.location-help small {
+  color: #555;
+  line-height: 1.4;
+}
+
+.manual-input-section {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #e8f5e8;
+  border-left: 3px solid #4caf50;
+  border-radius: 0 4px 4px 0;
+}
+
+.manual-input-label {
+  color: #2e7d32;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  margin: 0;
+  color: #2e7d32;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.form-actions .btn {
+  min-width: 120px;
+}
+
 .role-badge {
-  background: #e8f5e8;
-  color: #2c7a2c;
-  padding: 0.25rem 0.75rem;
+  background: #2e7d32;
+  color: white;
+  padding: 4px 12px;
   border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.id-badge {
+  background: #6c757d;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: monospace;
 }
 
 .status-badge {

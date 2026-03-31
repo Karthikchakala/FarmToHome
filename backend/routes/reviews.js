@@ -11,22 +11,32 @@ const {
   getReviewEligibility
 } = require('../controllers/reviewController');
 
-// Add review (Consumer only)
-router.post('/', authenticate, authorize('consumer'), addReview);
+// Customer review endpoints
+const customerRouter = express.Router();
 
-// Get reviews for a farmer (Public)
-router.get('/:farmerId', validateId, getFarmerReviews);
+// Add review (Customer only)
+customerRouter.post('/', authenticate, authorize('consumer'), addReview);
 
-// Get user's reviews (Consumer only)
-router.get('/user/my-reviews', authenticate, authorize('consumer'), getUserReviews);
+// Get customer's reviews (Customer only)
+customerRouter.get('/my-reviews', authenticate, authorize('consumer'), getUserReviews);
 
-// Get review eligibility (Consumer only)
-router.get('/user/eligibility', authenticate, authorize('consumer'), getReviewEligibility);
+// Get review eligibility (Customer only)
+customerRouter.get('/eligibility', authenticate, authorize('consumer'), getReviewEligibility);
 
-// Update review (Consumer only)
-router.put('/:reviewId', authenticate, authorize('consumer'), validateId, updateReview);
+// Update review (Customer only)
+customerRouter.put('/:reviewId', authenticate, authorize('consumer'), validateId, updateReview);
 
-// Delete review (Consumer only)
-router.delete('/:reviewId', authenticate, authorize('consumer'), validateId, deleteReview);
+// Delete review (Customer only)
+customerRouter.delete('/:reviewId', authenticate, authorize('consumer'), validateId, deleteReview);
+
+// Farmer review endpoints
+const farmerRouter = express.Router();
+
+// Get reviews for a farmer (Public - no auth required)
+farmerRouter.get('/:farmerId', validateId, getFarmerReviews);
+
+// Mount customer and farmer routers
+router.use('/customer', customerRouter);
+router.use('/farmers', farmerRouter);
 
 module.exports = router;

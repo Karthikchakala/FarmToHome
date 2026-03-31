@@ -291,8 +291,9 @@ const updateSubscription = async (req, res, next) => {
 const toggleSubscriptionStatus = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const { subscriptionId } = req.params;
+    const { id: subscriptionId } = req.params;
     const { status } = req.body;
+    const userRole = req.user.role;
 
     // Validate status
     const validStatuses = ['ACTIVE', 'PAUSED', 'CANCELLED'];
@@ -303,50 +304,103 @@ const toggleSubscriptionStatus = async (req, res, next) => {
       });
     }
 
-    // Get subscription and verify ownership
-    const subscriptionResult = await query(`
-      SELECT s._id, s.consumerid, s.status
-      FROM subscriptions s
-      LEFT JOIN consumers c ON s.consumerid = c._id
-      WHERE s._id = $1 AND c.userid = $2
-    `, [subscriptionId, userId]);
+    let subscriptionData;
 
-    if (subscriptionResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Subscription not found'
-      });
+    // Check access based on user role
+    if (userRole === 'farmer') {
+      // Farmer access - check if subscription belongs to farmer's products
+      const { data: farmer, error: farmerError } = await supabase
+        .from('farmers')
+        .select('_id')
+        .eq('userid', userId)
+        .single();
+
+      if (farmerError || !farmer) {
+        return res.status(404).json({
+          success: false,
+          error: 'Farmer not found'
+        });
+      }
+
+      const { data: subscriptions, error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .select(`
+          _id,
+          consumerid,
+          status,
+          products!inner(
+            farmerid
+          )
+        `)
+        .eq('_id', subscriptionId)
+        .eq('products.farmerid', farmer._id);
+
+      if (subscriptionError || !subscriptions || subscriptions.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Subscription not found or access denied'
+        });
+      }
+
+      subscriptionData = subscriptions[0];
+    } else {
+      // Consumer access - check if subscription belongs to consumer
+      const { data: consumer, error: consumerError } = await supabase
+        .from('consumers')
+        .select('_id')
+        .eq('userid', userId)
+        .single();
+
+      if (consumerError || !consumer) {
+        return res.status(404).json({
+          success: false,
+          error: 'Consumer not found'
+        });
+      }
+
+      const { data: subscriptions, error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .select('_id, consumerid, status')
+        .eq('_id', subscriptionId)
+        .eq('consumerid', consumer._id);
+
+      if (subscriptionError || !subscriptions || subscriptions.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Subscription not found or access denied'
+        });
+      }
+
+      subscriptionData = subscriptions[0];
     }
 
-    const currentSubscription = subscriptionResult.rows[0];
+    // Update subscription status
+    const { data: updatedSubscription, error: updateError } = await supabase
+      .from('subscriptions')
+      .update({ 
+        status: status,
+        updatedat: new Date().toISOString()
+      })
+      .eq('_id', subscriptionId)
+      .select()
+      .single();
 
-    // Validate status transition
-    if (currentSubscription.status === 'CANCELLED') {
-      return res.status(400).json({
+    if (updateError) {
+      logger.error('Error updating subscription status:', updateError);
+      return res.status(500).json({
         success: false,
-        error: 'Cannot modify cancelled subscription'
+        error: 'Failed to update subscription status'
       });
     }
-
-    const result = await query(`
-      UPDATE subscriptions 
-      SET status = $1, updatedat = CURRENT_TIMESTAMP
-      WHERE _id = $2
-      RETURNING *
-    `, [status, subscriptionId]);
-
-    logger.info(`Subscription status updated: subscriptionId=${subscriptionId}, status=${status}`);
 
     res.status(200).json({
       success: true,
       message: `Subscription ${status.toLowerCase()} successfully`,
-      data: {
-        subscription: result.rows[0]
-      }
+      data: updatedSubscription
     });
 
   } catch (error) {
-    logger.error('Toggle subscription status error:', error);
+    logger.error('Error toggling subscription status:', error);
     next(error);
   }
 };

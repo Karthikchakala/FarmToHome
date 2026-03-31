@@ -63,16 +63,51 @@ const parseLocation = (locationData) => {
   if (typeof locationData === 'string') {
     try {
       const parsed = JSON.parse(locationData);
-      return formatCoordinates(parsed.latitude, parsed.longitude);
-    } catch {
+      
+      // Handle new GeoJSON-like structure
+      if (parsed.type === 'Point' && parsed.coordinates && parsed.coordinates.length === 2) {
+        return formatCoordinates(parsed.latitude, parsed.longitude);
+      }
+      
+      // Handle address-only structure
+      if (parsed.type === 'Address' && parsed.address) {
+        return parsed.address;
+      }
+      
+      // Handle legacy structure
+      if (parsed.latitude && parsed.longitude) {
+        return formatCoordinates(parsed.latitude, parsed.longitude);
+      }
+      
+      // Handle legacy object with lat/lng
+      if (parsed.lat && parsed.lng) {
+        return formatCoordinates(parsed.lat, parsed.lng);
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error parsing location data:', error);
       return null;
     }
   }
   
   if (typeof locationData === 'object') {
+    // Handle new GeoJSON-like structure
+    if (locationData.type === 'Point' && locationData.coordinates && locationData.coordinates.length === 2) {
+      return formatCoordinates(locationData.latitude, locationData.longitude);
+    }
+    
+    // Handle address-only structure
+    if (locationData.type === 'Address' && locationData.address) {
+      return locationData.address;
+    }
+    
+    // Handle legacy object with lat/lng
     if (locationData.lat && locationData.lng) {
       return formatCoordinates(locationData.lat, locationData.lng);
     }
+    
+    // Handle legacy object with latitude/longitude
     if (locationData.latitude && locationData.longitude) {
       return formatCoordinates(locationData.latitude, locationData.longitude);
     }

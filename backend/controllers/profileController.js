@@ -105,38 +105,66 @@ const getUserProfile = asyncHandler(async (req, res) => {
 
     } else if (userRole === 'farmer') {
       // Get farmer profile using Supabase
+      // First get user data
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select(`
-          *,
-          farmers!left(
-            _id as farmer_id,
-            farmname,
-            description,
-            farmingtype,
-            location,
-            latitude,
-            longitude,
-            deliveryradius,
-            isapproved,
-            verificationstatus,
-            ratingaverage,
-            createdat as farmer_created_at
-          )
+          _id,
+          name,
+          email,
+          phone,
+          role,
+          createdat
         `)
         .eq('_id', userId)
         .single();
 
       if (userError) {
-        logger.error('Error fetching user profile:', userError);
-        throw new Error('Failed to fetch user profile');
+        logger.error('Error fetching user for farmer profile:', userError);
+        throw new Error(`Failed to fetch user profile: ${userError.message}`);
       }
 
       profileData = userData;
 
-      // Parse location if exists
-      if (profileData.farmers?.location) {
-        profileData.farmers.location = parseLocation(profileData.farmers.location);
+      // Then get farmer data
+      const { data: farmerData, error: farmerError } = await supabase
+        .from('farmers')
+        .select(`
+          _id,
+          farmname,
+          description,
+          farmingtype,
+          location,
+          latitude,
+          longitude,
+          deliveryradius,
+          isapproved,
+          verificationstatus,
+          ratingaverage,
+          createdat,
+          area,
+          landmark,
+          pincode,
+          city,
+          state
+        `)
+        .eq('userid', userId)
+        .single();
+
+      if (farmerError && farmerError.code !== 'PGRST116') {
+        logger.error('Error fetching farmer data:', farmerError);
+        throw new Error(`Failed to fetch farmer data: ${farmerError.message}`);
+      }
+
+      if (farmerData) {
+        // Parse location if exists (handle legacy data)
+        if (farmerData.location) {
+          farmerData.location = parseLocation(farmerData.location);
+        }
+        
+        profileData.farmers = farmerData;
+      } else {
+        profileData.farmers = null;
       }
 
     } else {
@@ -374,16 +402,31 @@ const updateFarmerProfile = asyncHandler(async (req, res) => {
     if (farmingtype) farmerUpdateData.farmingtype = farmingtype;
     if (deliveryradius) farmerUpdateData.deliveryradius = deliveryradius;
     
-    // Handle location data
+    // Handle location data - avoid the problematic location column entirely
     if (location && location.latitude && location.longitude) {
-      // Only store latitude and longitude, skip the location field for now
+      // Store coordinates in explicit columns only
       farmerUpdateData.latitude = parseFloat(location.latitude);
       farmerUpdateData.longitude = parseFloat(location.longitude);
+      
+      console.log('Storing coordinates in separate columns, avoiding location column');
+      
+    }
+    
+    // Address data will be stored in proper columns once they are added to the database
+    if (address) {
+      console.log('Address data provided, storing in database columns:', address);
+      // Store address data in proper columns now that they are added to the farmers table
+      farmerUpdateData.area = address.area;
+      farmerUpdateData.landmark = address.landmark;
+      farmerUpdateData.pincode = address.pincode;
+      farmerUpdateData.city = address.city;
+      farmerUpdateData.state = address.state;
     }
     
     farmerUpdateData.updatedat = new Date().toISOString();
 
     console.log('Updating farmer with data:', farmerUpdateData);
+    
     const { data: farmerData, error: farmerError } = await supabase
       .from('farmers')
       .update(farmerUpdateData)

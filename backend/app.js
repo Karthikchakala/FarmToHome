@@ -26,6 +26,8 @@ const testProductsRoutes = require('./routes/testProducts');
 const testAuthRoutes = require('./routes/testAuth');
 const adminRoutes = require('./routes/adminRoutes');
 const customerRoutes = require('./routes/customerRoutes');
+const feedbackRoutes = require('./routes/feedback');
+const notificationRoutes = require('./routes/notifications');
 const { healthCheck } = require('./db');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -56,7 +58,7 @@ app.use(helmet({
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -103,6 +105,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/customer', customerRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Create HTTP server
 const server = createServer(app);

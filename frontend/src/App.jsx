@@ -32,7 +32,7 @@ import OrderManagement from './pages/farmer/OrderManagement'
 import FarmerOrders from './pages/farmer/FarmerOrders'
 import SubscriptionManagement from './pages/farmer/SubscriptionManagement'
 import ReviewManagement from './pages/farmer/ReviewManagement'
-import Analytics from './pages/farmer/Analytics'
+import FarmerAnalytics from './pages/farmer/FarmerAnalytics'
 import Settings from './pages/farmer/Settings'
 import Subscriptions from './pages/customer/Subscriptions'
 import Login from './pages/auth/Login'
@@ -43,6 +43,7 @@ import AdminOrderManagement from './pages/admin/OrderManagement'
 import AdminProductManagement from './pages/admin/ProductManagement'
 import FarmerManagement from './pages/admin/FarmerManagement'
 import AdminAnalytics from './pages/admin/Analytics'
+import FeedbackManagement from './pages/admin/FeedbackManagement'
 import AdminSettings from './pages/admin/Settings'
 import CustomerReviews from './pages/customer/Reviews'
 import './styles/global.css'
@@ -122,6 +123,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
           <Route path="/admin/products" element={<AdminProductManagement />} />
           <Route path="/admin/farmers" element={<FarmerManagement />} />
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
+          <Route path="/admin/feedback" element={<FeedbackManagement />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           
           {/* Farmer Routes */}
@@ -138,7 +140,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
               <Route path="/farmer/subscriptions" element={<SubscriptionManagement />} />
               <Route path="/farmer/reviews" element={<ReviewManagement />} />
               <Route path="/farmer/profile" element={<FarmerProfile />} />
-              <Route path="/farmer/analytics" element={<Analytics />} />
+              <Route path="/farmer/analytics" element={<FarmerAnalytics />} />
               <Route path="/farmer/settings" element={<Settings />} />
             </>
           )}

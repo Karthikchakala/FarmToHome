@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import './Navbar.css'
+import Notifications from './Notifications'
+import './FarmerNavbar.css'
 
 const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
   const { user, isAuthenticated, logout } = useAuth()
@@ -74,6 +75,16 @@ const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
               className={`nav-link ${isActive('/farmer/dashboard') ? 'active' : ''}`}
             >
               📊 Dashboard
+            </Link>
+          </div>
+
+          {/* Analytics - Single item */}
+          <div className="nav-section">
+            <Link 
+              to="/farmer/analytics" 
+              className={`nav-link ${isActive('/farmer/analytics') ? 'active' : ''}`}
+            >
+              📈 Analytics
             </Link>
           </div>
 
@@ -199,35 +210,38 @@ const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
 
         <div className="navbar-actions">
           {isAuthenticated && (
-            <div className="user-menu">
-              <div className="user-info">
-                <span className="user-name">
-                  👨‍🌾 {user?.name?.split(' ')[0] || 'Farmer'}
-                </span>
-                <span className="user-role">{user?.role || 'Farmer'}</span>
+            <>
+              <Notifications />
+              <div className="user-menu">
+                <div className="user-info">
+                  <span className="user-name">
+                    🌾 {user?.name || 'Farmer'}
+                  </span>
+                  <span className="user-role">{user?.role || 'Farmer'}</span>
+                </div>
+                <div className="dropdown" ref={profileDropdownRef}>
+                  <button 
+                    className="dropdown-toggle" 
+                    onClick={handleProfileDropdownToggle}
+                  >
+                    ▼
+                  </button>
+                  {isProfileDropdownOpen && (
+                    <div className="dropdown-menu show">
+                      <Link to="/farmer/profile" className="dropdown-item">
+                        👤 My Profile
+                      </Link>
+                      <Link to="/farmer/settings" className="dropdown-item">
+                        ⚙️ Settings
+                      </Link>
+                      <button onClick={handleLogout} className="dropdown-item logout">
+                        🚪 Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="dropdown" ref={profileDropdownRef}>
-                <button 
-                  className="dropdown-toggle" 
-                  onClick={handleProfileDropdownToggle}
-                >
-                  ▼
-                </button>
-                {isProfileDropdownOpen && (
-                  <div className="dropdown-menu show">
-                    <Link to="/farmer/profile" className="dropdown-item">
-                      👤 My Profile
-                    </Link>
-                    <Link to="/farmer/settings" className="dropdown-item">
-                      ⚙️ Settings
-                    </Link>
-                    <button onClick={handleLogout} className="dropdown-item logout">
-                      🚪 Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            </>
           )}
         </div>
       </div>

@@ -92,6 +92,14 @@ const AdminNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
                   📋 Orders
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/admin/feedback" 
+                  className={`nav-link ${isActive('/admin/feedback') ? 'active' : ''}`}
+                >
+                  💬 Feedback
+                </Link>
+              </li>
             </ul>
           </div>
 

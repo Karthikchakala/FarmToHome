@@ -1,39 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middlewares/auth');
-const {
-  createNotification,
+
+// Import controllers
+const { 
   getUserNotifications,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-  getUnreadNotificationsCount,
-  createBulkNotifications,
-  clearOldNotifications
+  markNotificationRead,
+  markAllNotificationsRead,
+  deleteNotification
 } = require('../controllers/notificationController');
 
+// Import middleware
+const { authenticate } = require('../middlewares/auth');
+
+// All notification routes require authentication
+router.use(authenticate);
+
 // Get user notifications
-router.get('/', authenticateToken, getUserNotifications);
-
-// Get unread notification count
-router.get('/unread-count', authenticateToken, getUnreadNotificationsCount);
-
-// Create notification (admin/system use)
-router.post('/', authenticateToken, createNotification);
-
-// Create bulk notifications (admin/system use)
-router.post('/bulk', authenticateToken, createBulkNotifications);
+router.get('/', getUserNotifications);
 
 // Mark notification as read
-router.patch('/:notificationId/read', authenticateToken, markAsRead);
+router.put('/:id/read', markNotificationRead);
 
 // Mark all notifications as read
-router.patch('/read-all', authenticateToken, markAllAsRead);
+router.put('/read-all', markAllNotificationsRead);
 
 // Delete notification
-router.delete('/:notificationId', authenticateToken, deleteNotification);
-
-// Clear old notifications (admin/system use)
-router.delete('/cleanup', authenticateToken, clearOldNotifications);
+router.delete('/:id', deleteNotification);
 
 module.exports = router;

@@ -1,0 +1,400 @@
+.farmer-navbar {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.navbar-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.navbar-brand:hover {
+  color: #ecf0f1;
+}
+
+.navbar-logo {
+  font-size: 28px;
+  margin-right: 10px;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-section-title {
+  color: #d5f4e6;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 10px;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+}
+
+.nav-links li {
+  position: relative;
+}
+
+.nav-link {
+  color: #ecf0f1;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-auth {
+  display: flex;
+  align-items: center;
+}
+
+.nav-links-auth {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 15px;
+}
+
+.nav-links-auth a {
+  color: #ecf0f1;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.nav-links-auth a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.user-name {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-role {
+  color: #d5f4e6;
+  font-size: 12px;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  background: none;
+  border: none;
+  color: #ecf0f1;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  color: #2c3e50;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.dropdown-item.logout {
+  color: #e74c3c;
+  border-top: 1px solid #eee;
+}
+
+.dropdown-item.logout:hover {
+  background: #fff5f5;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  background: #27ae60;
+  padding: 20px;
+  display: none;
+  z-index: 999;
+}
+
+.mobile-menu.show {
+  display: block;
+}
+
+.mobile-nav-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mobile-nav-links li {
+  margin-bottom: 10px;
+}
+
+.mobile-nav-links a {
+  color: #ecf0f1;
+  text-decoration: none;
+  padding: 10px 0;
+  display: block;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Farmer-specific styles */
+.farmer-navbar .navbar-brand {
+  color: #fff;
+}
+
+.farmer-navbar .nav-link.active {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.farmer-navbar .nav-section-title {
+  color: #d5f4e6;
+}
+
+/* Notification integration */
+.farmer-navbar .notifications-container {
+  position: relative;
+}
+
+/* Ensure notifications don't interfere with existing navbar styles */
+.farmer-navbar .navbar-actions .notifications-container {
+  order: -1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar-wrapper {
+    height: 60px;
+  }
+  
+  .navbar-container {
+    padding: 0 15px;
+  }
+  
+  .navbar-menu {
+    display: none;
+  }
+  
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .navbar-brand {
+    font-size: 20px;
+  }
+  
+  .navbar-logo {
+    font-size: 24px;
+  }
+  
+  .user-info {
+    display: none;
+  }
+  
+  .dropdown-menu {
+    right: -10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 0 10px;
+  }
+  
+  .navbar-brand {
+    font-size: 18px;
+  }
+  
+  .navbar-logo {
+    font-size: 20px;
+  }
+  
+  .nav-links-auth {
+    gap: 10px;
+  }
+  
+  .nav-links-auth a {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}
+
+/* Animations */
+.navbar-brand {
+  transition: color 0.3s ease;
+}
+
+.nav-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #fff;
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::before {
+  width: 80%;
+}
+
+.nav-link.active::before {
+  width: 80%;
+}
+
+/* Farmer-specific hover effects */
+.farmer-navbar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.farmer-navbar .dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Special farmer theme colors */
+.farmer-navbar {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+}
+
+.farmer-navbar .nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+.farmer-navbar .mobile-menu {
+  background: #27ae60;
+}

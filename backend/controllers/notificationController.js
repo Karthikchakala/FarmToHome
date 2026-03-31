@@ -1,381 +1,319 @@
-const { query } = require('../db');
+const asyncHandler = require('express-async-handler');
+const supabase = require('../config/supabase');
+const responseHelper = require('../utils/responseHelper');
 const logger = require('../config/logger');
-const { asyncHandler, NotFoundError, ValidationError } = require('../middlewares/enhancedErrorHandler');
 
-// Create notification
-const createNotification = asyncHandler(async (req, res) => {
-  const { userId, title, message, type = 'INFO', priority = 'MEDIUM', data } = req.body;
-
-  // Validate input
-  if (!userId || !title || !message) {
-    throw new ValidationError('User ID, title, and message are required');
-  }
-
-  // Validate priority
-  const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
-  if (!validPriorities.includes(priority)) {
-    throw new ValidationError('Invalid priority. Must be LOW, MEDIUM, HIGH, or URGENT');
-  }
-
-  // Validate type
-  const validTypes = ['INFO', 'SUCCESS', 'WARNING', 'ERROR', 'ORDER', 'PRODUCT', 'SYSTEM', 'ORDER_PLACED', 'ORDER_STATUS', 'PAYMENT_SUCCESS', 'PAYMENT_FAILURE', 'SUBSCRIPTION_ORDER'];
-  if (!validTypes.includes(type)) {
-    throw new ValidationError('Invalid notification type');
-  }
-
-  const result = await query(`
-    INSERT INTO notifications (userid, type, title, message, data, isread, createdat)
-    VALUES ($1, $2, $3, $4, $5, false, CURRENT_TIMESTAMP)
-    RETURNING *
-  `, [userId, type, title, message, JSON.stringify(data || {})]);
-
-  logger.info(`Notification created: userId=${userId}, type=${type}, priority=${priority}`);
-
-  return res.status(201).json({
-    success: true,
-    message: 'Notification created successfully',
-    data: {
-      notification: result.rows[0]
-    }
-  });
-});
-
-// Get user notifications with pagination and filtering
+// Get user notifications
 const getUserNotifications = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const { page = 1, limit = 20, type, isread, priority } = req.query;
-  
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const { page = 1, limit = 20, unreadOnly = false } = req.query;
 
-  // Build WHERE conditions
-  const whereConditions = ['userid = $1'];
-  const queryParams = [userId];
+  console.log('Getting notifications for user:', userId);
 
-  let paramIndex = 2;
+  try {
+    let query = supabase
+      .from('notifications')
+      .select('*', { count: 'exact' })
+      .eq('userid', userId)
+      .order('createdat', { ascending: false });
 
-  if (type) {
-    whereConditions.push(`type = $${paramIndex}`);
-    queryParams.push(type);
-    paramIndex++;
-  }
+    // Apply filters
+    if (unreadOnly === 'true') {
+      query = query.eq('isread', false);
+    }
 
-  if (isread !== undefined) {
-    whereConditions.push(`isread = $${paramIndex}`);
-    queryParams.push(isread === 'true');
-    paramIndex++;
-  }
+    // Apply pagination
+    const offset = (page - 1) * limit;
+    query = query.range(offset, offset + limit - 1);
 
-  if (priority) {
-    whereConditions.push(`priority = $${paramIndex}`);
-    queryParams.push(priority);
-    paramIndex++;
-  }
+    const { data: notifications, error, count } = await query;
 
-  const whereClause = whereConditions.join(' AND ');
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      return responseHelper.error(res, 'Failed to fetch notifications', 500);
+    }
 
-  // Get notifications
-  const notificationsQuery = `
-    SELECT 
-      _id,
-      type,
-      title,
-      message,
-      data,
-      isread,
-      createdat,
-      updatedat
-    FROM notifications
-    WHERE ${whereClause}
-    ORDER BY createdat DESC
-    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-  `;
-
-  queryParams.push(parseInt(limit), offset);
-
-  // Get total count
-  const countQuery = `
-    SELECT COUNT(*) as total
-    FROM notifications
-    WHERE ${whereClause}
-  `;
-
-  const [notificationsResult, countResult] = await Promise.all([
-    query(notificationsQuery, queryParams),
-    query(countQuery, queryParams.slice(0, -2))
-  ]);
-
-  const total = parseInt(countResult.rows[0].total);
-  const totalPages = Math.ceil(total / parseInt(limit));
-
-  // Parse JSON data for notifications
-  const notifications = notificationsResult.rows.map(notification => ({
-    ...notification,
-    data: notification.data ? JSON.parse(notification.data) : {}
-  }));
-
-  return res.json({
-    success: true,
-    data: {
-      notifications,
+    const response = {
+      notifications: notifications || [],
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit)
       },
       unreadCount: await getUnreadCount(userId)
-    }
-  });
+    };
+
+    return responseHelper.success(res, response, 'Notifications retrieved successfully');
+
+  } catch (error) {
+    console.error('Error in getUserNotifications:', error);
+    return responseHelper.error(res, 'Internal server error', 500);
+  }
 });
 
-// Mark notification as read
-const markAsRead = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const { notificationId } = req.params;
-
-  // Validate notification exists and belongs to user
-  const notificationCheckQuery = `
-    SELECT _id, userid, isread
-    FROM notifications
-    WHERE _id = $1 AND userid = $2
-  `;
-
-  const notificationResult = await query(notificationCheckQuery, [notificationId, userId]);
-
-  if (notificationResult.rows.length === 0) {
-    throw new NotFoundError('Notification not found');
+// Get unread count
+const getUnreadCount = async (userId) => {
+  try {
+    const { count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('userid', userId)
+      .eq('isread', false);
+    
+    return count || 0;
+  } catch (error) {
+    console.error('Error getting unread count:', error);
+    return 0;
   }
+};
 
-  // Update notification as read
-  const updateQuery = `
-    UPDATE notifications
-    SET isread = true, updatedat = CURRENT_TIMESTAMP
-    WHERE _id = $1 AND userid = $2
-    RETURNING *
-  `;
+// Mark notification as read
+const markNotificationRead = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { id } = req.params;
 
-  const updateResult = await query(updateQuery, [notificationId, userId]);
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({
+        isread: true,
+        readat: new Date().toISOString()
+      })
+      .eq('_id', id)
+      .eq('userid', userId);
 
-  logger.info(`Notification marked as read: notificationId=${notificationId}, userId=${userId}`);
-
-  return res.json({
-    success: true,
-    message: 'Notification marked as read',
-    data: {
-      notification: {
-        ...updateResult.rows[0],
-        data: updateResult.rows[0].data ? JSON.parse(updateResult.rows[0].data) : {}
-      }
+    if (error) {
+      return responseHelper.error(res, 'Failed to mark notification as read', 500);
     }
-  });
+
+    return responseHelper.success(res, null, 'Notification marked as read');
+
+  } catch (error) {
+    console.error('Error in markNotificationRead:', error);
+    return responseHelper.error(res, 'Internal server error', 500);
+  }
 });
 
 // Mark all notifications as read
-const markAllAsRead = asyncHandler(async (req, res) => {
+const markAllNotificationsRead = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const updateQuery = `
-    UPDATE notifications
-    SET isread = true, updatedat = CURRENT_TIMESTAMP
-    WHERE userid = $1 AND isread = false
-    RETURNING _id
-  `;
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({
+        isread: true,
+        readat: new Date().toISOString()
+      })
+      .eq('userid', userId)
+      .eq('isread', false);
 
-  const updateResult = await query(updateQuery, [userId]);
-
-  const updatedCount = updateResult.rows.length;
-
-  logger.info(`All notifications marked as read: userId=${userId}, count=${updatedCount}`);
-
-  return res.json({
-    success: true,
-    message: `${updatedCount} notifications marked as read`,
-    data: {
-      updatedCount,
-      unreadCount: 0
+    if (error) {
+      return responseHelper.error(res, 'Failed to mark all notifications as read', 500);
     }
-  });
+
+    return responseHelper.success(res, null, 'All notifications marked as read');
+
+  } catch (error) {
+    console.error('Error in markAllNotificationsRead:', error);
+    return responseHelper.error(res, 'Internal server error', 500);
+  }
 });
 
 // Delete notification
 const deleteNotification = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const { notificationId } = req.params;
+  const { id } = req.params;
 
-  // Validate notification exists and belongs to user
-  const notificationCheckQuery = `
-    SELECT _id, userid
-    FROM notifications
-    WHERE _id = $1 AND userid = $2
-  `;
-
-  const notificationResult = await query(notificationCheckQuery, [notificationId, userId]);
-
-  if (notificationResult.rows.length === 0) {
-    throw new NotFoundError('Notification not found');
-  }
-
-  // Delete notification
-  const deleteQuery = `
-    DELETE FROM notifications
-    WHERE _id = $1 AND userid = $2
-    RETURNING *
-  `;
-
-  const deleteResult = await query(deleteQuery, [notificationId, userId]);
-
-  logger.info(`Notification deleted: notificationId=${notificationId}, userId=${userId}`);
-
-  return res.json({
-    success: true,
-    message: 'Notification deleted successfully',
-    data: {
-      notification: deleteResult.rows[0]
-    }
-  });
-});
-
-// Get unread notification count
-const getUnreadCount = async (userId) => {
   try {
-    const countQuery = `
-      SELECT COUNT(*) as count
-      FROM notifications
-      WHERE userid = $1 AND isread = false
-    `;
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('_id', id)
+      .eq('userid', userId);
 
-    const result = await query(countQuery, [userId]);
-    return parseInt(result.rows[0].count);
+    if (error) {
+      return responseHelper.error(res, 'Failed to delete notification', 500);
+    }
+
+    return responseHelper.success(res, null, 'Notification deleted successfully');
+
   } catch (error) {
-    logger.error('Error getting unread count:', error);
-    return 0;
+    console.error('Error in deleteNotification:', error);
+    return responseHelper.error(res, 'Internal server error', 500);
   }
-};
-
-// Get unread notification count (API endpoint)
-const getUnreadNotificationsCount = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const unreadCount = await getUnreadCount(userId);
-
-  return res.json({
-    success: true,
-    data: {
-      unreadCount
-    }
-  });
 });
 
-// Create bulk notifications (for system events)
-const createBulkNotifications = asyncHandler(async (req, res) => {
-  const { notifications } = req.body;
-
-  if (!Array.isArray(notifications) || notifications.length === 0) {
-    throw new ValidationError('Notifications array is required');
-  }
-
-  // Validate each notification
-  const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
-  const validTypes = ['INFO', 'SUCCESS', 'WARNING', 'ERROR', 'ORDER', 'PRODUCT', 'SYSTEM', 'ORDER_PLACED', 'ORDER_STATUS', 'PAYMENT_SUCCESS', 'PAYMENT_FAILURE', 'SUBSCRIPTION_ORDER'];
-
-  for (const notification of notifications) {
-    if (!notification.userId || !notification.title || !notification.message) {
-      throw new ValidationError('Each notification must have userId, title, and message');
-    }
-
-    if (!validPriorities.includes(notification.priority || 'MEDIUM')) {
-      throw new ValidationError('Invalid priority in notification');
-    }
-
-    if (!validTypes.includes(notification.type || 'INFO')) {
-      throw new ValidationError('Invalid type in notification');
-    }
-  }
-
-  // Insert notifications in bulk
-  const insertPromises = notifications.map(notification =>
-    query(`
-      INSERT INTO notifications (userid, type, title, message, data, isread, createdat)
-      VALUES ($1, $2, $3, $4, $5, false, CURRENT_TIMESTAMP)
-      RETURNING *
-    `, [
-      notification.userId,
-      notification.type || 'INFO',
-      notification.title,
-      notification.message,
-      JSON.stringify(notification.data || {})
-    ])
-  );
-
-  const results = await Promise.all(insertPromises);
-  const insertedNotifications = results.map(result => result.rows[0]);
-
-  logger.info(`Bulk notifications created: count=${insertedNotifications.length}`);
-
-  return res.status(201).json({
-    success: true,
-    message: `${insertedNotifications.length} notifications created successfully`,
-    data: {
-      notifications: insertedNotifications.map(notification => ({
-        ...notification,
-        data: notification.data ? JSON.parse(notification.data) : {}
-      }))
-    }
-  });
-});
-
-// Clear old notifications (cleanup job)
-const clearOldNotifications = asyncHandler(async (req, res) => {
-  const { daysOld = 30 } = req.query;
-
-  const deleteQuery = `
-    DELETE FROM notifications
-    WHERE createdat < CURRENT_DATE - INTERVAL '${daysOld} days'
-    RETURNING _id
-  `;
-
-  const deleteResult = await query(deleteQuery);
-  const deletedCount = deleteResult.rows.length;
-
-  logger.info(`Old notifications cleared: count=${deletedCount}, daysOld=${daysOld}`);
-
-  return res.json({
-    success: true,
-    message: `${deletedCount} old notifications cleared`,
-    data: {
-      deletedCount,
-      daysOld: parseInt(daysOld)
-    }
-  });
-});
-
-// Helper function to create notification for events
-const createEventNotification = async (userId, type, title, message, data = {}) => {
+// Create notification (internal function)
+const createNotification = async (userId, title, message, type, priority = 'medium', data = {}, actionUrl = null) => {
   try {
-    const result = await query(`
-      INSERT INTO notifications (userid, type, title, message, data, isread, createdat)
-      VALUES ($1, $2, $3, $4, $5, false, CURRENT_TIMESTAMP)
-      RETURNING *
-    `, [userId, type, title, message, JSON.stringify(data)]);
+    const { data: notification, error } = await supabase
+      .from('notifications')
+      .insert({
+        userid: userId,
+        title,
+        message,
+        type,
+        priority,
+        data,
+        actionurl: actionUrl,
+        createdat: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-    logger.info(`Event notification created: userId=${userId}, type=${type}`);
-    return result.rows[0];
+    if (error) {
+      console.error('Error creating notification:', error);
+      return null;
+    }
+
+    // Emit real-time notification via Socket.io if available
+    try {
+      const io = require('../socket').getIO();
+      if (io) {
+        io.to(`user_${userId}`).emit('new_notification', notification);
+      }
+    } catch (socketError) {
+      console.log('Socket.io not available for real-time notifications');
+    }
+
+    return notification;
   } catch (error) {
-    logger.error('Error creating event notification:', error);
+    console.error('Error in createNotification:', error);
     return null;
   }
 };
 
+// Notification helper functions for different types
+const notifyLowStock = async (farmerUserId, productName, currentStock, minStock) => {
+  return await createNotification(
+    farmerUserId,
+    '⚠️ Low Stock Alert',
+    `Your product "${productName}" is running low on stock. Current: ${currentStock}, Minimum: ${minStock}`,
+    'low_stock',
+    'high',
+    { productName, currentStock, minStock },
+    '/farmer/stock'
+  );
+};
+
+const notifyOrderConfirmation = async (customerUserId, orderId, orderNumber) => {
+  return await createNotification(
+    customerUserId,
+    '✅ Order Confirmed',
+    `Your order #${orderNumber} has been confirmed and is being processed.`,
+    'order_confirmation',
+    'medium',
+    { orderId, orderNumber },
+    '/customer/orders'
+  );
+};
+
+const notifyFarmerApproval = async (farmerUserId, farmName) => {
+  return await createNotification(
+    farmerUserId,
+    '🎉 Farm Approved',
+    `Congratulations! Your farm "${farmName}" has been approved and is now live.`,
+    'farmer_approval',
+    'high',
+    { farmName },
+    '/farmer/dashboard'
+  );
+};
+
+const notifyNewOrder = async (farmerUserId, orderId, orderNumber, customerName) => {
+  return await createNotification(
+    farmerUserId,
+    '📦 New Order Received',
+    `You have a new order #${orderNumber} from ${customerName}.`,
+    'new_order',
+    'high',
+    { orderId, orderNumber, customerName },
+    '/farmer/orders'
+  );
+};
+
+const notifyProductApproved = async (farmerUserId, productName) => {
+  return await createNotification(
+    farmerUserId,
+    '✅ Product Approved',
+    `Your product "${productName}" has been approved and is now live.`,
+    'product_approved',
+    'medium',
+    { productName },
+    '/farmer/products'
+  );
+};
+
+const notifyProductRejected = async (farmerUserId, productName, reason) => {
+  return await createNotification(
+    farmerUserId,
+    '❌ Product Rejected',
+    `Your product "${productName}" has been rejected. Reason: ${reason}`,
+    'product_rejected',
+    'high',
+    { productName, reason },
+    '/farmer/products'
+  );
+};
+
+const notifyOrderUpdate = async (userId, orderId, orderNumber, status) => {
+  const statusMessages = {
+    'processing': 'Your order is being prepared',
+    'shipped': 'Your order has been shipped',
+    'delivered': 'Your order has been delivered',
+    'cancelled': 'Your order has been cancelled'
+  };
+
+  return await createNotification(
+    userId,
+    `📋 Order Update`,
+    `Order #${orderNumber}: ${statusMessages[status] || `Status updated to ${status}`}`,
+    'order_update',
+    'medium',
+    { orderId, orderNumber, status },
+    '/customer/orders'
+  );
+};
+
+const notifyPaymentReceived = async (farmerUserId, orderId, orderNumber, amount) => {
+  return await createNotification(
+    farmerUserId,
+    '💰 Payment Received',
+    `Payment of ₹${amount} received for order #${orderNumber}.`,
+    'payment_received',
+    'high',
+    { orderId, orderNumber, amount },
+    '/farmer/orders'
+  );
+};
+
+const notifyReviewReceived = async (farmerUserId, productName, rating, customerName) => {
+  return await createNotification(
+    farmerUserId,
+    '⭐ New Review Received',
+    `${customerName} rated your product "${productName}" ${rating} stars.`,
+    'review_received',
+    'medium',
+    { productName, rating, customerName },
+    '/farmer/reviews'
+  );
+};
+
 module.exports = {
-  createNotification,
   getUserNotifications,
-  markAsRead,
-  markAllAsRead,
+  markNotificationRead,
+  markAllNotificationsRead,
   deleteNotification,
-  getUnreadNotificationsCount,
-  createBulkNotifications,
-  clearOldNotifications,
-  createEventNotification,
-  getUnreadCount
+  createNotification,
+  notifyLowStock,
+  notifyOrderConfirmation,
+  notifyFarmerApproval,
+  notifyNewOrder,
+  notifyProductApproved,
+  notifyProductRejected,
+  notifyOrderUpdate,
+  notifyPaymentReceived,
+  notifyReviewReceived
 };

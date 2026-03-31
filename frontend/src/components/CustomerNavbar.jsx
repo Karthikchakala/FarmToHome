@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import './Navbar.css'
+import Notifications from './Notifications_simple'
+import './CustomerNavbar.css'
 
 const CustomerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
   const { user, isAuthenticated, logout } = useAuth()
@@ -218,35 +219,53 @@ const CustomerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
                     </li>
                   </ul>
                 ) : (
-                  <div className="user-menu">
-                    <div className="user-info">
-                      <span className="user-name">
-                         {user?.name || 'User'}
-                      </span>
-                      <span className="user-role">{user?.role || 'Customer'}</span>
+                  <>
+                    <Notifications />
+                    <div className="user-menu">
+                      <div className="user-info">
+                        <span className="user-name">
+                           {user?.name || 'User'}
+                        </span>
+                        <span className="user-role">{user?.role || 'Customer'}</span>
+                      </div>
+                      <div className="dropdown" ref={dropdownRef}>
+                        <button 
+                          className="dropdown-toggle" 
+                          onClick={handleDropdownToggle}
+                        >
+                          ▼
+                        </button>
+                        {isDropdownOpen && (
+                          <div className="dropdown-menu show">
+                            <button 
+                              onClick={() => { 
+                                navigate('/customer/profile'); 
+                                handleDropdownClose(); 
+                              }} className="dropdown-item"
+                            >
+                              👤 My Profile
+                            </button>
+                            <button 
+                              onClick={() => { 
+                                navigate('/customer/orders'); 
+                                handleDropdownClose(); 
+                              }} className="dropdown-item"
+                            >
+                              📦 My Orders
+                            </button>
+                            <button 
+                              onClick={() => { 
+                                logout(); 
+                                handleDropdownClose(); 
+                              }} className="dropdown-item logout"
+                            >
+                              🚪 Logout
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="dropdown" ref={dropdownRef}>
-                      <button 
-                        className="dropdown-toggle" 
-                        onClick={handleDropdownToggle}
-                      >
-                        ▼
-                      </button>
-                      {isDropdownOpen && (
-                        <div className="dropdown-menu show">
-                          <button 
-                            onClick={() => { 
-                              handleLogout(); 
-                              handleDropdownClose(); 
-                            }} 
-                            className="dropdown-item logout"
-                          >
-                            🚪 Logout
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>

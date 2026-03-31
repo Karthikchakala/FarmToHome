@@ -2,34 +2,46 @@ import api from './api'
 
 // Profile API calls
 export const profileAPI = {
-  // Get user profile
+  // Get user profile (determines endpoint based on user role)
   getProfile: () => {
-    return api.get('/profile')
+    // Check if user is farmer or customer from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const endpoint = user.role === 'farmer' 
+      ? '/profile/farmer' 
+      : '/profile/customer';
+    
+    return api.get(endpoint)
   },
 
-  // Update customer profile
+  // Customer profile endpoints
+  getCustomerProfile: () => {
+    return api.get('/profile/customer')
+  },
+
   updateCustomerProfile: (profileData) => {
     return api.put('/profile/customer', profileData)
   },
 
-  // Update customer location
   updateCustomerLocation: (locationData) => {
     return api.put('/profile/customer/location', locationData)
   },
 
-  // Update farmer profile
+  // Farmer profile endpoints
+  getFarmerProfile: () => {
+    return api.get('/profile/farmer')
+  },
+
   updateFarmerProfile: (profileData) => {
     return api.put('/profile/farmer', profileData)
   },
 
-  // Get nearby farmers
+  // Location-based endpoints
   getNearbyFarmers: (params = {}) => {
-    return api.get('/profile/nearby-farmers', { params })
+    return api.get('/profile/location/nearby-farmers', { params })
   },
 
-  // Validate delivery
   validateDelivery: (deliveryData) => {
-    return api.post('/profile/validate-delivery', deliveryData)
+    return api.post('/profile/location/validate-delivery', deliveryData)
   }
 }
 

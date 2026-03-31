@@ -40,6 +40,11 @@ export const farmerAPI = {
   // Get stock statistics
   getStockStatistics: () => {
     return api.get('/farmer/products/statistics')
+  },
+
+  // Get farmer analytics
+  getAnalytics: (timeRange = '30days') => {
+    return api.get('/farmer/analytics', { params: { timeRange } })
   }
 }
 

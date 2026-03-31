@@ -41,8 +41,8 @@ const AdminProductManagement = () => {
                          product.farmer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.farmer?.farmname?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter = filterStatus === 'all' || 
-                         (filterStatus === 'available' && product.isavailable) ||
-                         (filterStatus === 'out-of-stock' && !product.isavailable)
+                         (filterStatus === 'available' && product.stockquantity > 0) ||
+                         (filterStatus === 'out-of-stock' && product.stockquantity <= 0)
     return matchesSearch && matchesFilter
   })
 
@@ -132,8 +132,8 @@ const AdminProductManagement = () => {
               <div key={product._id} className="product-card">
                 <div className="product-header">
                   <h3>{product.name || 'Unknown Product'}</h3>
-                  <span className={`status ${product.isavailable ? 'available' : 'out-of-stock'}`}>
-                    {product.isavailable ? 'Available' : 'Out of Stock'}
+                  <span className={`status ${product.stockquantity > 0 ? 'available' : 'out-of-stock'}`}>
+                    {product.stockquantity > 0 ? 'Available' : 'Out of Stock'}
                   </span>
                 </div>
                 <div className="product-info">
