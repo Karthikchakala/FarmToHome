@@ -1,11 +1,25 @@
 import { Link } from 'react-router-dom'
-import { orderAPI } from '../services/api'
+import { orderAPI } from '../services/orderAPI'
 import { useState } from 'react'
+import ReviewForm from './ReviewForm'
+import Chat from './Chat'
 import './OrderCard.css'
 
 const OrderCard = ({ order, onUpdate }) => {
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [reviewSubmitted, setReviewSubmitted] = useState(false)
+  const [showChat, setShowChat] = useState(false)
+
+  const statusOptions = [
+    { value: 'PLACED', label: '📋 Placed', color: '#ffc107' },
+    { value: 'CONFIRMED', label: '✅ Confirmed', color: '#17a2b8' },
+    { value: 'PACKED', label: '👨‍🍳 Packed', color: '#6f42c1' },
+    { value: 'OUT_FOR_DELIVERY', label: '🚚 Out for Delivery', color: '#fd7e14' },
+    { value: 'DELIVERED', label: '🎉 Delivered', color: '#28a745' }
+  ]
 
   const formatPrice = (price) => {
     if (price === null || price === undefined || isNaN(price)) {
@@ -35,7 +49,7 @@ const OrderCard = ({ order, onUpdate }) => {
     switch (status) {
       case 'PLACED': return '#ffc107'
       case 'CONFIRMED': return '#17a2b8'
-      case 'PREPARING': return '#6f42c1'
+      case 'PACKED': return '#6f42c1'
       case 'OUT_FOR_DELIVERY': return '#fd7e14'
       case 'DELIVERED': return '#28a745'
       case 'CANCELLED': return '#dc3545'
@@ -47,7 +61,7 @@ const OrderCard = ({ order, onUpdate }) => {
     switch (status) {
       case 'PLACED': return '📝'
       case 'CONFIRMED': return '✅'
-      case 'PREPARING': return '👨‍🍳'
+      case 'PACKED': return '👨‍🍳'
       case 'OUT_FOR_DELIVERY': return '🚚'
       case 'DELIVERED': return '✅'
       case 'CANCELLED': return '❌'
@@ -56,14 +70,18 @@ const OrderCard = ({ order, onUpdate }) => {
   }
 
   const handleCancelOrder = async () => {
-    const reason = prompt('Please provide a reason for cancellation:')
-    if (!reason) return
+    if (cancelling) return
+    setShowConfirm(true)
+  }
 
+  const confirmCancel = async () => {
+    setShowConfirm(false)
+    
     try {
       setCancelling(true)
       setError('')
 
-      const response = await orderAPI.cancelOrder(order._id, reason)
+      const response = await orderAPI.customerCancelOrder(order._id)
 
       if (response.data.success) {
         onUpdate(order._id, 'CANCELLED')
@@ -79,14 +97,25 @@ const OrderCard = ({ order, onUpdate }) => {
     }
   }
 
-  const canCancel = ['PLACED', 'CONFIRMED'].includes(order.status)
+  const cancelCancel = () => {
+    setShowConfirm(false)
+  }
+
+  const canReview = order.status === 'DELIVERED'
+
+  const handleReviewSubmitted = () => {
+    setReviewSubmitted(true)
+    setShowReviewForm(false)
+  }
+
+  const canCancel = ['PLACED', 'CONFIRMED', 'pending', 'confirmed'].includes(order.status)
 
   return (
     <div className="order-card">
       <div className="order-header">
         <div className="order-info">
           <div className="order-number">
-            <span className="order-id">#{order.ordernumber}</span>
+            <span className="order-id">{order.orderNumber ? `#${order.orderNumber}` : `Order ${order._id?.slice(-6)}`}</span>
             <span className="order-date">{formatDate(order.createdat || order.createdAt)}</span>
           </div>
           <div className="order-status">
@@ -115,6 +144,91 @@ const OrderCard = ({ order, onUpdate }) => {
           )}
         </div>
       </div>
+
+      <div className="order-timeline">
+        <h4>Order Timeline</h4>
+        <div className="timeline">
+          {statusOptions.map((status, index) => {
+            const orderIndex = statusOptions.findIndex(s => s.value === order.status)
+            const isCompleted = orderIndex >= index
+            const isCurrent = status.value === order.status
+            return (
+              <div
+                key={status.value}
+                className={`timeline-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}
+              >
+                <div className="timeline-dot"></div>
+                <div className="timeline-content">
+                  <span className="timeline-label">{status.label}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {canReview && (
+        <div className="order-review">
+          {!reviewSubmitted ? (
+            !showReviewForm ? (
+              <div className="review-actions">
+                <button
+                  className="btn btn-success btn-small"
+                  onClick={() => setShowReviewForm(true)}
+                >
+                  Write Review
+                </button>
+                <button
+                  className="btn btn-primary btn-small chat-btn"
+                  onClick={() => setShowChat(true)}
+                >
+                  💬 Chat
+                </button>
+              </div>
+            ) : (
+              <ReviewForm
+                farmerId={order.farmerId}
+                orderId={order._id}
+                farmerName={order.farmerName}
+                orderNumber={order.orderNumber}
+                onReviewSubmitted={handleReviewSubmitted}
+                onCancel={() => setShowReviewForm(false)}
+              />
+            )
+          ) : (
+            <div className="review-submitted">
+              ✅ Review submitted
+              <button
+                className="btn btn-primary btn-small chat-btn"
+                onClick={() => setShowChat(true)}
+              >
+                💬 Chat
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Show Chat button for non-delivered orders that can't be reviewed */}
+      {!canReview && order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+        <div className="order-chat">
+          <button
+            className="btn btn-primary btn-small chat-btn"
+            onClick={() => setShowChat(true)}
+          >
+            💬 Chat with Farmer
+          </button>
+        </div>
+      )}
+
+      {showChat && (
+        <div className="chat-overlay">
+          <Chat
+            orderId={order._id}
+            onClose={() => setShowChat(false)}
+          />
+        </div>
+      )}
 
       <div className="order-content">
         <div className="order-items-preview">
@@ -166,6 +280,36 @@ const OrderCard = ({ order, onUpdate }) => {
           </div>
         </div>
       </div>
+
+      {showConfirm && (
+        <div className="confirm-overlay">
+          <div className="confirm-dialog">
+            <div className="confirm-icon">⚠️</div>
+            <h3 className="confirm-title">Cancel Order</h3>
+            <p className="confirm-message">
+              Are you sure you want to cancel order <strong>{order.ordernumber ? `#${order.ordernumber}` : `Order ${order._id?.slice(-6)}`}</strong>?
+              <br /><br />
+              This action <strong>cannot be undone</strong>.
+            </p>
+            <div className="confirm-actions">
+              <button 
+                className="btn btn-outline" 
+                onClick={cancelCancel}
+                disabled={cancelling}
+              >
+                No, Keep Order
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={confirmCancel}
+                disabled={cancelling}
+              >
+                {cancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {order.status_message && (
         <div className="status-message">

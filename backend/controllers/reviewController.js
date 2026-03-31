@@ -3,6 +3,7 @@ const logger = require('../config/logger');
 const responseHelper = require('../utils/responseHelper');
 const { asyncHandler, NotFoundError, ValidationError } = require('../middlewares/enhancedErrorHandler');
 const supabase = require('../config/supabaseClient');
+const { notifyReviewReceived } = require('./notificationController');
 
 // Add review (only for delivered orders)
 const addReview = asyncHandler(async (req, res) => {
@@ -14,22 +15,30 @@ const addReview = asyncHandler(async (req, res) => {
     throw new ValidationError('Valid order ID, farmer ID, and rating (1-5) are required');
   }
 
-  // Verify order belongs to user and is delivered
-  const orderQuery = `
-    SELECT o._id, o.consumerid, o.farmerid, o.status, o.ordernumber,
-           p.farmerid as product_farmer_id
-    FROM orders o
-    LEFT JOIN products p ON (o.items::json -> 0 ->> 'productid')::uuid = p._id
-    WHERE o._id = $1 AND o.consumerid = $2
-  `;
+  // First, get the consumer record for this user
+  const { data: consumer, error: consumerError } = await supabase
+    .from('consumers')
+    .select('_id')
+    .eq('userid', userId)
+    .single();
 
-  const orderResult = await query(orderQuery, [orderId, userId]);
-
-  if (orderResult.rows.length === 0) {
-    throw new NotFoundError('Order not found or access denied');
+  if (consumerError || !consumer) {
+    throw new NotFoundError('Consumer record not found');
   }
 
-  const order = orderResult.rows[0];
+  const consumerId = consumer._id;
+
+  // Verify order belongs to user and is delivered using Supabase
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('_id', orderId)
+    .eq('consumerid', consumerId)
+    .single();
+
+  if (orderError || !order) {
+    throw new NotFoundError('Order not found or access denied');
+  }
 
   if (order.status !== 'DELIVERED') {
     throw new ValidationError('Reviews can only be added for delivered orders');
@@ -41,81 +50,79 @@ const addReview = asyncHandler(async (req, res) => {
   }
 
   // Check if user has already reviewed this farmer for this order
-  const existingReviewQuery = `
-    SELECT _id FROM reviews 
-    WHERE customerid = $1 AND orderid = $2 AND farmerid = $3
-  `;
+  const { data: existingReview, error: existingError } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('customerid', consumerId)
+    .eq('orderid', orderId)
+    .eq('farmerid', farmerId)
+    .single();
 
-  const existingReviewResult = await query(existingReviewQuery, [userId, orderId, farmerId]);
-
-  if (existingReviewResult.rows.length > 0) {
+  if (!existingError && existingReview) {
     throw new ValidationError('You have already reviewed this farmer for this order');
   }
 
-  // Start transaction
-  const client = await transaction();
   try {
-    // Insert review
-    const reviewQuery = `
-      INSERT INTO reviews (
-        customerid, orderid, farmerid, rating, comment, createdat, updatedat
-      ) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      RETURNING *
-    `;
+    // Insert review using Supabase (without updatedat since it's not in the schema)
+    const { data: review, error: reviewError } = await supabase
+      .from('reviews')
+      .insert({
+        customerid: consumerId,
+        orderid: orderId,
+        farmerid: farmerId,
+        rating: parseInt(rating),
+        comment: comment || null
+      })
+      .select()
+      .single();
 
-    const reviewResult = await client.query(reviewQuery, [
-      userId, orderId, farmerId, parseInt(rating), comment || null
-    ]);
+    if (reviewError || !review) {
+      throw new Error('Failed to create review: ' + (reviewError?.message || 'Unknown error'));
+    }
 
-    const review = reviewResult.rows[0];
+    // Update farmer rating using Supabase
+    const { data: reviews } = await supabase
+      .from('reviews')
+      .select('rating')
+      .eq('farmerid', farmerId);
 
-    // Update farmer rating
-    const ratingUpdateQuery = `
-      UPDATE farmers 
-      SET ratingaverage = (
-        SELECT COALESCE(AVG(rating), 0) 
-        FROM reviews 
-        WHERE farmerid = $1
-      ),
-      totalreviews = (
-        SELECT COUNT(*) 
-        FROM reviews 
-        WHERE farmerid = $1
-      ),
-      updatedat = CURRENT_TIMESTAMP
-      WHERE _id = $1
-      RETURNING ratingaverage, totalreviews
-    `;
+    const avgRating = reviews && reviews.length > 0 
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+      : 0;
 
-    const ratingUpdateResult = await client.query(ratingUpdateQuery, [farmerId]);
-    const updatedFarmer = ratingUpdateResult.rows[0];
+    await supabase
+      .from('farmers')
+      .update({
+        ratingaverage: avgRating,
+        totalreviews: reviews?.length || 0,
+        updatedat: new Date().toISOString()
+      })
+      .eq('_id', farmerId);
 
-    // Update product rating if applicable
-    const productRatingUpdateQuery = `
-      UPDATE products 
-      SET ratingaverage = (
-        SELECT COALESCE(AVG(r.rating), 0) 
-        FROM reviews r
-        JOIN orders o ON r.orderid = o._id
-        WHERE o.items::jsonb ? 'productid' 
-        AND (o.items::jsonb -> 'productid')::text = products._id::text
-        AND r.farmerid = $1
-      ),
-      ratingcount = (
-        SELECT COUNT(DISTINCT r._id) 
-        FROM reviews r
-        JOIN orders o ON r.orderid = o._id
-        WHERE o.items::jsonb ? 'productid' 
-        AND (o.items::jsonb -> 'productid')::text = products._id::text
-        AND r.farmerid = $1
-      ),
-      updatedat = CURRENT_TIMESTAMP
-      WHERE farmerid = $1
-    `;
+    // Send notification to farmer (non-blocking)
+    try {
+      // Get customer name for notification
+      const { data: customerData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('_id', userId)
+        .single();
 
-    await client.query(productRatingUpdateQuery, [farmerId]);
-
-    await client.query('COMMIT');
+      const customerName = customerData?.name || 'Customer';
+      
+      // Get product name from order
+      const productName = order.items?.[0]?.name || 'Product';
+      
+      // Notify farmer about new review
+      await notifyReviewReceived(
+        farmerId,
+        productName,
+        parseInt(rating),
+        customerName
+      );
+    } catch (notificationError) {
+      logger.error('Error sending review notification:', notificationError);
+    }
 
     logger.info(`Review added: reviewId=${review._id}, userId=${userId}, farmerId=${farmerId}, rating=${rating}`);
 
@@ -123,14 +130,13 @@ const addReview = asyncHandler(async (req, res) => {
       review: {
         ...review,
         farmer: {
-          ratingAverage: parseFloat(updatedFarmer.ratingaverage),
-          totalReviews: parseInt(updatedFarmer.totalreviews)
+          ratingAverage: avgRating,
+          totalReviews: reviews?.length || 0
         }
       }
     }, 'Review added successfully');
 
   } catch (error) {
-    await client.query('ROLLBACK');
     logger.error('Review creation error:', error);
     throw error;
   }
@@ -142,107 +148,111 @@ const getFarmerReviews = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, rating } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
 
-  // Validate farmer exists
-  const farmerQuery = 'SELECT _id, farmname FROM farmers WHERE _id = $1';
-  const farmerResult = await query(farmerQuery, [farmerId]);
+  // Validate farmer exists using Supabase
+  const { data: farmer, error: farmerError } = await supabase
+    .from('farmers')
+    .select('_id, farmname')
+    .eq('_id', farmerId)
+    .single();
 
-  if (farmerResult.rows.length === 0) {
+  if (farmerError || !farmer) {
     throw new NotFoundError('Farmer not found');
   }
 
-  // Build where clause
-  let whereClause = 'WHERE r.farmerid = $1';
-  const queryParams = [farmerId, parseInt(limit), offset];
+  try {
+    // Build query - join with consumers to get user info, then users for name
+    let query = supabase
+      .from('reviews')
+      .select(`
+        _id,
+        rating,
+        comment,
+        createdat,
+        orderid,
+        orders!left (
+          ordernumber
+        ),
+        consumers!left (
+          userid
+        )
+      `, { count: 'exact' })
+      .eq('farmerid', farmerId)
+      .order('createdat', { ascending: false })
+      .range(offset, offset + parseInt(limit) - 1);
 
-  if (rating) {
-    whereClause += ' AND r.rating = $4';
-    queryParams.push(parseInt(rating));
-  }
-
-  // Get reviews with user information
-  const reviewsQuery = `
-    SELECT 
-      r._id,
-      r.rating,
-      r.comment,
-      r.createdat,
-      r.orderid,
-      o.ordernumber,
-      u.name as reviewer_name,
-      u.email as reviewer_email
-    FROM reviews r
-    LEFT JOIN orders o ON r.orderid = o._id
-    LEFT JOIN users u ON r.customerid = u._id
-    ${whereClause}
-    ORDER BY r.createdat DESC
-    LIMIT $2 OFFSET $3
-  `;
-
-  // Get total count
-  const countQuery = `
-    SELECT COUNT(*) as total
-    FROM reviews r
-    ${whereClause.replace('ORDER BY r.createdat DESC', '')}
-  `;
-
-  // Get rating distribution
-  const distributionQuery = `
-    SELECT 
-      rating,
-      COUNT(*) as count
-    FROM reviews
-    WHERE farmerid = $1
-    GROUP BY rating
-    ORDER BY rating
-  `;
-
-  const [reviewsResult, countResult, distributionResult] = await Promise.all([
-    query(reviewsQuery, queryParams),
-    query(countQuery, queryParams.slice(0, -2)),
-    query(distributionQuery, [farmerId])
-  ]);
-
-  const total = parseInt(countResult.rows[0].total);
-
-  // Calculate rating distribution
-  const distribution = {
-    5: 0,
-    4: 0,
-    3: 0,
-    2: 0,
-    1: 0
-  };
-
-  distributionResult.rows.forEach(row => {
-    distribution[row.rating] = parseInt(row.count);
-  });
-
-  // Get farmer rating info
-  const farmerRatingQuery = `
-    SELECT ratingaverage, totalreviews 
-    FROM farmers 
-    WHERE _id = $1
-  `;
-
-  const farmerRatingResult = await query(farmerRatingQuery, [farmerId]);
-  const farmerRating = farmerRatingResult.rows[0];
-
-  return responseHelper.success(res, {
-    farmer: {
-      id: farmerId,
-      farmname: farmerResult.rows[0].farmname,
-      ratingAverage: parseFloat(farmerRating.ratingaverage) || 0,
-      totalReviews: parseInt(farmerRating.totalreviews) || 0
-    },
-    reviews: reviewsResult.rows,
-    distribution,
-    pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total,
-      pages: Math.ceil(total / parseInt(limit))
+    // Apply rating filter if provided
+    if (rating) {
+      query = query.eq('rating', parseInt(rating));
     }
-  }, 'Farmer reviews retrieved successfully');
+
+    const { data: reviews, error: reviewsError, count } = await query;
+
+    if (reviewsError) {
+      throw new Error('Failed to fetch reviews: ' + reviewsError.message);
+    }
+
+    // Get user names for all reviewers
+    const userIds = reviews?.map(r => r.consumers?.userid).filter(Boolean) || [];
+    const { data: users } = await supabase
+      .from('users')
+      .select('_id, name, email')
+      .in('_id', userIds);
+
+    // Create a map for quick lookup
+    const userMap = {};
+    users?.forEach(user => {
+      userMap[user._id] = user;
+    });
+
+    // Format the response
+    const formattedReviews = reviews.map(review => ({
+      _id: review._id,
+      rating: review.rating,
+      comment: review.comment,
+      createdat: review.createdat,
+      orderid: review.orderid,
+      ordernumber: review.orders?.ordernumber,
+      reviewer_name: userMap[review.consumers?.userid]?.name,
+      reviewer_email: userMap[review.consumers?.userid]?.email
+    }));
+
+    // Get rating distribution
+    const { data: ratingStats, error: statsError } = await supabase
+      .from('reviews')
+      .select('rating')
+      .eq('farmerid', farmerId);
+
+    const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    if (!statsError && ratingStats) {
+      ratingStats.forEach(r => {
+        ratingDistribution[r.rating] = (ratingDistribution[r.rating] || 0) + 1;
+      });
+    }
+
+    return responseHelper.success(res, {
+      reviews: formattedReviews,
+      farmer: {
+        _id: farmer._id,
+        farmname: farmer.farmname
+      },
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / parseInt(limit)),
+        hasNext: offset + parseInt(limit) < (count || 0),
+        hasPrev: parseInt(page) > 1
+      },
+      ratingDistribution,
+      averageRating: ratingStats.length > 0 
+        ? ratingStats.reduce((sum, r) => sum + r.rating, 0) / ratingStats.length 
+        : 0
+    }, 'Reviews retrieved successfully');
+
+  } catch (error) {
+    logger.error('Get farmer reviews error:', error);
+    throw error;
+  }
 });
 
 // Get user's reviews
@@ -251,28 +261,15 @@ const getUserReviews = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, rating } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
 
-  // Build Supabase query
-  let supabaseQuery = supabase
-    .from('reviews')
-    .select(`
-      *,
-      orders(ordernumber, status),
-      farmers(farmname, location)
-    `, { count: 'exact' })
-    .eq('customerid', userId)
-    .order('createdat', { ascending: false })
-    .range(offset, offset + parseInt(limit) - 1);
+  // First, get the consumer record for this user
+  const { data: consumer, error: consumerError } = await supabase
+    .from('consumers')
+    .select('_id')
+    .eq('userid', userId)
+    .single();
 
-  // Apply rating filter if provided
-  if (rating) {
-    supabaseQuery = supabaseQuery.eq('rating', parseInt(rating));
-  }
-
-  const { data: reviews, error, count } = await supabaseQuery;
-
-  // Handle case where reviews table doesn't exist
-  if (error && error.code === 'PGRST205') {
-    // Reviews table doesn't exist, return empty response
+  if (consumerError || !consumer) {
+    // Return empty if no consumer record found
     return responseHelper.success(res, {
       reviews: [],
       pagination: {
@@ -283,12 +280,32 @@ const getUserReviews = asyncHandler(async (req, res) => {
         hasNext: false,
         hasPrev: false
       }
-    });
+    }, 'User reviews retrieved successfully');
   }
 
+  const consumerId = consumer._id;
+
+  // Build Supabase query
+  let supabaseQuery = supabase
+    .from('reviews')
+    .select(`
+      *,
+      orders(ordernumber, status),
+      farmers(farmname)
+    `, { count: 'exact' })
+    .eq('customerid', consumerId)
+    .order('createdat', { ascending: false })
+    .range(offset, offset + parseInt(limit) - 1);
+
+  // Apply rating filter if provided
+  if (rating) {
+    supabaseQuery = supabaseQuery.eq('rating', parseInt(rating));
+  }
+
+  const { data: reviews, error, count } = await supabaseQuery;
+
   if (error) {
-    logger.error('Get user reviews error:', error);
-    throw new Error('Failed to fetch reviews');
+    throw new Error('Failed to fetch user reviews: ' + error.message);
   }
 
   // Format the response

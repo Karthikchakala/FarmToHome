@@ -6,7 +6,8 @@ const {
   getFarmerOrders,
   getOrderById,
   cancelOrder,
-  updateOrderStatus
+  updateOrderStatus,
+  customerCancelOrder
 } = require('../controllers/orderController');
 const { authenticate, authorize } = require('../middlewares/auth');
 const { orderLimiter } = require('../middlewares/rateLimiter');
@@ -20,6 +21,9 @@ router.get('/', getUserOrders);
 router.get('/farmer', getFarmerOrders); // Temporarily removed authorize for testing
 router.get('/:id', getOrderById);
 router.delete('/:id/cancel', cancelOrder);
+
+// Customer cancel order (before preparing stage)
+router.post('/:id/customer-cancel', customerCancelOrder);
 
 // Update order status (for farmers/admins only)
 router.put('/:id/status', updateOrderStatus); // Temporarily removed authorize for testing

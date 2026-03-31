@@ -156,7 +156,13 @@ const CustomerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
           ]
         },
         {
-          title: '👤 Account',
+          title: '� Feedback',
+          children: [
+            { title: 'Submit Feedback', link: '/customer/feedback' }
+          ]
+        },
+        {
+          title: '�👤 Account',
           children: [
             { title: 'My Profile', link: '/customer/profile' }
           ]
@@ -203,6 +209,9 @@ const CustomerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
                     <Link to="/customer/reviews">⭐ Reviews</Link>
                   </li>
                   <li>
+                    <Link to="/customer/feedback">📝 Feedback</Link>
+                  </li>
+                  <li>
                     <Link to="/customer/profile">👤 Profile</Link>
                   </li>
                 </ul>
@@ -220,42 +229,27 @@ const CustomerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
                   </ul>
                 ) : (
                   <>
-                    <Notifications />
                     <div className="user-menu">
-                      <div className="user-info">
-                        <span className="user-name">
-                           {user?.name || 'User'}
-                        </span>
-                        <span className="user-role">{user?.role || 'Customer'}</span>
-                      </div>
-                      <div className="dropdown" ref={dropdownRef}>
+                      <Notifications />
+                      <div className="user-profile-dropdown" ref={dropdownRef}>
                         <button 
-                          className="dropdown-toggle" 
+                          className="profile-toggle" 
                           onClick={handleDropdownToggle}
                         >
-                          ▼
+                          <div className="user-info">
+                            <span className="user-name">
+                               {user?.name || 'User'}
+                            </span>
+                            <span className="user-role">{user?.role || 'Customer'}</span>
+                          </div>
+                          <span className="dropdown-arrow">▼</span>
                         </button>
                         {isDropdownOpen && (
                           <div className="dropdown-menu show">
                             <button 
                               onClick={() => { 
-                                navigate('/customer/profile'); 
-                                handleDropdownClose(); 
-                              }} className="dropdown-item"
-                            >
-                              👤 My Profile
-                            </button>
-                            <button 
-                              onClick={() => { 
-                                navigate('/customer/orders'); 
-                                handleDropdownClose(); 
-                              }} className="dropdown-item"
-                            >
-                              📦 My Orders
-                            </button>
-                            <button 
-                              onClick={() => { 
                                 logout(); 
+                                navigate('/');
                                 handleDropdownClose(); 
                               }} className="dropdown-item logout"
                             >

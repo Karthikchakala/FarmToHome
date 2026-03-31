@@ -55,7 +55,7 @@ const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
       <div className="navbar-container">
         <div className="navbar-brand">
           <Link to="/farmer/dashboard" className="brand-link">
-            🌾 FarmFresh Connect
+            🌾 Farm to Table
           </Link>
         </div>
 

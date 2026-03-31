@@ -10,6 +10,7 @@ const {
   getDeliveryTimeEstimate 
 } = require('../utils/locationUtils');
 const { sendOrderConfirmationEmails } = require('../services/emailService');
+const { notifyNewOrder, notifyOrderConfirmation, notifyOrderPlaced, notifyOrderConfirmed, notifyOrderPacked, notifyOrderShipped, notifyOrderOutForDelivery, notifyOrderDelivered, notifyOrderCancelled } = require('./notificationController');
 const supabase = require('../config/supabaseClient');
 
 // Place new order with delivery validation - CONVERTED TO SUPABASE
@@ -232,6 +233,13 @@ const placeOrder = asyncHandler(async (req, res) => {
 
       orderIds.push(newOrder._id);
       createdOrders.push(newOrder);
+      
+      // Send notification to customer for placed order
+      try {
+        await notifyOrderPlaced(consumerId, newOrder._id, orderNumber);
+      } catch (notificationError) {
+        logger.error('Error sending order placed notification:', notificationError);
+      }
     }
 
     // Update product stock
@@ -316,6 +324,67 @@ const placeOrder = asyncHandler(async (req, res) => {
       logger.error('Error in email notification process:', emailError);
     }
 
+    // Send notifications to farmers (non-blocking)
+    try {
+      console.log('Starting notifications for orders:', orders.length);
+      
+      // Get customer information for notifications
+      const { data: customerData } = await supabase
+        .from('users')
+        .select('_id, name, email')
+        .eq('_id', userId)
+        .single();
+
+      const customerName = customerData?.name || 'Customer';
+      const customerUserId = customerData?._id;
+      
+      for (const order of orders) {
+        console.log('Processing order for notification:', order._id, order.ordernumber);
+        
+        // Get farmer user ID from farmers table
+        const { data: farmerRecord, error: farmerError } = await supabase
+          .from('farmers')
+          .select('userid')
+          .eq('_id', order.farmerid)
+          .single();
+
+        if (farmerError || !farmerRecord) {
+          console.log('Farmer record not found:', order.farmerid, farmerError);
+          continue;
+        }
+
+        const farmerUserId = farmerRecord.userid;
+        console.log('Customer name:', customerName);
+        console.log('Farmer user ID:', farmerUserId);
+        
+        // Notify farmer about new order
+        const farmerNotificationResult = await notifyNewOrder(
+          farmerUserId,
+          order._id,
+          order.ordernumber,
+          customerName
+        );
+        
+        console.log('Farmer notification result for order', order.ordernumber, ':', farmerNotificationResult);
+
+        // Notify customer about order confirmation
+        if (customerUserId) {
+          const customerNotificationResult = await notifyOrderConfirmation(
+            customerUserId,
+            order._id,
+            order.ordernumber
+          );
+          
+          console.log('Customer notification result for order', order.ordernumber, ':', customerNotificationResult);
+        }
+      }
+      
+      console.log('All notifications completed');
+    } catch (notificationError) {
+      logger.error('Error sending notifications:', notificationError);
+      console.error('Notification error details:', notificationError);
+    }
+
     logger.info(`Order placed successfully: userId=${userId}, orderCount=${orders.length}, totalAmount=${finalAmount}`);
 
     return responseHelper.created(res, {
@@ -374,7 +443,12 @@ const getUserOrders = asyncHandler(async (req, res) => {
     // Build Supabase query using consumerid
     let supabaseQuery = supabase
       .from('orders')
-      .select('*', { count: 'exact' })
+      .select(`
+        *,
+        farmers!inner (
+          farmname
+        )
+      `, { count: 'exact' })
       .eq('consumerid', consumerId)
       .order('createdat', { ascending: false })
       .range(offset, offset + parseInt(limit) - 1);
@@ -396,6 +470,8 @@ const getUserOrders = asyncHandler(async (req, res) => {
       _id: order._id,
       orderNumber: order.ordernumber,
       userId: order.consumerid,
+      farmerId: order.farmerid,
+      farmerName: order.farmers?.farmname || 'Farmer',
       totalAmount: order.totalamount,
       status: order.status,
       paymentMethod: order.paymentmethod,
@@ -577,13 +653,27 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status, notes } = req.body;
 
   console.log('DEBUG: Update order status request:', { id, status, notes, user: req.user });
+  console.log('DEBUG: Request body:', req.body);
 
-  // Validate status
-  const validStatuses = ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
-  if (!validStatuses.includes(status)) {
+  // Validate request body
+  if (!status) {
+    console.log('DEBUG: Status is missing from request body');
     return res.status(400).json({
       success: false,
-      error: 'Invalid status'
+      error: 'Status is required in request body'
+    });
+  }
+
+  // Normalize legacy status values
+  const normalizedStatus = status === 'PREPARING' ? 'PACKED' : status;
+
+  // Validate status
+  const validStatuses = ['PLACED', 'CONFIRMED', 'PACKED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+  if (!validStatuses.includes(normalizedStatus)) {
+    console.log('DEBUG: Invalid status provided:', status);
+    return res.status(400).json({
+      success: false,
+      error: `Invalid status. Valid statuses are: ${validStatuses.join(', ')}`
     });
   }
 
@@ -591,7 +681,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     const { data: order, error } = await supabase
       .from('orders')
       .update({
-        status: status,
+        status: normalizedStatus,
         updatedat: new Date().toISOString()
       })
       .eq('_id', id)
@@ -601,14 +691,44 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     if (error) {
       console.error('DEBUG: Supabase update error:', error);
       logger.error('Error updating order status:', error);
-      throw new Error(`Failed to update order status: ${error.message}`);
+      return res.status(500).json({
+        success: false,
+        error: `Failed to update order status: ${error.message}`
+      });
     }
 
     if (!order) {
+      console.log('DEBUG: Order not found with ID:', id);
       return res.status(404).json({
         success: false,
         error: 'Order not found'
       });
+    }
+
+    // Send notification to customer based on status change (non-blocking)
+    try {
+      switch (normalizedStatus) {
+        case 'PLACED':
+          await notifyOrderPlaced(order.userid, order._id, order.ordernumber);
+          break;
+        case 'CONFIRMED':
+          await notifyOrderConfirmed(order.userid, order._id, order.ordernumber);
+          break;
+        case 'PACKED':
+          await notifyOrderPacked(order.userid, order._id, order.ordernumber);
+          break;
+        case 'OUT_FOR_DELIVERY':
+          await notifyOrderOutForDelivery(order.userid, order._id, order.ordernumber);
+          break;
+        case 'DELIVERED':
+          await notifyOrderDelivered(order.userid, order._id, order.ordernumber, new Date().toLocaleString());
+          break;
+        case 'CANCELLED':
+          await notifyOrderCancelled(order.userid, order._id, order.ordernumber);
+          break;
+      }
+    } catch (notificationError) {
+      logger.error('Error sending customer notification:', notificationError);
     }
 
     console.log('DEBUG: Order updated successfully:', order);
@@ -619,7 +739,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error('DEBUG: Update order status error:', error);
     logger.error('Update order status error:', error);
-    throw error;
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
   }
 });
 
@@ -727,11 +850,199 @@ const getFarmerOrders = asyncHandler(async (req, res) => {
   }
 });
 
+// Get all orders for admin
+const getAllOrders = asyncHandler(async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, startDate, endDate } = req.query;
+    
+    // Build query
+    let query = supabase
+      .from('orders')
+      .select(`
+        *,
+        users!inner(name, email, phone),
+        consumers!inner(defaultaddressstreet, defaultaddresscity, defaultaddressstate)
+      `, { count: 'exact' })
+      .order('createdat', { ascending: false });
+
+    // Apply filters
+    if (status) {
+      query = query.eq('status', status);
+    }
+    
+    if (startDate) {
+      query = query.gte('createdat', startDate);
+    }
+    
+    if (endDate) {
+      query = query.lte('createdat', endDate);
+    }
+
+    // Apply pagination
+    const offset = (page - 1) * limit;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data: orders, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching admin orders:', error);
+      return responseHelper.error(res, 'Failed to fetch orders', 500);
+    }
+
+    // Get order items for each order
+    const ordersWithItems = await Promise.all(
+      (orders || []).map(async (order) => {
+        const { data: items, error: itemsError } = await supabase
+          .from('orderitems')
+          .select(`
+            *,
+            products!inner(name, price, imageurl)
+          `)
+          .eq('orderid', order._id);
+
+        return {
+          ...order,
+          items: items || []
+        };
+      })
+    );
+
+    const response = {
+      orders: ordersWithItems,
+      pagination: {
+        currentPage: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit)
+      }
+    };
+
+    return responseHelper.success(res, response, 'Orders retrieved successfully');
+
+  } catch (error) {
+    console.error('Error in getAllOrders:', error);
+    return responseHelper.error(res, 'Internal server error', 500);
+  }
+});
+
+// Customer cancel order (before preparing stage)
+const customerCancelOrder = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+    
+    // First, get the consumer ID for this user
+    const { data: consumer, error: consumerError } = await supabase
+      .from('consumers')
+      .select('_id')
+      .eq('userid', userId)
+      .single();
+    
+    if (consumerError || !consumer) {
+      return responseHelper.error(res, 'Consumer account not found', 404);
+    }
+    
+    const consumerId = consumer._id;
+    
+    // Get the order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('_id', id)
+      .eq('consumerid', consumerId)
+      .single();
+    
+    if (orderError || !order) {
+      return responseHelper.error(res, 'Order not found', 404);
+    }
+    
+    // Check if order can be cancelled (before preparing stage)
+    const cancellableStatuses = ['PLACED', 'CONFIRMED'];
+    if (!cancellableStatuses.includes(order.status)) {
+      return responseHelper.error(res, 
+        `Order cannot be cancelled. Current status: ${order.status}. Orders can only be cancelled before preparation starts.`, 
+        400
+      );
+    }
+    
+    // Update order status to cancelled
+    const { data: updatedOrder, error: updateError } = await supabase
+      .from('orders')
+      .update({
+        status: 'CANCELLED',
+        updatedat: new Date().toISOString()
+      })
+      .eq('_id', id)
+      .select()
+      .single();
+    
+    if (updateError) {
+      console.error('Error cancelling order:', updateError);
+      return responseHelper.error(res, 'Failed to cancel order', 500);
+    }
+    
+    // Send cancellation notification to both customer and farmer
+    try {
+      console.log('Looking up farmer for order:', order._id, 'Farmer ID:', order.farmerid);
+      
+      // Get customer user ID from users table
+      const { data: customerUser, error: customerUserError } = await supabase
+        .from('users')
+        .select('_id')
+        .eq('_id', userId)
+        .single();
+
+      // Get farmer user ID from farmers table
+      const { data: farmerRecord, error: farmerError } = await supabase
+        .from('farmers')
+        .select('userid')
+        .eq('_id', order.farmerid)
+        .single();
+
+      console.log('Farmer lookup result:', { farmerRecord, farmerError });
+
+      if (!customerUserError && customerUser && !farmerError && farmerRecord) {
+        console.log('Sending notifications - Customer:', customerUser._id, 'Farmer:', farmerRecord.userid);
+        
+        const notificationResult = await notifyOrderCancelled(
+          customerUser._id,
+          farmerRecord.userid,
+          order._id,
+          order.ordernumber
+        );
+        
+        console.log('Cancellation notifications sent:', notificationResult);
+      } else {
+        console.log('Could not send notifications:', { 
+          customerError: customerUserError, 
+          customerData: customerUser,
+          farmerError: farmerError,
+          farmerData: farmerRecord 
+        });
+      }
+    } catch (notifError) {
+      console.error('Error sending cancellation notifications:', notifError);
+      // Continue even if notification fails
+    }
+    
+    return responseHelper.success(res, {
+      order: updatedOrder,
+      message: 'Order cancelled successfully'
+    }, 'Order cancelled successfully');
+    
+  } catch (error) {
+    console.error('Error in customerCancelOrder:', error);
+    return responseHelper.error(res, 'Internal server error', 500);
+  }
+});
+
 module.exports = {
   placeOrder,
   getUserOrders,
   getFarmerOrders,
   getOrderById,
   cancelOrder,
-  updateOrderStatus
+  updateOrderStatus,
+  getAllOrders,
+  customerCancelOrder
 };

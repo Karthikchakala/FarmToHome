@@ -3,12 +3,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const logger = require('./config/logger');
 const { generalLimiter, authLimiter, orderLimiter, messageLimiter, searchLimiter } = require('./middlewares/rateLimiter');
 const { authenticate, authorize } = require('./middlewares/auth');
 const errorHandler = require('./middlewares/errorHandler');
+const ChatSocket = require('./sockets/chatSocket');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -28,10 +31,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const feedbackRoutes = require('./routes/feedback');
 const notificationRoutes = require('./routes/notifications');
+const chatRoutes = require('./routes/chatRoutes');
 const { healthCheck } = require('./db');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const { socketHandler } = require('./socket');
 const subscriptionProcessor = require('./jobs/subscriptionProcessor');
 
 // Initialize express app
@@ -107,9 +108,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/customer', customerRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Create HTTP server
-const server = createServer(app);
+const server = http.createServer(app);
 
 // Create Socket.io server
 const io = new Server(server, {
@@ -123,8 +125,12 @@ const io = new Server(server, {
 // Store io instance in app for use in controllers
 app.set('io', io);
 
-// Initialize socket handlers
-socketHandler(io);
+// Initialize chat socket handlers
+const chatSocket = new ChatSocket(io);
+
+// Export the server instance for use in server.js
+module.exports = app;
+app.set('server', server);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
@@ -145,14 +151,6 @@ app.get('/health', async (req, res) => {
     });
   }
 });
-
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/profile', profileRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

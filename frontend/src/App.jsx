@@ -10,6 +10,7 @@ import Footer from './components/Footer'
 import FarmerNavbar from './components/FarmerNavbar'
 import CustomerNavbar from './components/CustomerNavbar'
 import AdminNavbar from './components/AdminNavbar'
+import HomeNavbar from './components/HomeNavbar'
 import Home from './pages/Home'
 import About from './pages/shared/About'
 import Services from './pages/shared/Services'
@@ -46,6 +47,8 @@ import AdminAnalytics from './pages/admin/Analytics'
 import FeedbackManagement from './pages/admin/FeedbackManagement'
 import AdminSettings from './pages/admin/Settings'
 import CustomerReviews from './pages/customer/Reviews'
+import CustomerFeedback from './pages/customer/CustomerFeedback'
+import AdminFeedback from './pages/admin/AdminFeedback'
 import './styles/global.css'
 import './App.css'
 
@@ -76,12 +79,29 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
 
   // Role-based navbar selection
   const getNavbar = () => {
+    const publicRoutes = ['/', '/about', '/services', '/contact', '/products', '/product/:id']
+    const isPublicRoute = publicRoutes.some(route => {
+      if (route.includes(':')) {
+        return location.pathname.startsWith(route.split(':')[0])
+      }
+      return location.pathname === route
+    })
+
+    // Use HomeNavbar for public pages
+    if (isPublicRoute) {
+      return <HomeNavbar />
+    }
+
+    // Use role-specific navbars for authenticated areas
     if (user?.role === 'farmer') {
       return <FarmerNavbar />
     } else if (user?.role === 'admin') {
       return <AdminNavbar />
-    } else {
+    } else if (user?.role === 'consumer') {
       return <CustomerNavbar toggleSidebar={toggleSidebar} showSidebarToggle={true} />
+    } else {
+      // Fallback to HomeNavbar if not authenticated
+      return <HomeNavbar />
     }
   }
 
@@ -112,6 +132,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
           <Route path="/customer/orders" element={<Orders />} />
           <Route path="/customer/subscriptions" element={<Subscriptions />} />
           <Route path="/customer/reviews" element={<CustomerReviews />} />
+          <Route path="/customer/feedback" element={<CustomerFeedback />} />
           <Route path="/customer/cart" element={<Cart />} />
           <Route path="/customer/checkout" element={<Checkout />} />
           <Route path="/customer/order-success" element={<OrderSuccess />} />
@@ -123,7 +144,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
           <Route path="/admin/products" element={<AdminProductManagement />} />
           <Route path="/admin/farmers" element={<FarmerManagement />} />
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
-          <Route path="/admin/feedback" element={<FeedbackManagement />} />
+          <Route path="/admin/feedback" element={<AdminFeedback />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           
           {/* Farmer Routes */}

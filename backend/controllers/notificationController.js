@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const supabase = require('../config/supabase');
+const supabase = require('../config/supabaseClient');
 const responseHelper = require('../utils/responseHelper');
 const logger = require('../config/logger');
 
@@ -148,7 +148,20 @@ const deleteNotification = asyncHandler(async (req, res) => {
 // Create notification (internal function)
 const createNotification = async (userId, title, message, type, priority = 'medium', data = {}, actionUrl = null) => {
   try {
-    const { data: notification, error } = await supabase
+    // Use the service role client to bypass RLS policies
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseService = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+    
+    const { data: notification, error } = await supabaseService
       .from('notifications')
       .insert({
         userid: userId,
@@ -164,20 +177,11 @@ const createNotification = async (userId, title, message, type, priority = 'medi
       .single();
 
     if (error) {
-      console.error('Error creating notification:', error);
+      console.error('Notification creation error:', error);
       return null;
     }
 
-    // Emit real-time notification via Socket.io if available
-    try {
-      const io = require('../socket').getIO();
-      if (io) {
-        io.to(`user_${userId}`).emit('new_notification', notification);
-      }
-    } catch (socketError) {
-      console.log('Socket.io not available for real-time notifications');
-    }
-
+    console.log('Notification created successfully for user:', userId);
     return notification;
   } catch (error) {
     console.error('Error in createNotification:', error);
@@ -232,6 +236,32 @@ const notifyNewOrder = async (farmerUserId, orderId, orderNumber, customerName) 
     { orderId, orderNumber, customerName },
     '/farmer/orders'
   );
+};
+
+const notifyOrderCancelled = async (customerUserId, farmerUserId, orderId, orderNumber) => {
+  // Notify customer about order cancellation
+  const customerNotification = await createNotification(
+    customerUserId,
+    '❌ Order Cancelled',
+    `Your order #${orderNumber} has been cancelled as requested.`,
+    'order_cancelled',
+    'high',
+    { orderId, orderNumber },
+    '/customer/orders'
+  );
+
+  // Notify farmer about order cancellation
+  const farmerNotification = await createNotification(
+    farmerUserId,
+    '❌ Order Cancelled',
+    `Order #${orderNumber} has been cancelled by the customer.`,
+    'order_cancelled',
+    'high',
+    { orderId, orderNumber },
+    '/farmer/orders'
+  );
+
+  return { customerNotification, farmerNotification };
 };
 
 const notifyProductApproved = async (farmerUserId, productName) => {
@@ -301,12 +331,244 @@ const notifyReviewReceived = async (farmerUserId, productName, rating, customerN
   );
 };
 
+const notifySubscriptionCreated = async (farmerUserId, subscriptionId, customerName, products) => {
+  const productNames = products.map(p => p.name).join(', ');
+  return await createNotification(
+    farmerUserId,
+    '🔄 New Subscription Created',
+    `${customerName} has subscribed to: ${productNames}`,
+    'subscription_created',
+    'high',
+    { subscriptionId, customerName, products },
+    '/farmer/subscriptions'
+  );
+};
+
+const notifySubscriptionCancelled = async (farmerUserId, subscriptionId, customerName, reason) => {
+  return await createNotification(
+    farmerUserId,
+    '⚠️ Subscription Cancelled',
+    `${customerName} has cancelled their subscription${reason ? `. Reason: ${reason}` : ''}`,
+    'subscription_cancelled',
+    'medium',
+    { subscriptionId, customerName, reason },
+    '/farmer/subscriptions'
+  );
+};
+
+const notifySubscriptionDelivery = async (farmerUserId, subscriptionId, customerName, deliveryDate) => {
+  return await createNotification(
+    farmerUserId,
+    '📅 Subscription Delivery Due',
+    `Prepare subscription delivery for ${customerName} on ${deliveryDate}`,
+    'order_update',
+    'medium',
+    { subscriptionId, customerName, deliveryDate },
+    '/farmer/subscriptions'
+  );
+};
+
+// Customer-specific notifications
+const notifyOrderPlaced = async (customerUserId, orderId, orderNumber) => {
+  return await createNotification(
+    customerUserId,
+    '📋 Order Placed',
+    `Your order #${orderNumber} has been placed successfully! We'll confirm it shortly.`,
+    'order_placed',
+    'medium',
+    { orderId, orderNumber },
+    '/customer/orders'
+  );
+};
+
+const notifyOrderConfirmed = async (customerUserId, orderId, orderNumber) => {
+  return await createNotification(
+    customerUserId,
+    '✅ Order Confirmed',
+    `Great news! Your order #${orderNumber} has been confirmed and is being prepared.`,
+    'order_confirmed',
+    'medium',
+    { orderId, orderNumber },
+    '/customer/orders'
+  );
+};
+
+const notifyOrderPacked = async (customerUserId, orderId, orderNumber) => {
+  return await createNotification(
+    customerUserId,
+    '📦 Order Packed',
+    `Your order #${orderNumber} has been packed and is ready for shipment.`,
+    'order_packed',
+    'medium',
+    { orderId, orderNumber },
+    '/customer/orders'
+  );
+};
+
+const notifyOrderShipped = async (customerUserId, orderId, orderNumber, trackingNumber = null) => {
+  const message = trackingNumber 
+    ? `Your order #${orderNumber} has been shipped. Tracking: ${trackingNumber}`
+    : `Your order #${orderNumber} has been shipped and is on its way!`;
+  
+  return await createNotification(
+    customerUserId,
+    '🚚 Order Shipped',
+    message,
+    'order_shipped',
+    'high',
+    { orderId, orderNumber, trackingNumber },
+    '/customer/orders'
+  );
+};
+
+const notifyOrderOutForDelivery = async (customerUserId, orderId, orderNumber, estimatedDelivery = null) => {
+  const message = estimatedDelivery
+    ? `Your order #${orderNumber} is out for delivery! Expected by ${estimatedDelivery}`
+    : `Your order #${orderNumber} is out for delivery today!`;
+    
+  return await createNotification(
+    customerUserId,
+    '🏃 Out for Delivery',
+    message,
+    'order_out_for_delivery',
+    'high',
+    { orderId, orderNumber, estimatedDelivery },
+    '/customer/orders'
+  );
+};
+
+const notifyOrderDelivered = async (customerUserId, orderId, orderNumber, deliveredAt = null) => {
+  const message = deliveredAt
+    ? `Your order #${orderNumber} was delivered at ${deliveredAt}. Enjoy your fresh produce!`
+    : `Your order #${orderNumber} has been successfully delivered! Enjoy your fresh produce!`;
+    
+  return await createNotification(
+    customerUserId,
+    '✅ Order Delivered',
+    message,
+    'order_delivered',
+    'high',
+    { orderId, orderNumber, deliveredAt },
+    '/customer/orders'
+  );
+};
+
+const notifyCustomerSubscriptionCreated = async (customerUserId, subscriptionId, products, nextDelivery) => {
+  const productNames = products.map(p => p.name).join(', ');
+  const message = nextDelivery
+    ? `You've successfully subscribed to: ${productNames}. First delivery on ${nextDelivery}`
+    : `You've successfully subscribed to: ${productNames}`;
+    
+  return await createNotification(
+    customerUserId,
+    '🔄 Subscription Created',
+    message,
+    'subscription_created',
+    'high',
+    { subscriptionId, products, nextDelivery },
+    '/customer/subscriptions'
+  );
+};
+
+const notifySubscriptionPaymentProcessed = async (customerUserId, subscriptionId, amount, paymentDate) => {
+  return await createNotification(
+    customerUserId,
+    '💳 Subscription Payment Processed',
+    `Payment of ₹${amount} processed for your subscription on ${paymentDate}`,
+    'payment_processed',
+    'medium',
+    { subscriptionId, amount, paymentDate },
+    '/customer/subscriptions'
+  );
+};
+
+const notifySubscriptionDeliveryScheduled = async (customerUserId, subscriptionId, deliveryDate, products) => {
+  const productNames = products.map(p => p.name).join(', ');
+  return await createNotification(
+    customerUserId,
+    '📅 Delivery Scheduled',
+    `Your subscription delivery (${productNames}) is scheduled for ${deliveryDate}`,
+    'delivery_scheduled',
+    'medium',
+    { subscriptionId, deliveryDate, products },
+    '/customer/subscriptions'
+  );
+};
+
+const notifyProductBackInStock = async (customerUserId, productId, productName, farmerName) => {
+  return await createNotification(
+    customerUserId,
+    '🎉 Product Back in Stock',
+    `${productName} from ${farmerName} is now available!`,
+    'product_back_in_stock',
+    'medium',
+    { productId, productName, farmerName },
+    `/customer/product/${productId}`
+  );
+};
+
+const notifyPriceDrop = async (customerUserId, productId, productName, oldPrice, newPrice, farmerName) => {
+  const discount = Math.round(((oldPrice - newPrice) / oldPrice) * 100);
+  return await createNotification(
+    customerUserId,
+    '💰 Price Drop Alert',
+    `${productName} from ${farmerName} is now ${discount}% cheaper! ₹${newPrice} (was ₹${oldPrice})`,
+    'price_drop',
+    'medium',
+    { productId, productName, oldPrice, newPrice, farmerName, discount },
+    `/customer/product/${productId}`
+  );
+};
+
+const notifyFarmersNewProduct = async (customerUserId, farmerId, farmerName, productName, productId) => {
+  return await createNotification(
+    customerUserId,
+    '🌱 New Product Available',
+    `${farmerName} added ${productName} to their farm!`,
+    'new_product',
+    'low',
+    { farmerId, farmerName, productName, productId },
+    `/customer/product/${productId}`
+  );
+};
+
+const notifyPromotionalOffer = async (customerUserId, offerTitle, description, discountCode, validUntil) => {
+  return await createNotification(
+    customerUserId,
+    '🎁 Special Offer',
+    `${offerTitle}: ${description}. Use code ${discountCode}. Valid until ${validUntil}`,
+    'promotional_offer',
+    'medium',
+    { offerTitle, description, discountCode, validUntil },
+    '/customer/products'
+  );
+};
+
+const notifyAccountStatusChange = async (customerUserId, status, reason = null) => {
+  const statusMessages = {
+    'verified': 'Your account has been verified! You can now place orders.',
+    'suspended': `Your account has been suspended. ${reason || 'Please contact support.'}`,
+    'reactivated': 'Your account has been reactivated. Welcome back!'
+  };
+  
+  return await createNotification(
+    customerUserId,
+    status === 'verified' ? '✅ Account Verified' : status === 'suspended' ? '⚠️ Account Suspended' : '🎉 Account Reactivated',
+    statusMessages[status] || 'Your account status has been updated.',
+    'account_status',
+    status === 'suspended' ? 'high' : 'medium',
+    { status, reason },
+    '/customer/profile'
+  );
+};
+
 module.exports = {
   getUserNotifications,
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
   createNotification,
+  // Farmer notifications
   notifyLowStock,
   notifyOrderConfirmation,
   notifyFarmerApproval,
@@ -315,5 +577,24 @@ module.exports = {
   notifyProductRejected,
   notifyOrderUpdate,
   notifyPaymentReceived,
-  notifyReviewReceived
+  notifyReviewReceived,
+  notifySubscriptionCreated,
+  notifySubscriptionCancelled,
+  notifySubscriptionDelivery,
+  notifyOrderCancelled,
+  // Customer notifications
+  notifyOrderPlaced,
+  notifyOrderConfirmed,
+  notifyOrderPacked,
+  notifyOrderShipped,
+  notifyOrderOutForDelivery,
+  notifyOrderDelivered,
+  notifyCustomerSubscriptionCreated,
+  notifySubscriptionPaymentProcessed,
+  notifySubscriptionDeliveryScheduled,
+  notifyProductBackInStock,
+  notifyPriceDrop,
+  notifyFarmersNewProduct,
+  notifyPromotionalOffer,
+  notifyAccountStatusChange
 };

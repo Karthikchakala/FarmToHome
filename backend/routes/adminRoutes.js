@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { getDashboardStats, getUsers, getUserById, updateUser, deleteUser, getFarmers, getFarmerProducts, approveFarmer, rejectFarmer, getAllProducts, getProductById, deleteProduct } = require('../controllers/adminController')
 const { getAdminAnalytics } = require('../controllers/analyticsController')
+const { getAllOrders } = require('../controllers/orderController')
 
 // Middleware to check if user is admin
 const adminAuth = (req, res, next) => {
@@ -48,5 +49,8 @@ router.post('/farmers/:id/reject', adminAuth, rejectFarmer)
 router.get('/products', adminAuth, getAllProducts)
 router.get('/products/:id', adminAuth, getProductById)
 router.delete('/products/:id', adminAuth, deleteProduct)
+
+// Order management routes
+router.get('/orders', adminAuth, getAllOrders)
 
 module.exports = router

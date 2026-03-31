@@ -7,6 +7,7 @@ import subscriptionAPI from './subscriptionAPI'
 import paymentAPI from './paymentAPI'
 import farmerAPI from './farmerAPI'
 import reviewAPI from './reviewAPI'
+import { feedbackAPI } from './feedbackAPI'
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -69,6 +70,6 @@ export const productAPI = {
   getNearbyProducts: (params = {}) => api.get('/products/nearby', { params }),
 }
 
-export { cartAPI, orderAPI, messageAPI, profileAPI, subscriptionAPI, paymentAPI, farmerAPI, reviewAPI }
+export { cartAPI, orderAPI, messageAPI, profileAPI, subscriptionAPI, paymentAPI, farmerAPI, reviewAPI, feedbackAPI }
 
 export default api

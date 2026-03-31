@@ -1,6 +1,7 @@
 const { query, transaction } = require('../db');
 const logger = require('../config/logger');
 const supabase = require('../config/supabaseClient');
+const { notifySubscriptionCreated, notifyCustomerSubscriptionCreated } = require('./notificationController');
 
 // Create subscription
 const createSubscription = async (req, res, next) => {
@@ -111,6 +112,40 @@ const createSubscription = async (req, res, next) => {
     if (subscriptionError) {
       logger.error('Subscription creation error:', subscriptionError);
       throw new Error(`Failed to create subscription: ${subscriptionError.message}`);
+    }
+
+    // Send notification to farmer (non-blocking)
+    try {
+      // Get customer name
+      const { data: customerData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('_id', userId)
+        .single();
+
+      const customerName = customerData?.name || 'Customer';
+      
+      // Notify farmer about new subscription
+      await notifySubscriptionCreated(
+        subscription._id,
+        product.farmerid,
+        customerName,
+        [{ name: product.name, id: product._id }]
+      );
+    } catch (notificationError) {
+      logger.error('Error sending subscription notification:', notificationError);
+    }
+
+    // Send notification to customer (non-blocking)
+    try {
+      await notifyCustomerSubscriptionCreated(
+        userId,
+        subscription._id,
+        [{ name: product.name, id: product._id }],
+        subscription.nextdeliverydate
+      );
+    } catch (customerNotificationError) {
+      logger.error('Error sending customer subscription notification:', customerNotificationError);
     }
 
     logger.info(`Subscription created: userId=${userId}, productId=${productId}, frequency=${frequency}`);

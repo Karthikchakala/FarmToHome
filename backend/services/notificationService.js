@@ -7,7 +7,10 @@ const {
   notifyProductRejected,
   notifyOrderUpdate,
   notifyPaymentReceived,
-  notifyReviewReceived
+  notifyReviewReceived,
+  notifySubscriptionCreated,
+  notifySubscriptionCancelled,
+  notifySubscriptionDelivery
 } = require('../controllers/notificationController');
 
 const supabase = require('../config/supabase');
@@ -181,6 +184,66 @@ class NotificationService {
         byType: {},
         byPriority: {}
       };
+    }
+  }
+
+  // Notify farmer when a new subscription is created
+  static async notifyNewSubscription(subscriptionId, farmerUserId, customerName, products) {
+    try {
+      await notifySubscriptionCreated(farmerUserId, subscriptionId, customerName, products);
+      console.log(`Subscription notification sent to farmer for subscription ${subscriptionId}`);
+    } catch (error) {
+      console.error('Error sending subscription notification:', error);
+    }
+  }
+
+  // Notify farmer when a subscription is cancelled
+  static async notifySubscriptionCancellation(subscriptionId, farmerUserId, customerName, reason) {
+    try {
+      await notifySubscriptionCancelled(farmerUserId, subscriptionId, customerName, reason);
+      console.log(`Subscription cancellation notification sent to farmer for subscription ${subscriptionId}`);
+    } catch (error) {
+      console.error('Error sending subscription cancellation notification:', error);
+    }
+  }
+
+  // Check for upcoming subscription deliveries and notify farmers
+  static async checkUpcomingDeliveries() {
+    try {
+      console.log('Checking for upcoming subscription deliveries...');
+      
+      // Get subscriptions due in the next 24 hours
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const { data: subscriptions, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          *,
+          consumers!inner(userid, _id),
+          farmers!inner(userid, farmname)
+        `)
+        .eq('status', 'active')
+        .lte('nextdeliverydate', tomorrow.toISOString().split('T')[0]);
+
+      if (error) {
+        console.error('Error checking upcoming deliveries:', error);
+        return;
+      }
+
+      // Send notifications for each upcoming delivery
+      for (const subscription of subscriptions || []) {
+        await notifySubscriptionDelivery(
+          subscription.farmers.userid,
+          subscription._id,
+          subscription.consumers._id, // This should be customer name, need to join with users table
+          subscription.nextdeliverydate
+        );
+      }
+
+      console.log(`Processed ${subscriptions?.length || 0} upcoming delivery notifications`);
+    } catch (error) {
+      console.error('Error in checkUpcomingDeliveries:', error);
     }
   }
 }

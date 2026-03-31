@@ -217,6 +217,7 @@ const Notifications = () => {
                           e.stopPropagation()
                           handleMarkAsRead(notification._id)
                         }}
+                        title="Mark as read"
                       >
                         ✓
                       </button>
@@ -227,9 +228,10 @@ const Notifications = () => {
                         e.stopPropagation()
                         handleDeleteNotification(notification._id)
                       }}
+                      title="Delete notification"
                     >
-                      ×
-                    </button>
+                        ✕
+                      </button>
                   </div>
                 </div>
               ))

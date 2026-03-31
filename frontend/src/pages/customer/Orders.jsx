@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import OrderCard from "../../components/OrderCard"
-import { orderAPI } from "../../services/api"
+import { orderAPI } from "../../services/orderAPI"
 import { useAuth } from "../../contexts/AuthContext"
 import LoadingSpinner from "../../components/LoadingSpinner"
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import "./Orders.css"
 
 const Orders = () => {
@@ -14,6 +16,7 @@ const Orders = () => {
   const [error, setError] = useState(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [pagination, setPagination] = useState(null)
+  const [previousStatuses, setPreviousStatuses] = useState({})
   const [filters, setFilters] = useState({
     status: "",
     page: 1
@@ -55,11 +58,15 @@ const Orders = () => {
         ...(filters.status && { status: filters.status })
       }
       
-      const response = await orderAPI.getOrders(params)
+      const response = await orderAPI.getUserOrders(params)
       
       if (response.data.success) {
-        setOrders(response.data.data.orders || [])
+        const ordersData = response.data.data.orders || []
+        setOrders(ordersData)
         setPagination(response.data.data.pagination || null)
+        
+        // Check for status changes and show notifications
+        checkStatusChanges(ordersData)
       } else {
         console.log('Failed to load orders:', response.data.error)
         setError(response.data.error || 'Failed to load orders')
@@ -104,12 +111,50 @@ const Orders = () => {
     setFilters(prev => ({ ...prev, page: newPage }))
   }
 
+  // Check for status changes and show notifications
+  const checkStatusChanges = (newOrders) => {
+    newOrders.forEach(order => {
+      const previousStatus = previousStatuses[order._id]
+      const currentStatus = order.status
+      
+      if (previousStatus && previousStatus !== currentStatus) {
+        const statusMessages = {
+          'PLACED': '📋 Your order has been placed!',
+          'CONFIRMED': '✅ Your order has been confirmed!',
+          'PACKED': '📦 Your order has been packed!',
+          'OUT_FOR_DELIVERY': '🚚 Your order is out for delivery!',
+          'DELIVERED': '🎉 Your order has been delivered!',
+          'CANCELLED': '❌ Your order has been cancelled'
+        }
+        
+        const message = statusMessages[currentStatus] || `Order status updated to ${currentStatus}`
+        
+        toast.success(message, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        })
+      }
+    })
+    
+    // Update previous statuses
+    const newPreviousStatuses = {}
+    newOrders.forEach(order => {
+      newPreviousStatuses[order._id] = order.status
+    })
+    setPreviousStatuses(newPreviousStatuses)
+  }
+
   const getStatusStats = () => {
     const stats = {
       total: orders.length,
       placed: orders.filter(o => o.status === "PLACED").length,
       confirmed: orders.filter(o => o.status === "CONFIRMED").length,
-      preparing: orders.filter(o => o.status === "PREPARING").length,
+      packed: orders.filter(o => o.status === "PACKED").length,
+      out_for_delivery: orders.filter(o => o.status === "OUT_FOR_DELIVERY").length,
       delivered: orders.filter(o => o.status === "DELIVERED").length,
       cancelled: orders.filter(o => o.status === "CANCELLED").length
     }
@@ -144,12 +189,28 @@ const Orders = () => {
           <p>Total Orders</p>
         </div>
         <div className="stat-card">
-          <h3>{stats.delivered}</h3>
-          <p>Delivered</p>
+          <h3>{stats.placed}</h3>
+          <p>📋 Placed</p>
         </div>
         <div className="stat-card">
-          <h3>{stats.confirmed + stats.preparing}</h3>
-          <p>In Progress</p>
+          <h3>{stats.confirmed}</h3>
+          <p>✅ Confirmed</p>
+        </div>
+        <div className="stat-card">
+          <h3>{stats.packed}</h3>
+          <p>👨‍🍳 Packed</p>
+        </div>
+        <div className="stat-card">
+          <h3>{stats.out_for_delivery}</h3>
+          <p>🚚 Out for Delivery</p>
+        </div>
+        <div className="stat-card">
+          <h3>{stats.delivered}</h3>
+          <p>🎉 Delivered</p>
+        </div>
+        <div className="stat-card">
+          <h3>{stats.cancelled}</h3>
+          <p>❌ Cancelled</p>
         </div>
       </div>
 
@@ -164,7 +225,8 @@ const Orders = () => {
             <option value="">All Orders</option>
             <option value="PLACED">Placed</option>
             <option value="CONFIRMED">Confirmed</option>
-            <option value="PREPARING">Preparing</option>
+            <option value="PACKED">Packed</option>
+            <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
             <option value="DELIVERED">Delivered</option>
             <option value="CANCELLED">Cancelled</option>
           </select>

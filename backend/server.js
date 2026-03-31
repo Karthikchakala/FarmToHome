@@ -3,6 +3,7 @@ const logger = require('./config/logger');
 const { closePool } = require('./db');
 const supabase = require('./config/supabaseClient');
 const { validateSupabaseConfig } = require('./config/supabase');
+const NotificationScheduler = require('./services/notificationScheduler');
 
 const PORT = process.env.PORT || 5000;
 
@@ -17,10 +18,10 @@ const initializeDatabase = async () => {
     // Test Supabase connection
     const { data, error } = await supabase.from('users').select('count').single();
     if (error) {
-      throw error;
+      logger.warn('⚠️ Supabase connection test failed:', error.message);
+    } else {
+      logger.info('✅ Supabase connection successful');
     }
-    
-    logger.info('✅ Supabase connection successful');
     logger.info('🚀 Database initialization complete');
   } catch (error) {
     logger.error('❌ Database initialization failed:', error);
@@ -33,13 +34,31 @@ const initializeDatabase = async () => {
 const startServer = async () => {
   await initializeDatabase();
 
+  // Initialize notification scheduler
+  try {
+    NotificationScheduler.initialize();
+    logger.info('✅ Notification scheduler initialized');
+  } catch (error) {
+    logger.error('❌ Failed to initialize notification scheduler:', error);
+  }
+
   if (!serverInstance) {
-    serverInstance = app.listen(PORT, () => {
+    // Get the server instance from app.js (it's exported as a property)
+    serverInstance = app.get('server');
+    
+    if (!serverInstance) {
+      throw new Error('Server instance not found in app.js');
+    }
+    
+    serverInstance.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
       console.log(`🚀 Farm to Table API Server running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
+      console.log(`💬 Chat endpoints: http://localhost:${PORT}/api/chat`);
       console.log(`🗄️  Database: Supabase PostgreSQL with PostGIS`);
+      console.log(`🔔 Notifications: Scheduler active (low stock & deliveries)`);
+      console.log(`🔌 Socket.io: Real-time chat enabled`);
     });
   } else {
     logger.info('Server already running — skipping listen.');

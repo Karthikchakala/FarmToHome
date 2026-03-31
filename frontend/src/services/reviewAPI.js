@@ -4,32 +4,32 @@ import api from './api'
 export const reviewAPI = {
   // Add review
   addReview: (reviewData) => {
-    return api.post('/reviews', reviewData)
+    return api.post('/reviews/customer', reviewData)
   },
 
   // Get farmer reviews
   getFarmerReviews: (farmerId, params = {}) => {
-    return api.get(`/reviews/${farmerId}`, { params })
+    return api.get(`/reviews/farmers/${farmerId}`, { params })
   },
 
   // Get user's reviews
   getUserReviews: (params = {}) => {
-    return api.get('/reviews/user/my-reviews', { params })
+    return api.get('/reviews/customer/my-reviews', { params })
   },
 
   // Get review eligibility
   getReviewEligibility: () => {
-    return api.get('/reviews/user/eligibility')
+    return api.get('/reviews/customer/eligibility')
   },
 
   // Update review
   updateReview: (reviewId, reviewData) => {
-    return api.put(`/reviews/${reviewId}`, reviewData)
+    return api.put(`/reviews/customer/${reviewId}`, reviewData)
   },
 
   // Delete review
   deleteReview: (reviewId) => {
-    return api.delete(`/reviews/${reviewId}`)
+    return api.delete(`/reviews/customer/${reviewId}`)
   }
 }
 

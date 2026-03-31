@@ -8,7 +8,7 @@ export const orderAPI = {
   },
 
   // Get user orders
-  getOrders: (params = {}) => {
+  getUserOrders: (params = {}) => {
     return api.get('/orders', { params })
   },
 
@@ -22,14 +22,19 @@ export const orderAPI = {
     return api.get(`/orders/${orderId}`)
   },
 
-  // Cancel order
-  cancelOrder: (orderId, reason) => {
-    return api.delete(`/orders/${orderId}/cancel`, { data: { reason } })
+  // Cancel order (general)
+  cancelOrder: (orderId) => {
+    return api.delete(`/orders/${orderId}/cancel`)
+  },
+
+  // Customer cancel order (before preparing stage)
+  customerCancelOrder: (orderId) => {
+    return api.post(`/orders/${orderId}/customer-cancel`)
   },
 
   // Update order status (for farmers/admins)
-  updateOrderStatus: (orderId, data) => {
-    return api.put(`/orders/${orderId}/status`, data)
+  updateOrderStatus: (orderId, status) => {
+    return api.put(`/orders/${orderId}/status`, { status })
   }
 }
 

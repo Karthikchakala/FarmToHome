@@ -627,3 +627,260 @@ ORDER BY size_bytes DESC;
 -- Functions: Notification management and rating updates
 -- Triggers: Automatic timestamp updates
 -- Views: Performance monitoring
+
+-- =====================================================
+-- FEEDBACK SYSTEM TABLES
+-- =====================================================
+
+-- Feedback table for general complaints and technical issues
+CREATE TABLE IF NOT EXISTS feedback (
+    _id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    userid UUID NOT NULL REFERENCES users(_id) ON DELETE CASCADE,
+    category VARCHAR(50) NOT NULL, -- 'product', 'farmer', 'technical', 'service', 'billing', 'other'
+    subcategory VARCHAR(50) NOT NULL, -- specific subcategory based on category
+    subject VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    priority VARCHAR(20) NOT NULL DEFAULT 'medium', -- 'low', 'medium', 'high', 'critical'
+    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- 'pending', 'in_progress', 'resolved', 'rejected'
+    orderid UUID REFERENCES orders(_id) ON DELETE SET NULL,
+    productid UUID REFERENCES products(_id) ON DELETE SET NULL,
+    farmerid UUID REFERENCES farmers(_id) ON DELETE SET NULL,
+    createdat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updatedat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Feedback notes table for communication and updates
+CREATE TABLE IF NOT EXISTS feedback_notes (
+    _id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    feedbackid UUID NOT NULL REFERENCES feedback(_id) ON DELETE CASCADE,
+    note TEXT NOT NULL,
+    isadmin BOOLEAN DEFAULT false, -- true if note is from admin, false if from user
+    createdat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_feedback_userid ON feedback(userid);
+CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback(status);
+CREATE INDEX IF NOT EXISTS idx_feedback_category ON feedback(category);
+CREATE INDEX IF NOT EXISTS idx_feedback_priority ON feedback(priority);
+CREATE INDEX IF NOT EXISTS idx_feedback_createdat ON feedback(createdat DESC);
+CREATE INDEX IF NOT EXISTS idx_feedback_notes_feedbackid ON feedback_notes(feedbackid);
+
+-- Add updatedat trigger for feedback table
+CREATE OR REPLACE FUNCTION update_feedback_updatedat()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updatedat = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_feedback_updatedat
+    BEFORE UPDATE ON feedback
+    FOR EACH ROW
+    EXECUTE FUNCTION update_feedback_updatedat();
+
+-- ============================================================================
+-- CHAT SYSTEM SCHEMA
+-- ============================================================================
+
+-- Chat System Schema for Supabase
+-- This schema enables real-time communication between customers and farmers for each order
+
+-- Chat messages table
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+    _id UUID NOT NULL DEFAULT extensions.uuid_generate_v4() PRIMARY KEY,
+    orderid UUID NOT NULL REFERENCES public.orders(_id) ON DELETE CASCADE,
+    senderid UUID NOT NULL,
+    receiverid UUID NOT NULL,
+    sender_role VARCHAR(20) NOT NULL CHECK (sender_role IN ('customer', 'farmer')),
+    receiver_role VARCHAR(20) NOT NULL CHECK (receiver_role IN ('customer', 'farmer')),
+    message TEXT NOT NULL,
+    message_type VARCHAR(20) NOT NULL DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'file', 'system')),
+    file_url TEXT,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chat conversations table (for tracking conversation status)
+CREATE TABLE IF NOT EXISTS public.chat_conversations (
+    _id UUID NOT NULL DEFAULT extensions.uuid_generate_v4() PRIMARY KEY,
+    orderid UUID NOT NULL REFERENCES public.orders(_id) ON DELETE CASCADE UNIQUE,
+    customer_id UUID NOT NULL REFERENCES public.consumers(_id) ON DELETE CASCADE,
+    farmer_id UUID NOT NULL REFERENCES public.farmers(_id) ON DELETE CASCADE,
+    last_message_id UUID REFERENCES public.chat_messages(_id) ON DELETE SET NULL,
+    last_message_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    customer_unread_count INTEGER NOT NULL DEFAULT 0,
+    farmer_unread_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_chat_messages_orderid ON public.chat_messages(orderid);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_senderid ON public.chat_messages(senderid);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_receiverid ON public.chat_messages(receiverid);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON public.chat_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_order_created ON public.chat_messages(orderid, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_chat_conversations_orderid ON public.chat_conversations(orderid);
+CREATE INDEX IF NOT EXISTS idx_chat_conversations_customer_id ON public.chat_conversations(customer_id);
+CREATE INDEX IF NOT EXISTS idx_chat_conversations_farmer_id ON public.chat_conversations(farmer_id);
+
+-- Function to update updated_at column for chat_messages
+CREATE OR REPLACE FUNCTION update_chat_messages_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update updated_at
+CREATE TRIGGER trigger_update_chat_messages_updated_at
+    BEFORE UPDATE ON public.chat_messages
+    FOR EACH ROW
+    EXECUTE FUNCTION update_chat_messages_updated_at();
+
+-- Function to update updated_at column for chat_conversations
+CREATE OR REPLACE FUNCTION update_chat_conversations_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update updated_at
+CREATE TRIGGER trigger_update_chat_conversations_updated_at
+    BEFORE UPDATE ON public.chat_conversations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_chat_conversations_updated_at();
+
+-- Function to update conversation when new message is sent
+CREATE OR REPLACE FUNCTION update_conversation_on_message()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Update the conversation with last message details
+    UPDATE public.chat_conversations 
+    SET 
+        last_message_id = NEW._id,
+        last_message_at = NEW.created_at,
+        updated_at = CURRENT_TIMESTAMP,
+        -- Update unread counts
+        customer_unread_count = CASE 
+            WHEN NEW.receiver_role = 'customer' THEN customer_unread_count + 1 
+            ELSE customer_unread_count 
+        END,
+        farmer_unread_count = CASE 
+            WHEN NEW.receiver_role = 'farmer' THEN farmer_unread_count + 1 
+            ELSE farmer_unread_count 
+        END
+    WHERE orderid = NEW.orderid;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to update conversation on new message
+CREATE TRIGGER trigger_update_conversation_on_message
+    AFTER INSERT ON public.chat_messages
+    FOR EACH ROW
+    EXECUTE FUNCTION update_conversation_on_message();
+
+-- Function to mark messages as read
+CREATE OR REPLACE FUNCTION mark_chat_messages_as_read(
+    p_orderid UUID,
+    p_user_role VARCHAR,
+    p_user_id UUID
+)
+RETURNS INTEGER AS $$
+DECLARE
+    marked_count INTEGER;
+BEGIN
+    UPDATE public.chat_messages 
+    SET is_read = TRUE, updated_at = CURRENT_TIMESTAMP
+    WHERE orderid = p_orderid 
+    AND receiver_role = p_user_role 
+    AND receiverid = p_user_id 
+    AND is_read = FALSE;
+    
+    GET DIAGNOSTICS marked_count = ROW_COUNT;
+    
+    -- Reset unread count in conversation
+    UPDATE public.chat_conversations 
+    SET 
+        updated_at = CURRENT_TIMESTAMP,
+        customer_unread_count = CASE 
+            WHEN p_user_role = 'customer' THEN 0 
+            ELSE customer_unread_count 
+        END,
+        farmer_unread_count = CASE 
+            WHEN p_user_role = 'farmer' THEN 0 
+            ELSE farmer_unread_count 
+        END
+    WHERE orderid = p_orderid;
+    
+    RETURN marked_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Row Level Security (RLS) Policies
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_conversations ENABLE ROW LEVEL SECURITY;
+
+-- Policy for chat_messages - users can only see messages from their own conversations
+CREATE POLICY "Users can view their own chat messages" ON public.chat_messages
+    FOR SELECT USING (
+        orderid IN (
+            SELECT orderid FROM public.chat_conversations 
+            WHERE (customer_id = (SELECT _id FROM public.consumers WHERE userid = auth.uid())
+                   OR farmer_id = (SELECT _id FROM public.farmers WHERE userid = auth.uid()))
+        )
+    );
+
+-- Policy for chat_messages - users can only insert messages in their conversations
+CREATE POLICY "Users can insert their own chat messages" ON public.chat_messages
+    FOR INSERT WITH CHECK (
+        orderid IN (
+            SELECT orderid FROM public.chat_conversations 
+            WHERE (customer_id = (SELECT _id FROM public.consumers WHERE userid = auth.uid())
+                   OR farmer_id = (SELECT _id FROM public.farmers WHERE userid = auth.uid()))
+        )
+        AND (
+            (sender_role = 'customer' AND senderid = (SELECT _id FROM public.consumers WHERE userid = auth.uid()))
+            OR (sender_role = 'farmer' AND senderid = (SELECT _id FROM public.farmers WHERE userid = auth.uid()))
+        )
+    );
+
+-- Policy for chat_messages - users can only update read status of messages sent to them
+CREATE POLICY "Users can update read status of messages sent to them" ON public.chat_messages
+    FOR UPDATE USING (
+        receiverid = (SELECT _id FROM public.consumers WHERE userid = auth.uid())
+        OR receiverid = (SELECT _id FROM public.farmers WHERE userid = auth.uid())
+    );
+
+-- Policy for chat_conversations - users can only see their own conversations
+CREATE POLICY "Users can view their own conversations" ON public.chat_conversations
+    FOR SELECT USING (
+        customer_id = (SELECT _id FROM public.consumers WHERE userid = auth.uid())
+        OR farmer_id = (SELECT _id FROM public.farmers WHERE userid = auth.uid())
+    );
+
+-- Policy for chat_conversations - system can insert conversations
+CREATE POLICY "System can insert conversations" ON public.chat_conversations
+    FOR INSERT WITH CHECK (true);
+
+-- Policy for chat_conversations - users can update their conversations
+CREATE POLICY "Users can update their conversations" ON public.chat_conversations
+    FOR UPDATE USING (
+        customer_id = (SELECT _id FROM public.consumers WHERE userid = auth.uid())
+        OR farmer_id = (SELECT _id FROM public.farmers WHERE userid = auth.uid())
+    );
+
+-- Grant permissions
+GRANT SELECT, INSERT, UPDATE ON public.chat_messages TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.chat_conversations TO authenticated;
+GRANT EXECUTE ON FUNCTION mark_chat_messages_as_read TO authenticated;
