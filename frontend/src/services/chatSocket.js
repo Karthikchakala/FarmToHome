@@ -16,7 +16,10 @@ class ChatSocket {
 
     return new Promise((resolve, reject) => {
       try {
-        this.socket = io(process.env.REACT_APP_SERVER_URL || 'http://localhost:5005', {
+        // Use hardcoded URL for browser compatibility
+        // In production, this should be configured based on the environment
+        const serverUrl = 'http://localhost:5005';
+        this.socket = io(serverUrl, {
           auth: {
             token: token
           },
@@ -115,6 +118,15 @@ class ChatSocket {
   joinOrder(orderId) {
     if (this.socket && this.connected) {
       this.socket.emit('join_order', orderId)
+    }
+  }
+
+  // Join user's personal room to receive messages
+  joinUserRoom(userRole, userId) {
+    if (this.socket && this.connected) {
+      const roomName = `user_${userId}` // Backend expects: user_{user._id}
+      console.log(`🔗 Socket service: joining room ${roomName}`)
+      this.socket.emit('join_user_room', roomName)
     }
   }
 

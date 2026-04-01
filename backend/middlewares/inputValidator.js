@@ -323,6 +323,15 @@ const validateId = [
   handleValidationErrors
 ];
 
+// Order ID parameter validation for chat routes
+const validateOrderId = [
+  param('orderId')
+    .isUUID()
+    .withMessage('Invalid order ID format'),
+  
+  handleValidationErrors
+];
+
 // Message validation
 const validateMessage = [
   body('content')
@@ -343,6 +352,7 @@ module.exports = {
   validateCustomerProfileUpdate,
   validateFarmerProfileUpdate,
   validateId,
+  validateOrderId,
   validateMessage,
   handleValidationErrors
 };

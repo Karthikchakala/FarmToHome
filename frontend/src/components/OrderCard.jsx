@@ -178,12 +178,6 @@ const OrderCard = ({ order, onUpdate }) => {
                 >
                   Write Review
                 </button>
-                <button
-                  className="btn btn-primary btn-small chat-btn"
-                  onClick={() => setShowChat(true)}
-                >
-                  💬 Chat
-                </button>
               </div>
             ) : (
               <ReviewForm
@@ -198,19 +192,13 @@ const OrderCard = ({ order, onUpdate }) => {
           ) : (
             <div className="review-submitted">
               ✅ Review submitted
-              <button
-                className="btn btn-primary btn-small chat-btn"
-                onClick={() => setShowChat(true)}
-              >
-                💬 Chat
-              </button>
             </div>
           )}
         </div>
       )}
 
-      {/* Show Chat button for non-delivered orders that can't be reviewed */}
-      {!canReview && order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+      {/* Show Chat button only for active orders (not delivered or cancelled) */}
+      {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
         <div className="order-chat">
           <button
             className="btn btn-primary btn-small chat-btn"

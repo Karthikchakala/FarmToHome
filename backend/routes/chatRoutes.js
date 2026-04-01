@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate, authorize } = require('../middlewares/auth');
-const { validateId } = require('../middlewares/inputValidator');
+const { validateOrderId } = require('../middlewares/inputValidator');
 const {
   getConversation,
   getMessages,
@@ -17,15 +17,15 @@ router.use(authenticate);
 router.get('/conversations', getUserConversations);
 
 // Get conversation details for a specific order
-router.get('/orders/:orderId/conversation', validateId, getConversation);
+router.get('/orders/:orderId/conversation', validateOrderId, getConversation);
 
 // Get messages for a specific order
-router.get('/orders/:orderId/messages', validateId, getMessages);
+router.get('/orders/:orderId/messages', validateOrderId, getMessages);
 
 // Send a message to a specific order
-router.post('/orders/:orderId/messages', validateId, sendMessage);
+router.post('/orders/:orderId/messages', validateOrderId, sendMessage);
 
 // Mark messages as read for a specific order
-router.put('/orders/:orderId/read', validateId, markAsRead);
+router.put('/orders/:orderId/read', validateOrderId, markAsRead);
 
 module.exports = router;

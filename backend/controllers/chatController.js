@@ -2,6 +2,7 @@ const logger = require('../config/logger');
 const responseHelper = require('../utils/responseHelper');
 const { asyncHandler, NotFoundError, ValidationError } = require('../middlewares/enhancedErrorHandler');
 const supabase = require('../config/supabaseClient');
+const { createNotification } = require('./notificationController');
 
 // Get conversation for an order
 const getConversation = asyncHandler(async (req, res) => {
@@ -281,21 +282,129 @@ const sendMessage = asyncHandler(async (req, res) => {
   // Emit socket event for real-time delivery
   const io = req.app.get('io');
   if (io) {
-    // Emit to receiver's room
-    const receiverRoom = `${receiverRole}_${receiverId}`;
-    io.to(receiverRoom).emit('new_message', {
-      ...newMessage,
-      sender_name: sender?.name,
-      orderid: orderId
-    });
+    // Get receiver's JWT user ID for socket room
+    let receiverJwtId;
+    if (receiverRole === 'customer') {
+      const { data: consumer } = await supabase
+        .from('consumers')
+        .select('userid')
+        .eq('_id', receiverId)
+        .single();
+      receiverJwtId = consumer?.userid;
+    } else {
+      const { data: farmer } = await supabase
+        .from('farmers')
+        .select('userid')
+        .eq('_id', receiverId)
+        .single();
+      receiverJwtId = farmer?.userid;
+    }
 
-    // Emit to sender's room for confirmation
-    const senderRoom = `${userRecord.role}_${userRecord.id}`;
-    io.to(senderRoom).emit('message_sent', {
-      ...newMessage,
-      sender_name: sender?.name,
-      orderid: orderId
-    });
+    if (receiverJwtId) {
+      // Emit to receiver's room using JWT user ID
+      const receiverRoom = `user_${receiverJwtId}`;
+      io.to(receiverRoom).emit('new_message', {
+        ...newMessage,
+        sender_name: sender?.name,
+        orderid: orderId
+      });
+
+      // Emit to sender's room for confirmation using JWT user ID
+      const senderRoom = `user_${userRecord.id}`;
+      io.to(senderRoom).emit('message_sent', {
+        ...newMessage,
+        sender_name: sender?.name,
+        orderid: orderId
+      });
+
+      logger.info(`Socket rooms: sender=${senderRoom}, receiver=${receiverRoom}`);
+    } else {
+      logger.error(`Could not find JWT user ID for ${receiverRole}_${receiverId}`);
+    }
+  }
+
+  // Create notification for receiver
+  try {
+    logger.info(`=== NOTIFICATION DEBUG ===`);
+    logger.info(`Creating notification for receiver: ${receiverRole}, ID: ${receiverId}`);
+    logger.info(`Sender info: role=${userRecord.role}, id=${userRecord.id}`);
+    
+    // Get receiver's JWT user ID for notification
+    let receiverUserId;
+    if (receiverRole === 'customer') {
+      logger.info(`Looking up customer with ID: ${receiverId}`);
+      const { data: consumer, error: consumerError } = await supabase
+        .from('consumers')
+        .select('userid, _id')
+        .eq('_id', receiverId)
+        .single();
+      
+      logger.info(`Customer query result:`, { data: consumer, error: consumerError });
+      
+      if (consumerError) {
+        logger.error('Error finding consumer for notification:', consumerError);
+      } else if (consumer) {
+        receiverUserId = consumer.userid;
+        logger.info(`Found customer user ID: ${receiverUserId}`);
+      } else {
+        logger.error(`No consumer found with ID: ${receiverId}`);
+      }
+    } else {
+      logger.info(`Looking up farmer with ID: ${receiverId}`);
+      const { data: farmer, error: farmerError } = await supabase
+        .from('farmers')
+        .select('userid, _id')
+        .eq('_id', receiverId)
+        .single();
+      
+      logger.info(`Farmer query result:`, { data: farmer, error: farmerError });
+      
+      if (farmerError) {
+        logger.error('Error finding farmer for notification:', farmerError);
+      } else if (farmer) {
+        receiverUserId = farmer.userid;
+        logger.info(`Found farmer user ID: ${receiverUserId}`);
+      } else {
+        logger.error(`No farmer found with ID: ${receiverId}`);
+      }
+    }
+
+    if (receiverUserId) {
+      const senderType = userRecord.role === 'customer' ? 'Customer' : 'Farmer';
+      const notificationTitle = `New message from ${senderType}`;
+      const notificationMessage = `${sender?.name || senderType}: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`;
+      
+      logger.info(`Creating notification: title="${notificationTitle}", message="${notificationMessage}"`);
+      logger.info(`Notification data: receiverUserId=${receiverUserId}, orderId=${orderId}`);
+      
+      const notification = await createNotification(
+        receiverUserId,
+        notificationTitle,
+        notificationMessage,
+        'chat_message', // Now using proper type after database update
+        'high',
+        {
+          orderId,
+          senderId: userRecord.id,
+          senderRole: userRecord.role,
+          senderName: sender?.name,
+          message: message.substring(0, 100)
+        },
+        `/orders/${orderId}`
+      );
+      
+      if (notification) {
+        logger.info(`✅ Chat notification created successfully: ${notification._id}`);
+      } else {
+        logger.error('❌ Failed to create chat notification - createNotification returned null');
+      }
+    } else {
+      logger.error(`❌ Could not find receiver user ID for ${receiverRole}_${receiverId}`);
+    }
+    logger.info(`=== END NOTIFICATION DEBUG ===`);
+  } catch (notificationError) {
+    logger.error('❌ Failed to send chat notification:', notificationError);
+    // Don't fail the message sending if notification fails
   }
 
   logger.info(`Message sent: orderId=${orderId}, sender=${userRecord.role}_${userRecord.id}, receiver=${receiverRole}_${receiverId}`);

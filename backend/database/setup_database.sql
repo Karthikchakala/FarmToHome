@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
         'order_update', 'product_approved', 'product_rejected',
         'new_order', 'order_cancelled', 'payment_received',
         'subscription_created', 'subscription_cancelled',
-        'review_received', 'system_update'
+        'review_received', 'system_update', 'chat_message'
     )),
     priority VARCHAR DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     isread BOOLEAN DEFAULT false,

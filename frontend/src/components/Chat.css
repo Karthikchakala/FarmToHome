@@ -88,15 +88,18 @@
 
 .chat-message {
   display: flex;
-  max-width: 80%;
+  margin-bottom: 0.5rem;
+  max-width: 75%;
 }
 
 .chat-message.sent {
-  align-self: flex-end;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .chat-message.received {
-  align-self: flex-start;
+  justify-content: flex-start;
+  margin-right: auto;
 }
 
 .chat-message-content {
@@ -106,6 +109,8 @@
   padding: 0.75rem 1rem;
   border-radius: 12px;
   position: relative;
+  max-width: 100%;
+  min-width: 80px;
 }
 
 .chat-message.sent .chat-message-content {
@@ -128,15 +133,30 @@
   font-size: 0.95rem;
 }
 
+.chat-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
 .chat-message-time {
-  font-size: 0.75rem;
-  opacity: 0.7;
-  align-self: flex-end;
+  font-size: 0.7rem;
+  opacity: 0.8;
+  color: inherit;
+}
+
+.chat-message.sent .chat-message-time {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-message.received .chat-message-time {
+  color: #666;
 }
 
 .chat-read-status {
   font-size: 0.8rem;
-  margin-top: 0.25rem;
 }
 
 .chat-read-status.read {
@@ -144,6 +164,10 @@
 }
 
 .chat-read-status.unread {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.chat-message.received .chat-read-status.unread {
   color: #6c757d;
 }
 
@@ -209,6 +233,8 @@
   border: 1px solid #e1e5e9;
   border-radius: 24px;
   font-size: 0.95rem;
+  color: #000000 !important;
+  background: #ffffff !important;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }

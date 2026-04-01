@@ -21,6 +21,24 @@ const Chat = ({ orderId, onClose }) => {
   const inputRef = useRef(null)
   const typingTimeoutRef = useRef(null)
 
+  // Format time like WhatsApp (e.g., "10:30 AM")
+  const formatTime = (date) => {
+    const d = new Date(date)
+    let hours = d.getHours()
+    const minutes = d.getMinutes()
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    hours = hours % 12
+    hours = hours ? hours : 12
+    const minutesStr = minutes < 10 ? '0' + minutes : minutes
+    return `${hours}:${minutesStr} ${ampm}`
+  }
+
+  // Check if message is from current user
+  const isFromCurrentUser = (message) => {
+    const userRole = user.role === 'consumer' ? 'consumer' : user.role
+    return message.sender_role === userRole
+  }
+
   // Scroll to bottom of messages
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -133,7 +151,9 @@ const Chat = ({ orderId, onClose }) => {
     }
 
     const handleMessageSent = (data) => {
-      if (data.orderid === orderId) {
+      // Don't add message if it's from current user (to prevent duplicates)
+      // The sender already sees their own message locally
+      if (data.orderid === orderId && data.sender_role !== user.role) {
         setMessages(prev => [...prev, data])
         scrollToBottom()
       }
@@ -190,6 +210,22 @@ const Chat = ({ orderId, onClose }) => {
     }
   }, [isAuthenticated, orderId, user.role, scrollToBottom])
 
+  // Join user's personal room when conversation is available
+  useEffect(() => {
+    if (socketConnected && user) {
+      // Use user._id consistently with backend
+      const userId = user._id // Backend uses user._id
+      if (userId) {
+        const roomName = `user_${userId}`
+        console.log(`🔗 Joining user room: ${roomName}`)
+        console.log(`🔗 User data:`, { role: user.role, _id: user._id })
+        chatSocket.joinUserRoom(user.role, userId) // Pass role and userId correctly
+      } else {
+        console.log(`❌ Cannot join room - no userId found:`, { user })
+      }
+    }
+  }, [socketConnected, user])
+
   // Fetch initial data
   useEffect(() => {
     fetchChatData()
@@ -243,24 +279,31 @@ const Chat = ({ orderId, onClose }) => {
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <div
-                key={message._id}
-                className={`chat-message ${message.is_from_current_user ? 'sent' : 'received'}`}
-              >
-                <div className="chat-message-content">
-                  <p className="chat-message-text">{message.message}</p>
-                  <span className="chat-message-time">
-                    {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                  </span>
-                  {!message.is_from_current_user && (
-                    <span className={`chat-read-status ${message.is_read ? 'read' : 'unread'}`}>
-                      {message.is_read ? '✓✓' : '✓'}
-                    </span>
-                  )}
+            {messages.map((message) => {
+              const isSent = isFromCurrentUser(message)
+              // Use a combination of ID and timestamp for unique key
+              const uniqueKey = `${message._id}_${message.created_at}_${message.senderid}`
+              return (
+                <div
+                  key={uniqueKey}
+                  className={`chat-message ${isSent ? 'sent' : 'received'}`}
+                >
+                  <div className="chat-message-content">
+                    <p className="chat-message-text">{message.message}</p>
+                    <div className="chat-message-meta">
+                      <span className="chat-message-time">
+                        {formatTime(message.created_at)}
+                      </span>
+                      {isSent && (
+                        <span className={`chat-read-status ${message.is_read ? 'read' : 'unread'}`}>
+                          {message.is_read ? '✓✓' : '✓'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {isTyping && (
               <div className="chat-typing-indicator">
                 <span className="typing-dots">

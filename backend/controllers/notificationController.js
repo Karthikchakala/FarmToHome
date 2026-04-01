@@ -148,6 +148,9 @@ const deleteNotification = asyncHandler(async (req, res) => {
 // Create notification (internal function)
 const createNotification = async (userId, title, message, type, priority = 'medium', data = {}, actionUrl = null) => {
   try {
+    const logger = require('../config/logger');
+    logger.info(`🔔 Creating notification: userId=${userId}, title="${title}", type=${type}`);
+    
     // Use the service role client to bypass RLS policies
     const { createClient } = require('@supabase/supabase-js');
     const supabaseService = createClient(
@@ -161,30 +164,41 @@ const createNotification = async (userId, title, message, type, priority = 'medi
       }
     );
     
+    const notificationData = {
+      userid: userId,
+      title,
+      message,
+      type,
+      priority,
+      data,
+      actionurl: actionUrl,
+      createdat: new Date().toISOString()
+    };
+    
+    logger.info(`🔔 Notification data:`, notificationData);
+    
     const { data: notification, error } = await supabaseService
       .from('notifications')
-      .insert({
-        userid: userId,
-        title,
-        message,
-        type,
-        priority,
-        data,
-        actionurl: actionUrl,
-        createdat: new Date().toISOString()
-      })
+      .insert(notificationData)
       .select()
       .single();
 
     if (error) {
-      console.error('Notification creation error:', error);
+      logger.error('❌ Notification creation error:', error);
+      logger.error('❌ Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return null;
     }
 
-    console.log('Notification created successfully for user:', userId);
+    logger.info(`✅ Notification created successfully for user: ${userId}, ID: ${notification._id}`);
     return notification;
   } catch (error) {
-    console.error('Error in createNotification:', error);
+    const logger = require('../config/logger');
+    logger.error('❌ Error in createNotification:', error);
     return null;
   }
 };

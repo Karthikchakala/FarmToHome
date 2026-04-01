@@ -27,7 +27,7 @@ class ChatSocket {
         const { data: user, error } = await supabase
           .from('users')
           .select('_id, role, email')
-          .eq('_id', decoded._id)
+          .eq('_id', decoded.id)  // Use decoded.id instead of decoded._id
           .single();
 
         if (error || !user) {
@@ -63,6 +63,13 @@ class ChatSocket {
         }
 
         socket.user = userRecord;
+        console.log(`🔗 Socket authentication: user object created`, {
+          role: socket.user.role,
+          _id: socket.user._id,
+          consumerId: socket.user.consumerId,
+          farmerId: socket.user.farmerId
+        });
+        // _id is already set from the database user object
         next();
       } catch (error) {
         logger.error('Socket authentication error:', error);
@@ -122,6 +129,32 @@ class ChatSocket {
         } catch (error) {
           logger.error('Error joining order:', error);
           socket.emit('error', { message: 'Failed to join conversation' });
+        }
+      });
+
+      // Handle joining user's personal room
+      socket.on('join_user_room', (roomName) => {
+        // Expect room format: user_{userId}
+        const userId = user._id;
+        const expectedRoomName = `user_${userId}`;
+        
+        console.log(`🔗 Backend socket: received room "${roomName}"`);
+        console.log(`🔗 Backend socket: expected room "${expectedRoomName}"`);
+        console.log(`🔗 Backend socket: user data`, { 
+          role: user.role, 
+          _id: user._id,
+          consumerId: user.consumerId,
+          farmerId: user.farmerId 
+        });
+        
+        // Validate exact room name format
+        if (roomName === expectedRoomName) {
+          socket.join(roomName);
+          socket.emit('joined_user_room', { room: roomName });
+          logger.info(`User ${user.role}_${user._id} joined personal room ${roomName}`);
+        } else {
+          logger.warn(`Invalid room name. Expected: ${expectedRoomName}, Got: ${roomName}`);
+          socket.emit('error', { message: 'Invalid room name' });
         }
       });
 

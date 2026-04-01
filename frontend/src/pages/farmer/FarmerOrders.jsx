@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { orderAPI } from '../../services/api'
 import { toast } from 'react-toastify'
+import Chat from '../../components/Chat'
 import 'react-toastify/dist/ReactToastify.css'
 import './FarmerOrders.css'
 
@@ -12,6 +13,7 @@ const FarmerOrders = () => {
   // Set default filter to 'PLACED' if on pending route
   const [filter, setFilter] = useState(location.pathname.includes('/pending') ? 'PLACED' : 'all')
   const [updatingOrderId, setUpdatingOrderId] = useState(null)
+  const [showChat, setShowChat] = useState(null) // Store order ID for chat
 
   const statusOptions = [
     { value: 'PLACED', label: '📋 Placed', color: '#FFA500' },
@@ -193,6 +195,27 @@ const FarmerOrders = () => {
                     {updatingOrderId === order._id ? 'Updating...' : 
                      `Mark as ${getNextStatus(order.status)?.replace('_', ' ')}`}
                   </button>
+                  {/* Add chat button for active orders */}
+                  {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+                    <button
+                      className="chat-btn"
+                      onClick={() => setShowChat(order._id)}
+                    >
+                      💬 Chat with Customer
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Show chat button for delivered orders that can't be updated */}
+              {!canUpdate(order.status) && order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+                <div className="order-actions">
+                  <button
+                    className="chat-btn"
+                    onClick={() => setShowChat(order._id)}
+                  >
+                    💬 Chat with Customer
+                  </button>
                 </div>
               )}
 
@@ -216,6 +239,16 @@ const FarmerOrders = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Chat Modal */}
+      {showChat && (
+        <div className="chat-overlay">
+          <Chat
+            orderId={showChat}
+            onClose={() => setShowChat(null)}
+          />
         </div>
       )}
     </div>
