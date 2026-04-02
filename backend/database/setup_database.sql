@@ -105,6 +105,25 @@ CREATE TABLE IF NOT EXISTS public.vegetable_cost_chart (
     updatedat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create indexes for vegetable_cost_chart
+CREATE INDEX IF NOT EXISTS idx_vegetable_cost_chart_name ON public.vegetable_cost_chart(vegetable_name);
+CREATE INDEX IF NOT EXISTS idx_vegetable_cost_chart_category ON public.vegetable_cost_chart(category);
+CREATE INDEX IF NOT EXISTS idx_vegetable_cost_chart_active ON public.vegetable_cost_chart(is_active);
+
+-- Enable RLS for vegetable_cost_chart
+ALTER TABLE public.vegetable_cost_chart ENABLE ROW LEVEL SECURITY;
+
+-- Policies for vegetable_cost_chart
+CREATE POLICY "Allow authenticated users to read cost chart" ON public.vegetable_cost_chart
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow admins to manage cost chart" ON public.vegetable_cost_chart
+    FOR ALL USING (auth.role() = 'authenticated' AND auth.jwt()->>'role' = 'admin');
+
+-- Grant permissions for vegetable_cost_chart
+GRANT ALL ON public.vegetable_cost_chart TO authenticated;
+GRANT SELECT ON public.vegetable_cost_chart TO anon;
+
 -- Cart table
 CREATE TABLE IF NOT EXISTS public.cart (
     _id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -511,6 +530,7 @@ CREATE TRIGGER update_farmers_updatedat BEFORE UPDATE ON farmers FOR EACH ROW EX
 CREATE TRIGGER update_consumers_updatedat BEFORE UPDATE ON consumers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_products_updatedat BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_cart_updatedat BEFORE UPDATE ON cart FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_vegetable_cost_chart_updatedat BEFORE UPDATE ON public.vegetable_cost_chart FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_orders_updatedat BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_subscriptions_updatedat BEFORE UPDATE ON subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_messages_updatedat BEFORE UPDATE ON messages FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
