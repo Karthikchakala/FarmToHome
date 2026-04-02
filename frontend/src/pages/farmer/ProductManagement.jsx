@@ -3,6 +3,9 @@ import { Link, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { farmerAPI } from '../../services/farmerAPI'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import ProductPricingGuide from '../../components/farmer/ProductPricingGuide'
+import ShelfLifeInput from '../../components/farmer/ShelfLifeInput'
+import CostChartReference from '../../components/farmer/CostChartReference'
 import './ProductManagement.css'
 
 const ProductManagement = () => {
@@ -29,7 +32,8 @@ const ProductManagement = () => {
     isavailable: true,
     images: [],
     harvestdate: '',
-    expirydate: ''
+    expirydate: '',
+    shelfLife: ''
   })
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
@@ -135,12 +139,67 @@ const ProductManagement = () => {
     }))
   }
 
+  const validateProductPrice = async (productName, price) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token || !productName || !price) {
+        return { valid: true, message: 'Validation skipped' }
+      }
+
+      const response = await fetch(`/api/cost-chart/pricing/${encodeURIComponent(productName.toLowerCase())}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+      
+      if (response.ok && data.success && data.data) {
+        const pricing = data.data
+        const minPrice = parseFloat(pricing.min_price)
+        const maxPrice = parseFloat(pricing.max_price)
+        
+        if (price < minPrice) {
+          return { 
+            valid: false, 
+            message: `Price is too low! Minimum allowed price is ₹${minPrice} (${pricing.unit}). Current price: ₹${price}` 
+          }
+        }
+        
+        if (price > maxPrice) {
+          return { 
+            valid: false, 
+            message: `Price is too high! Maximum allowed price is ₹${maxPrice} (${pricing.unit}). Current price: ₹${price}` 
+          }
+        }
+        
+        return { valid: true, message: 'Price is within acceptable range' }
+      } else {
+        // If no pricing info found, allow the price but warn
+        return { valid: true, message: 'No pricing reference found for this vegetable' }
+      }
+    } catch (error) {
+      console.error('Error validating price:', error)
+      // On validation error, allow the price but don't block
+      return { valid: true, message: 'Price validation unavailable' }
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormLoading(true)
     setFormError('')
 
     try {
+      // Validate price against cost chart before submitting
+      const priceValidation = await validateProductPrice(formData.name, parseFloat(formData.price))
+      if (!priceValidation.valid) {
+        setFormError(priceValidation.message || 'Price validation failed. Please check the pricing guidelines.')
+        setFormLoading(false)
+        return
+      }
+
       // Prepare product data for API with correct field names
       const productData = {
         name: formData.name,
@@ -235,6 +294,9 @@ const ProductManagement = () => {
                 {formError}
               </div>
             )}
+            
+            {/* Cost Chart Reference */}
+            <CostChartReference />
             
             <form onSubmit={handleSubmit} className="product-form">
               <div className="form-grid">
@@ -331,6 +393,15 @@ const ProductManagement = () => {
                     </div>
                   </div>
                   
+                  {/* Product Pricing Guide */}
+                  <div className="form-section">
+                    <ProductPricingGuide 
+                      vegetableName={formData.name}
+                      currentPrice={formData.price}
+                      onPriceChange={(price) => setFormData(prev => ({ ...prev, price }))}
+                    />
+                  </div>
+                  
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="stockQuantity">Stock Quantity *</label>
@@ -372,16 +443,11 @@ const ProductManagement = () => {
                     />
                   </div>
                   
-                  <div className="form-group">
-                    <label htmlFor="shelfLife">Shelf Life (days)</label>
-                    <input
-                      type="number"
-                      id="shelfLife"
-                      name="shelfLife"
+                  {/* Enhanced Shelf Life Input */}
+                  <div className="form-section">
+                    <ShelfLifeInput 
                       value={formData.shelfLife}
-                      onChange={handleInputChange}
-                      min="0"
-                      placeholder="e.g., 7"
+                      onChange={(shelfLife) => setFormData(prev => ({ ...prev, shelfLife }))}
                     />
                   </div>
                 </div>

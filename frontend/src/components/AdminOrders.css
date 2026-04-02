@@ -145,6 +145,15 @@
   text-transform: capitalize;
 }
 
+.payment-status-cell .payment-status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  text-transform: capitalize;
+}
+
 .total-cell {
   font-weight: 600;
   color: #28a745;

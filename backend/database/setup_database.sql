@@ -80,12 +80,29 @@ CREATE TABLE IF NOT EXISTS public.products (
     isavailable BOOLEAN DEFAULT true,
     harvestdate DATE,
     expirydate DATE,
+    shelf_life INTEGER, -- Shelf life in days
+    shelf_life_expiry TIMESTAMP WITH TIME ZONE, -- Auto-calculated expiry date
     createdat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updatedat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     ratingaverage NUMERIC NOT NULL DEFAULT 0.00,
     ratingcount INTEGER NOT NULL DEFAULT 0,
     isfeatured BOOLEAN NOT NULL DEFAULT false,
     CONSTRAINT unique_farmer_product UNIQUE (farmerid, name)
+);
+
+-- Vegetable Cost Chart table (Admin managed)
+CREATE TABLE IF NOT EXISTS public.vegetable_cost_chart (
+    _id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    vegetable_name VARCHAR NOT NULL UNIQUE,
+    category VARCHAR,
+    base_price NUMERIC NOT NULL CHECK (base_price > 0),
+    unit VARCHAR CHECK (unit IN ('kg', 'gram', 'litre', 'piece')),
+    min_price NUMERIC GENERATED ALWAYS AS (base_price * 0.9) STORED,
+    max_price NUMERIC GENERATED ALWAYS AS (base_price * 1.1) STORED,
+    is_active BOOLEAN DEFAULT true,
+    created_by UUID REFERENCES public.users(_id),
+    createdat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updatedat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Cart table

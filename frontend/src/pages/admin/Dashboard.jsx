@@ -186,6 +186,14 @@ const AdminDashboard = () => {
                 <p>Approve farmers and manage their profiles</p>
               </div>
             </Link>
+            
+            <Link to="/admin/cost-chart" className="action-card">
+              <div className="action-icon">📊</div>
+              <div className="action-content">
+                <h3>Cost Chart Management</h3>
+                <p>Manage vegetable pricing and cost controls</p>
+              </div>
+            </Link>
           </div>
         </div>
       </div>

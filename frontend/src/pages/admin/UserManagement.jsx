@@ -107,7 +107,7 @@ const UserManagement = () => {
         setModalLoading(true)
         try {
           // Get farmer's products - you'll need to add this API endpoint
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/farmers/${user._id}/products`)
+          const response = await fetch(`/api/admin/farmers/${user._id}/products`)
           const data = await response.json()
           
           if (data.success) {

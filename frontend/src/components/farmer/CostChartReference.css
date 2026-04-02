@@ -1,0 +1,98 @@
+/* Cost Chart Reference Styles */
+.cost-chart-reference {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cost-chart-reference .pricing-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.cost-chart-reference .pricing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #10b981;
+}
+
+.cost-chart-reference table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.cost-chart-reference table th {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.cost-chart-reference table td {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.cost-chart-reference table tbody tr:hover {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.cost-chart-reference .pricing-guidelines {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 1px solid #3b82f6;
+}
+
+.cost-chart-reference .expand-btn {
+  transition: all 0.2s ease;
+}
+
+.cost-chart-reference .expand-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Product Form Enhancements */
+.product-form {
+  position: relative;
+}
+
+.product-form .form-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.product-form .form-section:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cost-chart-reference .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .cost-chart-reference .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .cost-chart-reference table {
+    font-size: 0.75rem;
+  }
+  
+  .cost-chart-reference table th,
+  .cost-chart-reference table td {
+    padding: 0.5rem;
+  }
+}

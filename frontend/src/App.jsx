@@ -32,6 +32,7 @@ import StockManagement from './pages/farmer/StockManagement'
 import OrderManagement from './pages/farmer/OrderManagement'
 import FarmerOrders from './pages/farmer/FarmerOrders'
 import SubscriptionManagement from './pages/farmer/SubscriptionManagement'
+import FarmerCostChart from './pages/farmer/FarmerCostChart'
 import ReviewManagement from './pages/farmer/ReviewManagement'
 import FarmerAnalytics from './pages/farmer/FarmerAnalytics'
 import Settings from './pages/farmer/Settings'
@@ -46,6 +47,7 @@ import FarmerManagement from './pages/admin/FarmerManagement'
 import AdminAnalytics from './pages/admin/Analytics'
 import FeedbackManagement from './pages/admin/FeedbackManagement'
 import AdminSettings from './pages/admin/Settings'
+import CostChartManagement from './components/admin/CostChartManagement'
 import CustomerReviews from './pages/customer/Reviews'
 import CustomerFeedback from './pages/customer/CustomerFeedback'
 import AdminFeedback from './pages/admin/AdminFeedback'
@@ -143,6 +145,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
           <Route path="/admin/orders" element={<AdminOrderManagement />} />
           <Route path="/admin/products" element={<AdminProductManagement />} />
           <Route path="/admin/farmers" element={<FarmerManagement />} />
+          <Route path="/admin/cost-chart" element={<CostChartManagement />} />
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/admin/feedback" element={<AdminFeedback />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
@@ -159,6 +162,7 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
               <Route path="/farmer/orders" element={<FarmerOrders />} />
               <Route path="/farmer/orders/pending" element={<FarmerOrders />} />
               <Route path="/farmer/subscriptions" element={<SubscriptionManagement />} />
+              <Route path="/farmer/cost-chart" element={<FarmerCostChart />} />
               <Route path="/farmer/reviews" element={<ReviewManagement />} />
               <Route path="/farmer/profile" element={<FarmerProfile />} />
               <Route path="/farmer/analytics" element={<FarmerAnalytics />} />

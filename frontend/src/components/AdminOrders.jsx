@@ -66,19 +66,40 @@ const AdminOrders = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      pending: { color: '#ffc107', label: 'Pending' },
-      processing: { color: '#17a2b8', label: 'Processing' },
-      packed: { color: '#6f42c1', label: 'Packed' },
-      shipped: { color: '#fd7e14', label: 'Shipped' },
-      out_for_delivery: { color: '#20c997', label: 'Out for Delivery' },
-      delivered: { color: '#28a745', label: 'Delivered' },
-      cancelled: { color: '#dc3545', label: 'Cancelled' }
+      PLACED: { color: '#ffc107', label: 'Placed' },
+      CONFIRMED: { color: '#17a2b8', label: 'Confirmed' },
+      PACKED: { color: '#6f42c1', label: 'Packed' },
+      OUT_FOR_DELIVERY: { color: '#fd7e14', label: 'Out for Delivery' },
+      DELIVERED: { color: '#28a745', label: 'Delivered' },
+      COMPLETED: { color: '#20c997', label: 'Completed' },
+      CANCELLED: { color: '#dc3545', label: 'Cancelled' },
+      FAILED: { color: '#6c757d', label: 'Failed' },
+      DISPUTED: { color: '#e83e8c', label: 'Disputed' }
     }
     
-    const config = statusConfig[status] || statusConfig.pending
+    const config = statusConfig[status] || statusConfig.PLACED
     return (
       <span 
         className="status-badge" 
+        style={{ backgroundColor: config.color }}
+      >
+        {config.label}
+      </span>
+    )
+  }
+
+  const getPaymentStatusBadge = (paymentStatus) => {
+    const paymentConfig = {
+      PENDING: { color: '#ffc107', label: 'Pending' },
+      PAID: { color: '#28a745', label: 'Paid' },
+      FAILED: { color: '#dc3545', label: 'Failed' },
+      REFUNDED: { color: '#6f42c1', label: 'Refunded' }
+    }
+    
+    const config = paymentConfig[paymentStatus] || paymentConfig.PENDING
+    return (
+      <span 
+        className="payment-status-badge" 
         style={{ backgroundColor: config.color }}
       >
         {config.label}
@@ -126,13 +147,15 @@ const AdminOrders = () => {
           <label>Status:</label>
           <select name="status" value={filters.status} onChange={handleFilterChange}>
             <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="packed">Packed</option>
-            <option value="shipped">Shipped</option>
-            <option value="out_for_delivery">Out for Delivery</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="PLACED">Placed</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="PACKED">Packed</option>
+            <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+            <option value="FAILED">Failed</option>
+            <option value="DISPUTED">Disputed</option>
           </select>
         </div>
 
@@ -179,7 +202,8 @@ const AdminOrders = () => {
               <div>Order ID</div>
               <div>Customer</div>
               <div>Date</div>
-              <div>Status</div>
+              <div>Order Status</div>
+              <div>Payment Status</div>
               <div>Total</div>
               <div>Items</div>
               <div>Actions</div>
@@ -210,8 +234,12 @@ const AdminOrders = () => {
                   {getStatusBadge(order.status)}
                 </div>
                 
+                <div className="payment-status-cell">
+                  {getPaymentStatusBadge(order.paymentstatus)}
+                </div>
+                
                 <div className="total-cell">
-                  ${order.totalamount?.toFixed(2)}
+                  Rs. {order.totalamount?.toFixed(2)}
                 </div>
                 
                 <div className="items-cell">
@@ -305,8 +333,12 @@ const AdminOrders = () => {
                     <span>{getStatusBadge(selectedOrder.status)}</span>
                   </div>
                   <div className="detail-row">
+                    <span>Payment Status:</span>
+                    <span>{getPaymentStatusBadge(selectedOrder.paymentstatus)}</span>
+                  </div>
+                  <div className="detail-row">
                     <span>Total Amount:</span>
-                    <span>${selectedOrder.totalamount?.toFixed(2)}</span>
+                    <span>Rs. {selectedOrder.totalamount?.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -326,7 +358,7 @@ const AdminOrders = () => {
                         <div className="item-info">
                           <div className="item-name">{item.products?.name}</div>
                           <div className="item-details">
-                            ${item.products?.price} × {item.quantity} = ${(item.products?.price * item.quantity).toFixed(2)}
+                            Rs. {item.products?.price} × {item.quantity} = Rs. {(item.products?.price * item.quantity).toFixed(2)}
                           </div>
                         </div>
                       </div>

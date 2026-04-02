@@ -21,7 +21,7 @@ const AuthDebug = () => {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/test-auth/verify-token`, {
+      const response = await fetch(`/api/test-auth/verify-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

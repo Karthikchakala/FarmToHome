@@ -56,6 +56,13 @@ const getProducts = asyncHandler(async (req, res) => {
     query = query.eq('category', category);
   }
 
+  // Hide expired products from customers (but not from farmers)
+  const userRole = req.user?.role;
+  if (userRole !== 'farmer') {
+    // For customers and public users, hide expired products
+    query = query.or('shelf_life_expiry.is.null,shelf_life_expiry.gt.now()');
+  }
+
   if (minPrice) {
     query = query.gte('priceperunit', parseFloat(minPrice));
   }

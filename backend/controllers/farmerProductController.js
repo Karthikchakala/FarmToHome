@@ -2,6 +2,7 @@ const supabase = require('../config/supabaseClient');
 const logger = require('../config/logger');
 const responseHelper = require('../utils/responseHelper');
 const { asyncHandler, NotFoundError, ValidationError } = require('../middlewares/enhancedErrorHandler');
+const { validateProductPrice } = require('./costChartController');
 
 // Helper function to check table schema
 const checkTableSchema = asyncHandler(async (req, res) => {
@@ -36,7 +37,8 @@ const addProduct = asyncHandler(async (req, res) => {
     images = [],
     isAvailable = true,
     harvestDate,
-    expiryDate
+    expiryDate,
+    shelfLife // Shelf life in days
   } = req.body;
 
   console.log('addProduct called with userId:', userId);
@@ -87,6 +89,28 @@ const addProduct = asyncHandler(async (req, res) => {
     throw new ValidationError(`Unit must be one of: ${allowedUnits.join(', ')}`);
   }
 
+  // Validate price against cost chart
+  const priceValidation = await validateProductPrice(name, parseFloat(price));
+  if (!priceValidation.valid) {
+    throw new ValidationError(priceValidation.message);
+  }
+
+  // Validate shelf life
+  let shelfLifeExpiry = null;
+  if (shelfLife !== undefined && shelfLife !== null) {
+    if (parseInt(shelfLife) <= 0) {
+      throw new ValidationError('Shelf life must be greater than 0 days');
+    }
+    if (parseInt(shelfLife) > 365) {
+      throw new ValidationError('Shelf life cannot exceed 365 days');
+    }
+    
+    // Calculate shelf life expiry from current date
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + parseInt(shelfLife));
+    shelfLifeExpiry = expiryDate.toISOString();
+  }
+
   // Create product using Supabase with correct farmerid
   const productData = {
     farmerid: farmerRecord._id, // ✅ Use _id from farmers table
@@ -100,7 +124,9 @@ const addProduct = asyncHandler(async (req, res) => {
     images,
     isavailable: isAvailable,
     harvestdate: harvestDate || null,
-    expirydate: expiryDate || null
+    expirydate: expiryDate || null,
+    shelf_life: shelfLife ? parseInt(shelfLife) : null,
+    shelf_life_expiry: shelfLifeExpiry
   };
 
   console.log('Product data prepared for Supabase:', productData);

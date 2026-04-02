@@ -860,8 +860,18 @@ const getAllOrders = asyncHandler(async (req, res) => {
       .from('orders')
       .select(`
         *,
-        users!inner(name, email, phone),
-        consumers!inner(defaultaddressstreet, defaultaddresscity, defaultaddressstate)
+        consumers!inner(
+          userid,
+          defaultaddressstreet, 
+          defaultaddresscity, 
+          defaultaddressstate,
+          users!inner(name, email, phone)
+        ),
+        farmers!inner(
+          farmname,
+          verificationstatus,
+          users!inner(name, email)
+        )
       `, { count: 'exact' })
       .order('createdat', { ascending: false });
 
@@ -889,23 +899,11 @@ const getAllOrders = asyncHandler(async (req, res) => {
       return responseHelper.error(res, 'Failed to fetch orders', 500);
     }
 
-    // Get order items for each order
-    const ordersWithItems = await Promise.all(
-      (orders || []).map(async (order) => {
-        const { data: items, error: itemsError } = await supabase
-          .from('orderitems')
-          .select(`
-            *,
-            products!inner(name, price, imageurl)
-          `)
-          .eq('orderid', order._id);
-
-        return {
-          ...order,
-          items: items || []
-        };
-      })
-    );
+    // Items are already stored as JSONB in the orders table
+    const ordersWithItems = (orders || []).map(order => ({
+      ...order,
+      items: order.items || []
+    }));
 
     const response = {
       orders: ordersWithItems,
