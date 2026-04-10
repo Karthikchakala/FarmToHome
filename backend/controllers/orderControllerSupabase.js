@@ -200,7 +200,7 @@ const placeOrder = asyncHandler(async (req, res) => {
             ? `POINT(${customerAddress.longitude} ${customerAddress.latitude})`
             : null,
           paymentmethod: paymentMethod,
-          status: 'pending',
+          status: 'PLACED',
           items: farmerOrder.items,
           deliverycharge: farmerOrder.deliveryCharge,
           platformcommission: orderPlatformCommission,
