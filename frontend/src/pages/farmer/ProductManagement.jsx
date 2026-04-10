@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { farmerAPI } from '../../services/farmerAPI'
+import { reviewAPI } from '../../services/reviewAPI'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ProductPricingGuide from '../../components/farmer/ProductPricingGuide'
 import ShelfLifeInput from '../../components/farmer/ShelfLifeInput'
@@ -15,6 +16,7 @@ const ProductManagement = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState([])
+  const [productReviews, setProductReviews] = useState({})
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -38,6 +40,32 @@ const ProductManagement = () => {
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
 
+  // Fetch reviews for a specific product
+  const fetchProductReviews = async (productId) => {
+    try {
+      const response = await reviewAPI.getProductReviews(productId, { limit: 2 })
+      if (response.data.success) {
+        return response.data.data.reviews || []
+      }
+      return []
+    } catch (error) {
+      console.error(`Error fetching reviews for product ${productId}:`, error)
+      return []
+    }
+  }
+
+  // Fetch reviews for all products
+  const fetchAllProductReviews = async (productsList) => {
+    const reviewsData = {}
+    
+    for (const product of productsList) {
+      const reviews = await fetchProductReviews(product._id)
+      reviewsData[product._id] = reviews
+    }
+    
+    setProductReviews(reviewsData)
+  }
+
   // Determine the current mode based on URL
   const isAddMode = location.pathname.includes('/add') || location.pathname.includes('/new')
   const isEditMode = !!id
@@ -54,7 +82,13 @@ const ProductManagement = () => {
       try {
         setLoading(true)
         const response = await farmerAPI.getFarmerProducts()
-        setProducts(response.data.data?.products || [])
+        const productsData = response.data.data?.products || []
+        setProducts(productsData)
+        
+        // Fetch reviews for all products
+        if (productsData.length > 0) {
+          await fetchAllProductReviews(productsData)
+        }
       } catch (error) {
         console.error('Error fetching products:', error)
         setProducts([])
@@ -654,6 +688,70 @@ const ProductManagement = () => {
                 >
                   🗑️ Delete
                 </button>
+              </div>
+
+              {/* Reviews Section */}
+              <div className="product-reviews">
+                <div className="reviews-header">
+                  <h4>⭐ Customer Reviews</h4>
+                  <Link to={`/farmer/products/${product._id}/reviews`} className="view-all-reviews">
+                    View All Reviews →
+                  </Link>
+                </div>
+                <div className="reviews-summary">
+                  <div className="rating-display">
+                    <span className="rating-score">
+                      {productReviews[product._id]?.length > 0 
+                        ? (productReviews[product._id].reduce((acc, review) => acc + review.rating, 0) / productReviews[product._id].length).toFixed(1)
+                        : '0.0'
+                      }
+                    </span>
+                    <div className="rating-stars">
+                      {productReviews[product._id]?.length > 0 
+                        ? Array.from({ length: 5 }, (_, i) => 
+                            i < Math.round(productReviews[product._id].reduce((acc, review) => acc + review.rating, 0) / productReviews[product._id].length) 
+                              ? '⭐' 
+                              : '☆'
+                          ).join('')
+                        : '☆☆☆☆☆'
+                      }
+                    </div>
+                    <span className="review-count">
+                      ({productReviews[product._id]?.length || 0} reviews)
+                    </span>
+                  </div>
+                </div>
+                <div className="recent-reviews">
+                  {productReviews[product._id]?.length > 0 ? (
+                    productReviews[product._id].slice(0, 2).map((review) => (
+                      <div key={review._id} className="review-item">
+                        <div className="review-header">
+                          <span className="reviewer-name">
+                            {review.customer?.name || 'Anonymous Customer'}
+                          </span>
+                          <span className="review-date">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
+                          <div className="review-rating">
+                            {Array.from({ length: 5 }, (_, i) => 
+                              i < review.rating ? '⭐' : '☆'
+                            ).join('')}
+                          </div>
+                        </div>
+                        <p className="review-comment">{review.comment}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-reviews">
+                      <p>No reviews yet for this product.</p>
+                    </div>
+                  )}
+                </div>
+                <div className="reviews-actions">
+                  <Link to={`/farmer/products/${product._id}/reviews`} className="btn btn-outline btn-sm">
+                    📝 Manage Reviews
+                  </Link>
+                </div>
               </div>
             </div>
           ))

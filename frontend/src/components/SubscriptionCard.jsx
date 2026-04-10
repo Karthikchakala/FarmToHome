@@ -61,7 +61,8 @@ const SubscriptionCard = ({ subscription, onUpdate, showActions = true }) => {
         setShowConfirmDialog(false)
         
         if (onUpdate) {
-          onUpdate(response.data.data.subscription)
+          // Backend returns data: updatedSubscription, not data.data.subscription
+          onUpdate(response.data.data)
         }
       }
     } catch (err) {

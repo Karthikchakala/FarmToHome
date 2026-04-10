@@ -3,6 +3,7 @@ const logger = require('../config/logger');
 const responseHelper = require('../utils/responseHelper');
 const { asyncHandler, NotFoundError, ValidationError } = require('../middlewares/enhancedErrorHandler');
 const { validateProductPrice } = require('./costChartController');
+const { uploadImages, getImageUrl, getImageUrls, deleteImages, extractFilenames } = require('../middlewares/upload');
 
 // Helper function to check table schema
 const checkTableSchema = asyncHandler(async (req, res) => {
@@ -24,133 +25,145 @@ const checkTableSchema = asyncHandler(async (req, res) => {
 });
 
 // Add product (Farmer only)
-const addProduct = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const {
-    name,
-    description,
-    category,
-    price,
-    unit,
-    stockQuantity,
-    minimumOrder,
-    images = [],
-    isAvailable = true,
-    harvestDate,
-    expiryDate,
-    shelfLife // Shelf life in days
-  } = req.body;
+const addProduct = [
+  uploadImages,
+  asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const {
+      name,
+      description,
+      category,
+      price,
+      unit,
+      stockQuantity,
+      minimumOrder,
+      images = [],
+      isAvailable = true,
+      harvestDate,
+      expiryDate,
+      shelfLife // Shelf life in days
+    } = req.body;
 
-  console.log('addProduct called with userId:', userId);
+    console.log('addProduct called with userId:', userId);
 
-  // Get the actual farmerid from farmers table
-  const { data: farmerRecord, error: farmerError } = await supabase
-    .from('farmers')
-    .select('_id, isapproved, verificationstatus')
-    .eq('userid', userId)
-    .single();
-
-  if (farmerError || !farmerRecord) {
-    console.log('Farmer record not found:', farmerError);
-    throw new NotFoundError('Farmer record not found');
-  }
-
-  console.log('Found farmer record:', farmerRecord);
-  console.log('Farmer approval check:', {
-    isapproved: farmerRecord.isapproved,
-    verificationstatus: farmerRecord.verificationstatus,
-    willPass: farmerRecord.isapproved || farmerRecord.verificationstatus === 'approved'
-  });
-
-  if (!farmerRecord.isapproved && farmerRecord.verificationstatus !== 'approved') {
-    console.log('Farmer NOT approved - throwing error');
-    throw new ValidationError('Farmer account is not approved');
-  }
-
-  console.log('Farmer APPROVED - continuing...');
-
-  // Validate input
-  if (!name || !description || !category || !price || !unit || stockQuantity === undefined) {
-    throw new ValidationError('All required fields must be provided');
-  }
-
-  // Validate price and stock
-  if (parseFloat(price) <= 0) {
-    throw new ValidationError('Price must be greater than 0');
-  }
-
-  if (parseInt(stockQuantity) < 0) {
-    throw new ValidationError('Stock quantity cannot be negative');
-  }
-
-  // Validate unit against allowed values
-  const allowedUnits = ['kg', 'gram', 'litre', 'piece'];
-  if (!allowedUnits.includes(unit)) {
-    throw new ValidationError(`Unit must be one of: ${allowedUnits.join(', ')}`);
-  }
-
-  // Validate price against cost chart
-  const priceValidation = await validateProductPrice(name, parseFloat(price));
-  if (!priceValidation.valid) {
-    throw new ValidationError(priceValidation.message);
-  }
-
-  // Validate shelf life
-  let shelfLifeExpiry = null;
-  if (shelfLife !== undefined && shelfLife !== null) {
-    if (parseInt(shelfLife) <= 0) {
-      throw new ValidationError('Shelf life must be greater than 0 days');
+    // Handle uploaded files
+    let uploadedImages = [];
+    if (req.files && req.files.length > 0) {
+      uploadedImages = req.files.map(file => getImageUrl(file.filename));
     }
-    if (parseInt(shelfLife) > 365) {
-      throw new ValidationError('Shelf life cannot exceed 365 days');
+
+    // Combine uploaded images with any existing image URLs
+    const allImages = [...uploadedImages, ...(Array.isArray(images) ? images : [])];
+
+    // Get the actual farmerid from farmers table
+    const { data: farmerRecord, error: farmerError } = await supabase
+      .from('farmers')
+      .select('_id, isapproved, verificationstatus')
+      .eq('userid', userId)
+      .single();
+
+    if (farmerError || !farmerRecord) {
+      console.log('Farmer record not found:', farmerError);
+      throw new NotFoundError('Farmer record not found');
     }
-    
-    // Calculate shelf life expiry from current date
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + parseInt(shelfLife));
-    shelfLifeExpiry = expiryDate.toISOString();
-  }
 
-  // Create product using Supabase with correct farmerid
-  const productData = {
-    farmerid: farmerRecord._id, // ✅ Use _id from farmers table
-    name,
-    description,
-    category,
-    priceperunit: parseFloat(price),
-    unit,
-    stockquantity: parseInt(stockQuantity),
-    minorderquantity: parseInt(minimumOrder) || 1,
-    images,
-    isavailable: isAvailable,
-    harvestdate: harvestDate || null,
-    expirydate: expiryDate || null,
-    shelf_life: shelfLife ? parseInt(shelfLife) : null,
-    shelf_life_expiry: shelfLifeExpiry
-  };
+    console.log('Found farmer record:', farmerRecord);
+    console.log('Farmer approval check:', {
+      isapproved: farmerRecord.isapproved,
+      verificationstatus: farmerRecord.verificationstatus,
+      willPass: farmerRecord.isapproved || farmerRecord.verificationstatus === 'approved'
+    });
 
-  console.log('Product data prepared for Supabase:', productData);
-
-  const { data: product, error } = await supabase
-    .from('products')
-    .insert([productData])
-    .select()
-    .single();
-
-  console.log('Supabase insert response:', { product, error: error?.message });
-
-  if (error) {
-    logger.error('Add product error:', error);
-    throw new Error('Failed to add product: ' + error.message);
-  }
-
-  return responseHelper.success(res, {
-    product: {
-      ...product,
-      images: product.images || []
+    if (!farmerRecord.isapproved && farmerRecord.verificationstatus !== 'approved') {
+      console.log('Farmer NOT approved - throwing error');
+      throw new ValidationError('Farmer account is not approved');
     }
-  }, 'Product added successfully');
-});
+
+    console.log('Farmer APPROVED - continuing...');
+
+    // Validate input
+    if (!name || !description || !category || !price || !unit || stockQuantity === undefined) {
+      throw new ValidationError('All required fields must be provided');
+    }
+
+    // Validate price and stock
+    if (parseFloat(price) <= 0) {
+      throw new ValidationError('Price must be greater than 0');
+    }
+
+    if (parseInt(stockQuantity) < 0) {
+      throw new ValidationError('Stock quantity cannot be negative');
+    }
+
+    // Validate unit against allowed values
+    const allowedUnits = ['kg', 'gram', 'litre', 'piece'];
+    if (!allowedUnits.includes(unit)) {
+      throw new ValidationError(`Unit must be one of: ${allowedUnits.join(', ')}`);
+    }
+
+    // Validate price against cost chart
+    const priceValidation = await validateProductPrice(name, parseFloat(price));
+    if (!priceValidation.valid) {
+      throw new ValidationError(priceValidation.message);
+    }
+
+    // Validate shelf life
+    let shelfLifeExpiry = null;
+    if (shelfLife !== undefined && shelfLife !== null) {
+      if (parseInt(shelfLife) <= 0) {
+        throw new ValidationError('Shelf life must be greater than 0 days');
+      }
+      if (parseInt(shelfLife) > 365) {
+        throw new ValidationError('Shelf life cannot exceed 365 days');
+      }
+      
+      // Calculate shelf life expiry from current date
+      const shelfLifeExpiryDate = new Date();
+      shelfLifeExpiryDate.setDate(shelfLifeExpiryDate.getDate() + parseInt(shelfLife));
+      shelfLifeExpiry = shelfLifeExpiryDate.toISOString();
+    }
+
+    // Create product using Supabase with correct farmerid
+    const productData = {
+      farmerid: farmerRecord._id, // Use _id from farmers table
+      name,
+      description,
+      category,
+      priceperunit: parseFloat(price),
+      unit,
+      stockquantity: parseInt(stockQuantity),
+      minorderquantity: parseInt(minimumOrder) || 1,
+      images: allImages, // Use the combined images array
+      isavailable: isAvailable,
+      harvestdate: harvestDate || null,
+      expirydate: expiryDate || null,
+      shelf_life: shelfLife ? parseInt(shelfLife) : null,
+      shelf_life_expiry: shelfLifeExpiry
+    };
+
+    console.log('Product data prepared for Supabase:', productData);
+
+    const { data: product, error } = await supabase
+      .from('products')
+      .insert([productData])
+      .select()
+      .single();
+
+    console.log('Supabase insert response:', { product, error: error?.message });
+
+    if (error) {
+      logger.error('Add product error:', error);
+      throw new Error('Failed to add product: ' + error.message);
+    }
+
+    return responseHelper.success(res, {
+      product: {
+        ...product,
+        images: product.images || []
+      }
+    }, 'Product added successfully');
+  })
+];
 
 // Update product (Farmer only)
 const updateProduct = asyncHandler(async (req, res) => {

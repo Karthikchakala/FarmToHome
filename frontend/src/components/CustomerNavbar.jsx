@@ -150,19 +150,13 @@ const CustomerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
           ]
         },
         {
-          title: '⭐ Reviews',
-          children: [
-            { title: 'My Reviews', link: '/customer/reviews' }
-          ]
-        },
-        {
-          title: '� Feedback',
+          title: 'Feedback',
           children: [
             { title: 'Submit Feedback', link: '/customer/feedback' }
           ]
         },
         {
-          title: '�👤 Account',
+          title: '👤 Account',
           children: [
             { title: 'My Profile', link: '/customer/profile' }
           ]
@@ -203,13 +197,10 @@ const CustomerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
                     <Link to="/customer/orders">🛒 Orders</Link>
                   </li>
                   <li>
-                    <Link to="/customer/subscriptions">🔄 Subscriptions</Link>
+                    <Link to="/customer/subscriptions">Subscriptions</Link>
                   </li>
                   <li>
-                    <Link to="/customer/reviews">⭐ Reviews</Link>
-                  </li>
-                  <li>
-                    <Link to="/customer/feedback">📝 Feedback</Link>
+                    <Link to="/customer/feedback">Feedback</Link>
                   </li>
                   <li>
                     <Link to="/customer/profile">👤 Profile</Link>

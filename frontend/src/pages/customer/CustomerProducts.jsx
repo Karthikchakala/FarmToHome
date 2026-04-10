@@ -273,7 +273,7 @@ const CustomerProducts = () => {
   const loadDefaultAddress = async () => {
     try {
       // Get consumer profile with default address
-      const response = await fetch(`http://localhost:5005/api/profile/`, {
+      const response = await fetch(`/api/profile/customer/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

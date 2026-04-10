@@ -78,16 +78,6 @@ const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
             </Link>
           </div>
 
-          {/* Analytics - Single item */}
-          <div className="nav-section">
-            <Link 
-              to="/farmer/analytics" 
-              className={`nav-link ${isActive('/farmer/analytics') ? 'active' : ''}`}
-            >
-              📈 Analytics
-            </Link>
-          </div>
-
           {/* Products - Dropdown */}
           <div className="nav-section dropdown-section">
             <button 
@@ -162,16 +152,6 @@ const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
             </Link>
           </div>
 
-          {/* Reviews - Single item */}
-          <div className="nav-section">
-            <Link 
-              to="/farmer/reviews" 
-              className={`nav-link ${isActive('/farmer/reviews') ? 'active' : ''}`}
-            >
-              ⭐ Reviews
-            </Link>
-          </div>
-
           {/* Account - Dropdown */}
           <div className="nav-section dropdown-section">
             <button 
@@ -185,18 +165,6 @@ const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
             </button>
             {activeDropdown === 'account' && (
               <div className="dropdown-menu">
-                <Link 
-                  to="/farmer/profile" 
-                  className={`dropdown-item ${isActive('/farmer/profile') ? 'active' : ''}`}
-                >
-                  👤 Farm Profile
-                </Link>
-                <Link 
-                  to="/farmer/analytics" 
-                  className={`dropdown-item ${isActive('/farmer/analytics') ? 'active' : ''}`}
-                >
-                  📈 Analytics
-                </Link>
                 <Link 
                   to="/farmer/settings" 
                   className={`dropdown-item ${isActive('/farmer/settings') ? 'active' : ''}`}

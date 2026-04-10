@@ -175,11 +175,54 @@ const getUserSubscriptions = async (req, res, next) => {
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    // Build simple Supabase query without complex joins
+    // First get the consumer ID for this user
+    const { data: consumerData, error: consumerError } = await supabase
+      .from('consumers')
+      .select('_id')
+      .eq('userid', userId)
+      .single();
+
+    if (consumerError || !consumerData) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          subscriptions: [],
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            pages: 0,
+            hasNext: false,
+            hasPrev: false
+          }
+        }
+      });
+    }
+
+    const consumerId = consumerData._id;
+
+    // Build Supabase query with product details
     let supabaseQuery = supabase
       .from('subscriptions')
-      .select('*', { count: 'exact' })
-      .eq('consumerid', userId)
+      .select(`
+        *,
+        products!inner(
+          _id,
+          name,
+          images,
+          priceperunit,
+          unit,
+          category,
+          farmerid,
+          farmers!inner(
+            farmname,
+            userid!inner(
+              name
+            )
+          )
+        )
+      `, { count: 'exact' })
+      .eq('consumerid', consumerId)
       .order('createdat', { ascending: false })
       .range(offset, offset + parseInt(limit) - 1);
 
@@ -195,7 +238,7 @@ const getUserSubscriptions = async (req, res, next) => {
       throw new Error('Failed to fetch subscriptions');
     }
 
-    // Format the response with basic subscription data
+    // Format the response with real product data
     const formattedSubscriptions = subscriptions.map(subscription => ({
       _id: subscription._id,
       consumerId: subscription.consumerid,
@@ -208,13 +251,14 @@ const getUserSubscriptions = async (req, res, next) => {
       createdAt: subscription.createdat,
       updatedAt: subscription.updatedat,
       nextDeliveryDate: subscription.nextdeliverydate,
-      productName: 'Product ' + subscription.productid, // Placeholder
-      productImages: [],
-      unit: 'kg', // Placeholder
-      pricePerUnit: 0, // Placeholder
-      category: 'vegetables', // Placeholder
-      farmName: 'Farm', // Placeholder
-      farmerName: 'Farmer' // Placeholder
+      productName: subscription.products?.name || 'Unknown Product',
+      productImages: subscription.products?.images || [],
+      unit: subscription.products?.unit || 'kg',
+      pricePerUnit: subscription.products?.priceperunit || 0,
+      category: subscription.products?.category || 'vegetables',
+      farmName: subscription.products?.farmers?.farmname || 'Unknown Farm',
+      farmerName: subscription.products?.farmers?.userid?.name || 'Unknown Farmer',
+      farmerId: subscription.products?.farmerid
     }));
 
     res.status(200).json({

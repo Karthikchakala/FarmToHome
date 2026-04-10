@@ -344,13 +344,11 @@ const getFeaturedProducts = asyncHandler(async (req, res) => {
       }
     }));
 
-    const response = responseHelper.success(
+    responseHelper.success(
       res,
       formattedProducts,
       'Featured products retrieved successfully'
     );
-
-    res.status(200).json(response);
   } catch (error) {
     logger.error('Get featured products error:', error);
     throw error;

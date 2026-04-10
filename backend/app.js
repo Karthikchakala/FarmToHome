@@ -33,6 +33,7 @@ const feedbackRoutes = require('./routes/feedback');
 const notificationRoutes = require('./routes/notifications');
 const chatRoutes = require('./routes/chatRoutes');
 const costChartRoutes = require('./routes/costChart');
+const photosRoutes = require('./routes/photos');
 const { healthCheck } = require('./db');
 const subscriptionProcessor = require('./jobs/subscriptionProcessor');
 
@@ -111,6 +112,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/cost-chart', costChartRoutes);
+app.use('/api/photos', photosRoutes);
 
 // Create HTTP server
 const server = http.createServer(app);

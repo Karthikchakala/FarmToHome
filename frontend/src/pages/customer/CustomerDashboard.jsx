@@ -17,9 +17,7 @@ const CustomerDashboard = () => {
     monthlySpent: 0,
     savedAmount: 0,
     activeSubscriptions: 0,
-    favoriteProducts: 0,
-    recentOrders: [],
-    favoriteFarmers: []
+    recentOrders: []
   })
 
   useEffect(() => {
@@ -54,9 +52,7 @@ const CustomerDashboard = () => {
             monthlySpent: 0,
             savedAmount: 0,
             activeSubscriptions: 0,
-            favoriteProducts: 0,
-            recentOrders: [],
-            favoriteFarmers: []
+            recentOrders: []
           })
         }
       } catch (error) {
@@ -70,9 +66,7 @@ const CustomerDashboard = () => {
           monthlySpent: 0,
           savedAmount: 0,
           activeSubscriptions: 0,
-          favoriteProducts: 0,
-          recentOrders: [],
-          favoriteFarmers: []
+          recentOrders: []
         })
       } finally {
         setLoading(false)
@@ -160,21 +154,7 @@ const CustomerDashboard = () => {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon">❤️</div>
-          <div className="stat-content">
-            <h3>{dashboardData.favoriteProducts}</h3>
-            <p>Favorite Products</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">👨‍🌾</div>
-          <div className="stat-content">
-            <h3>{dashboardData.favoriteFarmers.length}</h3>
-            <p>Favorite Farmers</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">📅</div>
+          <div className="stat-icon">{'\ud83d\udcc5'}</div>
           <div className="stat-content">
             <h3>{formatCurrency(dashboardData.monthlySpent)}</h3>
             <p>This Month</p>
@@ -231,8 +211,8 @@ const CustomerDashboard = () => {
       <div className="quick-actions-section">
         <h2>⚡ Quick Actions</h2>
         <div className="actions-grid">
-          <Link to="/products" className="action-card">
-            <div className="action-icon">🛒</div>
+          <Link to="/customer/products" className="action-card">
+            <div className="action-icon">{'\ud83d\uded2'}</div>
             <h3>Shop Products</h3>
             <p>Browse fresh produce from local farmers</p>
           </Link>
@@ -241,45 +221,16 @@ const CustomerDashboard = () => {
             <h3>Manage Subscriptions</h3>
             <p>Set up recurring deliveries</p>
           </Link>
+          <Link to="/customer/orders" className="action-card">
+            <div className="action-icon">📦</div>
+            <h3>View Orders</h3>
+            <p>Track your order history and status</p>
+          </Link>
           <Link to="/cart" className="action-card">
             <div className="action-icon">🛍️</div>
             <h3>View Cart</h3>
             <p>Complete your pending orders</p>
           </Link>
-          <Link to="/customer/reviews" className="action-card">
-            <div className="action-icon">⭐</div>
-            <h3>Write Reviews</h3>
-            <p>Share your experience with products</p>
-          </Link>
-        </div>
-      </div>
-
-      {/* Favorite Farmers */}
-      <div className="favorite-farmers-section">
-        <h2>👨‍🌾 Your Favorite Farmers</h2>
-        <div className="farmers-grid">
-          {dashboardData.favoriteFarmers.length === 0 ? (
-            <div className="no-data">
-              <div className="no-data-icon">👨‍🌾</div>
-              <h3>No Favorite Farmers Yet</h3>
-              <p>Start ordering from farmers to see them here!</p>
-            </div>
-          ) : (
-            dashboardData.favoriteFarmers.map((farmer) => (
-              <div key={farmer.id} className="farmer-card">
-                <div className="farmer-info">
-                  <h4>{farmer.name}</h4>
-                  <p>{farmer.farmName}</p>
-                  <div className="farmer-rating">
-                    ⭐ {farmer.rating} ({farmer.reviews} reviews)
-                  </div>
-                </div>
-                <Link to={`/products?farmer=${farmer.id}`} className="btn btn-outline">
-                  View Products
-                </Link>
-              </div>
-            ))
-          )}
         </div>
       </div>
     </div>

@@ -24,8 +24,6 @@ const DashboardSidebar = ({ isOpen, toggleSidebar, userRole }) => {
           { path: '/farmer/dashboard', label: 'Dashboard', icon: '📊' },
           { path: '/farmer/products', label: 'My Products', icon: '🥬' },
           { path: '/farmer/orders', label: 'Orders', icon: '📦' },
-          { path: '/farmer/reviews', label: 'Reviews', icon: '⭐' },
-          { path: '/farmer/analytics', label: 'Analytics', icon: '📈' },
         ]
       case 'consumer':
         return [

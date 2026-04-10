@@ -12,6 +12,11 @@ export const reviewAPI = {
     return api.get(`/reviews/farmers/${farmerId}`, { params })
   },
 
+  // Get product reviews
+  getProductReviews: (productId, params = {}) => {
+    return api.get(`/reviews/product/${productId}`, { params })
+  },
+
   // Get user's reviews
   getUserReviews: (params = {}) => {
     return api.get('/reviews/customer/my-reviews', { params })

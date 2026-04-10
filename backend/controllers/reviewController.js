@@ -528,11 +528,145 @@ const deleteReview = asyncHandler(async (req, res) => {
   }
 });
 
+// Get reviews for a specific product (Public endpoint)
+const getProductReviews = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const { page = 1, limit = 10, rating, sortBy = 'newest' } = req.query;
+
+  // Validate productId
+  if (!productId) {
+    throw new ValidationError('Product ID is required');
+  }
+
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const limitNum = parseInt(limit);
+
+  try {
+    // First, get all orders that contain this product in their items array
+    // Using a more compatible JSONB query approach
+    const { data: ordersWithProduct, error: ordersError } = await supabase
+      .from('orders')
+      .select('_id, items')
+      .eq('status', 'DELIVERED'); // Only reviews for delivered orders
+
+    if (ordersError) {
+      logger.error('Error fetching orders:', ordersError);
+      throw new Error('Failed to fetch orders');
+    }
+
+    // Filter orders that contain the product in their items array
+    const filteredOrders = ordersWithProduct.filter(order => {
+      if (!order.items || !Array.isArray(order.items)) return false;
+      return order.items.some(item => item.productid === productId);
+    });
+
+    if (filteredOrders.length === 0) {
+      // No orders found with this product, return empty result
+      responseHelper.success(res, {
+        reviews: [],
+        pagination: {
+          page: parseInt(page),
+          limit: limitNum,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        }
+      }, 'Product reviews retrieved successfully');
+      return;
+    }
+
+    // Get reviews for those orders
+    const orderIds = filteredOrders.map(order => order._id);
+    
+    let query = supabase
+      .from('reviews')
+      .select(`
+        *,
+        consumers!inner(
+          _id,
+          userid,
+          users!inner(
+            name
+          )
+        )
+      `, { count: 'exact' })
+      .in('orderid', orderIds);
+
+    // Add rating filter if specified
+    if (rating && rating !== 'all') {
+      query = query.eq('rating', parseInt(rating));
+    }
+
+    // Add sorting
+    switch (sortBy) {
+      case 'oldest':
+        query = query.order('createdat', { ascending: true });
+        break;
+      case 'highest':
+        query = query.order('rating', { ascending: false });
+        break;
+      case 'lowest':
+        query = query.order('rating', { ascending: true });
+        break;
+      case 'newest':
+      default:
+        query = query.order('createdat', { ascending: false });
+        break;
+    }
+
+    // Apply pagination
+    query = query.range(offset, offset + limitNum - 1);
+
+    const { data: reviews, error, count } = await query;
+
+    if (error) {
+      logger.error('Error fetching product reviews:', error);
+      throw new Error('Failed to fetch product reviews');
+    }
+
+    // Format the response
+    const formattedReviews = reviews.map(review => ({
+      _id: review._id,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdat,
+      updatedAt: review.updatedat,
+      customer: {
+        _id: review.consumers._id,
+        name: review.consumers.users.name || 'Anonymous Customer'
+      },
+      productId: productId, // Use the requested productId
+      orderId: review.orderid
+    }));
+
+    // Calculate pagination info
+    const totalPages = Math.ceil((count || 0) / limitNum);
+
+    responseHelper.success(res, {
+      reviews: formattedReviews,
+      pagination: {
+        page: parseInt(page),
+        limit: limitNum,
+        total: count || 0,
+        totalPages: totalPages,
+        hasNext: parseInt(page) < totalPages,
+        hasPrev: parseInt(page) > 1
+      }
+    }, 'Product reviews retrieved successfully');
+
+  } catch (error) {
+    logger.error('Product reviews fetch error:', error);
+    throw error;
+  }
+});
+
 module.exports = {
   addReview,
   getFarmerReviews,
   getUserReviews,
   updateReview,
   deleteReview,
-  getReviewEligibility
+  getReviewEligibility,
+  getProductReviews
 };

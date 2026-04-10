@@ -63,7 +63,11 @@ const Subscriptions = () => {
       const response = await subscriptionAPI.getUserSubscriptions(filters)
       
       if (response.data.success) {
-        setSubscriptions(response.data.data.subscriptions || [])
+        // Filter out any undefined or invalid subscriptions
+        const validSubscriptions = (response.data.data.subscriptions || []).filter(
+          sub => sub && sub._id
+        );
+        setSubscriptions(validSubscriptions)
         setPagination(response.data.data.pagination || null)
       } else {
         setError(response.data.error || 'Failed to load subscriptions')
@@ -89,10 +93,19 @@ const Subscriptions = () => {
   }
 
   const handleSubscriptionUpdate = (updatedSubscription) => {
+    if (!updatedSubscription || !updatedSubscription._id) {
+      console.error('Invalid subscription data:', updatedSubscription);
+      return;
+    }
+    
     setSubscriptions(prev => 
-      prev.map(sub => 
-        sub._id === updatedSubscription._id ? updatedSubscription : sub
-      )
+      prev.map(sub => {
+        if (!sub || !sub._id) {
+          console.error('Invalid subscription in array:', sub);
+          return sub;
+        }
+        return sub._id === updatedSubscription._id ? updatedSubscription : sub
+      })
     )
   }
 
@@ -104,10 +117,11 @@ const Subscriptions = () => {
   ]
 
   const getStats = () => {
-    const total = subscriptions.length
-    const active = subscriptions.filter(sub => sub.status === 'ACTIVE').length
-    const paused = subscriptions.filter(sub => sub.status === 'PAUSED').length
-    const cancelled = subscriptions.filter(sub => sub.status === 'CANCELLED').length
+    const validSubscriptions = subscriptions.filter(sub => sub && sub.status)
+    const total = validSubscriptions.length
+    const active = validSubscriptions.filter(sub => sub.status === 'ACTIVE').length
+    const paused = validSubscriptions.filter(sub => sub.status === 'PAUSED').length
+    const cancelled = validSubscriptions.filter(sub => sub.status === 'CANCELLED').length
     
     return { total, active, paused, cancelled }
   }

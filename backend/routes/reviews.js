@@ -8,7 +8,8 @@ const {
   getUserReviews,
   updateReview,
   deleteReview,
-  getReviewEligibility
+  getReviewEligibility,
+  getProductReviews
 } = require('../controllers/reviewController');
 
 // Customer review endpoints
@@ -38,5 +39,8 @@ farmerRouter.get('/:farmerId', validateId, getFarmerReviews);
 // Mount customer and farmer routers
 router.use('/customer', customerRouter);
 router.use('/farmers', farmerRouter);
+
+// Product reviews endpoint (Public - no auth required)
+router.get('/product/:productId', getProductReviews);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { notificationAPI } from '../../services/notificationAPI'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import './FarmerDashboard.css'
 
@@ -17,38 +18,31 @@ const FarmerDashboard = () => {
     totalCustomers: 0,
     lowStockItems: 0
   })
+  const [notifications, setNotifications] = useState([])
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true)
         
-        // TODO: Replace with actual API calls
-        // For now, show no data state
-        const emptyData = {
-          totalProducts: 0,
-          activeOrders: 0,
-          pendingOrders: 0,
-          completedOrders: 0,
-          totalRevenue: 0,
-          monthlyRevenue: 0,
-          totalCustomers: 0,
-          lowStockItems: 0
+        // Fetch real data from APIs
+        const [notificationsResponse] = await Promise.all([
+          notificationAPI.getNotifications({ limit: 5 })
+        ])
+        
+        // Set notifications data
+        if (notificationsResponse.data.success) {
+          const notificationsData = notificationsResponse.data.data.notifications || []
+          console.log('FarmerDashboard - Notifications data received:', notificationsData)
+          console.log('FarmerDashboard - Sample notification:', notificationsData[0])
+          setNotifications(notificationsData)
         }
         
-        setDashboardData(emptyData)
+        // TODO: Add farmer dashboard data API call when available
+        // For now, keep dashboard data as is (will be updated when API is ready)
+        
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
-        setDashboardData({
-          totalProducts: 0,
-          activeOrders: 0,
-          pendingOrders: 0,
-          completedOrders: 0,
-          totalRevenue: 0,
-          monthlyRevenue: 0,
-          totalCustomers: 0,
-          lowStockItems: 0
-        })
       } finally {
         setLoading(false)
       }
@@ -81,6 +75,40 @@ const FarmerDashboard = () => {
       style: 'currency',
       currency: 'INR'
     }).format(amount)
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) {
+      console.log('FarmerDashboard - Date string is null or undefined:', dateString)
+      return 'Unknown'
+    }
+    
+    try {
+      const date = new Date(dateString)
+      const now = new Date()
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.log('FarmerDashboard - Invalid date created:', dateString, '->', date)
+        return 'Invalid Date'
+      }
+      
+      const diffTime = Math.abs(now - date)
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays === 0) {
+        return 'Today'
+      } else if (diffDays === 1) {
+        return 'Yesterday'
+      } else if (diffDays < 7) {
+        return `${diffDays} days ago`
+      } else {
+        return date.toLocaleDateString()
+      }
+    } catch (error) {
+      console.error('FarmerDashboard - Error formatting date:', error, 'Input:', dateString)
+      return 'Invalid Date'
+    }
   }
 
   return (
@@ -156,74 +184,61 @@ const FarmerDashboard = () => {
             </div>
           </div>
 
-          {/* Recent Orders */}
-          <div className="recent-orders-section">
-            <h2>📋 Recent Orders</h2>
-            <div className="orders-table-container">
-              {dashboardData.activeOrders === 0 ? (
-                <div className="no-data">
-                  <div className="no-data-icon">📋</div>
-                  <h3>No Recent Orders</h3>
-                  <p>There are no recent orders to display. Start receiving orders from customers to see them here.</p>
-                </div>
-              ) : (
-                <>
-                  <table className="orders-table">
-                    <thead>
-                      <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* TODO: Replace with actual recent orders data */}
-                      <tr>
-                        <td colSpan="5" className="no-data-row">
-                          No recent orders available
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <Link to="/farmer/orders" className="view-all-link">
-                    View All Orders →
-                  </Link>
-                </>
-              )}
+          {/* Reviews Section */}
+          <div className="reviews-section">
+            <h2>⭐ Recent Reviews</h2>
+            <div className="reviews-container">
+              <div className="no-data">
+                <div className="no-data-icon">⭐</div>
+                <h3>No Reviews Yet</h3>
+                <p>Customer reviews will appear here once customers start reviewing your products.</p>
+                <Link to="/farmer/products" className="view-all-link">
+                  Manage Products →
+                </Link>
+              </div>
             </div>
           </div>
 
-          {/* Alerts Section */}
-          <div className="alerts-section">
-            <h2>⚠️ Alerts & Notifications</h2>
-            <div className="alerts-container">
-              {dashboardData.lowStockItems > 0 && (
-                <div className="alert alert-warning">
-                  <div className="alert-icon">⚠️</div>
-                  <div className="alert-content">
-                    <h4>Low Stock Alert</h4>
-                    <p>{dashboardData.lowStockItems} products are running low on stock</p>
-                    <Link to="/farmer/stock" className="alert-action">
-                      Manage Stock Now
-                    </Link>
+          {/* Notifications Section */}
+          <div className="notifications-section">
+            <h2>� Notifications</h2>
+            <div className="notifications-container">
+              {notifications.length > 0 ? (
+                <>
+                  <div className="notifications-list">
+                    {notifications.map(notification => (
+                      <div key={notification._id} className={`notification-item ${notification.isread ? 'read' : 'unread'}`}>
+                        <div className="notification-icon">
+                          {notification.type === 'new_order' ? '📋' : 
+                           notification.type === 'order_cancelled' ? '❌' :
+                           notification.type === 'chat_message' ? '💬' :
+                           notification.type === 'alert' ? '⚠️' : 
+                           notification.type === 'success' ? '✅' : 'ℹ️'}
+                        </div>
+                        <div className="notification-content">
+                          <h4>{notification.title}</h4>
+                          <p>{notification.message}</p>
+                          <span className="notification-time">
+                            {formatDate(notification.createdat)}
+                          </span>
+                        </div>
+                        {!notification.isread && (
+                          <div className="notification-badge"></div>
+                        )}
+                      </div>
+                    ))}
                   </div>
+                  <Link to="/farmer/notifications" className="view-all-link">
+                    View All Notifications →
+                  </Link>
+                </>
+              ) : (
+                <div className="no-data">
+                  <div className="no-data-icon">🔔</div>
+                  <h3>No Notifications</h3>
+                  <p>You have no new notifications at the moment.</p>
                 </div>
               )}
-              
-              {dashboardData.lowStockItems === 0 && dashboardData.activeOrders === 0 ? (
-                <div className="alert alert-info">
-                  <div className="alert-icon">ℹ️</div>
-                  <div className="alert-content">
-                    <h4>Welcome to Your Dashboard</h4>
-                    <p>Start by adding products and receiving orders from customers</p>
-                    <Link to="/farmer/products" className="alert-action">
-                      Add Your First Product
-                    </Link>
-                  </div>
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
