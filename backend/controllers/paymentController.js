@@ -678,20 +678,69 @@ const createPaymentOrder = asyncHandler(async (req, res) => {
   console.log("Received orderId:", orderId);
   console.log("Received amount:", amount);
   console.log("REQ ORDER ID:", orderId);
-  console.log("USER ID:", userId);
-  console.log("STEP BACKEND 1:", { userId, orderId, amount });
+  console.log("USER ID (from JWT):", userId);
+
+  // Get consumer record (needed for consumerid foreign key)
+  const { data: consumerRecord, error: consumerRecordError } = await supabase
+    .from('consumers')
+    .select('_id, userid')
+    .eq('userid', userId)
+    .single();
+
+  if (consumerRecordError || !consumerRecord) {
+    console.log("CONSUMER RECORD ERROR:", consumerRecordError);
+    throw new NotFoundError('Consumer profile not found');
+  }
+
+  const consumerId = consumerRecord._id;
+  console.log("CONSUMER ID (from consumers table):", consumerId);
+  console.log("STEP BACKEND 1:", { userId, consumerId, orderId, amount });
 
   if (!orderId || !amount || amount <= 0) {
     console.log("VALIDATION FAILED: orderId =", orderId, "amount =", amount);
     throw new ValidationError('Valid order ID and amount required');
   }
 
-  const { data: orderResult, error: orderError } = await supabase
+  // Try _id field first, then id field as fallback
+  console.log("QUERY 1: Searching by _id =", orderId, "consumerid =", consumerId);
+
+  // First, let's see what orders exist for this consumer
+  const { data: allOrders, error: allOrdersError } = await supabase
+    .from('orders')
+    .select('_id, ordernumber, consumerid, paymentmethod, status, totalamount')
+    .eq('consumerid', consumerId)
+    .order('createdat', { ascending: false })
+    .limit(5);
+
+  console.log("ALL ORDERS FOR CONSUMER:", allOrders);
+  console.log("ALL ORDERS ERROR:", allOrdersError);
+
+  let { data: orderResult, error: orderError } = await supabase
     .from('orders')
     .select('*')
     .eq('_id', orderId)
-    .eq('userid', userId)
+    .eq('consumerid', consumerId)
     .single();
+
+  console.log("QUERY 1 RESULT: orderError =", orderError, "orderResult =", orderResult);
+
+  // If not found with _id, try with id field
+  if (orderError || !orderResult) {
+    console.log("ORDER NOT FOUND with _id, trying with id field...");
+    const { data: orderResult2, error: orderError2 } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .eq('consumerid', userId)
+      .single();
+
+    console.log("QUERY 2 RESULT: orderError2 =", orderError2, "orderResult2 =", orderResult2);
+
+    if (orderResult2) {
+      orderResult = orderResult2;
+      orderError = null;
+    }
+  }
 
   if (orderError || !orderResult) {
     console.log("ORDER NOT FOUND: orderError =", orderError, "orderResult =", orderResult);
@@ -782,12 +831,25 @@ const verifyPayment = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderId } = req.body;
 
-  console.log("STEP VERIFY:", {
-    razorpayOrderId,
-    razorpayPaymentId,
-    razorpaySignature,
-    orderId
-  });
+  console.log('=== BACKEND DEBUG ===');
+  console.log('REQ ORDER ID:', orderId);
+  console.log('USER ID (from JWT):', userId);
+
+  // Get consumer record (needed for consumerid foreign key)
+  const { data: consumerRecord, error: consumerRecordError } = await supabase
+    .from('consumers')
+    .select('_id, userid')
+    .eq('userid', userId)
+    .single();
+
+  if (consumerRecordError || !consumerRecord) {
+    console.log("CONSUMER RECORD ERROR:", consumerRecordError);
+    throw new NotFoundError('Consumer profile not found');
+  }
+
+  const consumerId = consumerRecord._id;
+  console.log('CONSUMER ID (from consumers table):', consumerId);
+  console.log('STEP BACKEND 1:', { userId, consumerId, orderId });
 
   if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature || !orderId) {
     throw new ValidationError('Missing required fields');
@@ -797,7 +859,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
     .from('orders')
     .select('*')
     .eq('_id', orderId)
-    .eq('userid', userId)
+    .eq('consumerid', consumerId)
     .single();
 
   if (orderError || !orderResult) {
@@ -826,7 +888,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
     // Update order status using Supabase
     const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
-      .update({ status: 'PAID', paymentid: razorpayPaymentId })
+      .update({ status: 'CONFIRMED', paymentstatus: 'PAID', paymentid: razorpayPaymentId })
       .eq('_id', orderId)
       .select()
       .single();
@@ -852,7 +914,9 @@ const verifyPayment = asyncHandler(async (req, res) => {
         },
         processedat: new Date().toISOString(),
         createdat: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
 
     if (paymentError) {
       console.error("SUPABASE INSERT ERROR:", paymentError);

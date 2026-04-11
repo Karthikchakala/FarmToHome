@@ -197,9 +197,9 @@ const getCart = async (req, res, next) => {
       };
     });
 
-    // Calculate additional fees
-    const deliveryCharge = totalAmount > 0 ? 40 : 0; // ₹40 delivery charge if cart not empty
-    const platformCommission = totalAmount * 0.02; // 2% platform fee
+    // Calculate additional fees (waived as discount)
+    const deliveryCharge = 0; // Free delivery
+    const platformCommission = 0; // Free platform fee
     const finalAmount = totalAmount + deliveryCharge + platformCommission;
 
     res.status(200).json({

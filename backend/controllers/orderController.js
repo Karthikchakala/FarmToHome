@@ -183,15 +183,15 @@ const placeOrder = asyncHandler(async (req, res) => {
   for (const farmerId in cartByFarmer) {
     const validation = farmerValidationResults.find(v => v.farmerId === farmerId);
     if (validation) {
-      cartByFarmer[farmerId].deliveryCharge = validation.deliveryCharge;
+      cartByFarmer[farmerId].deliveryCharge = 0; // Free delivery
       cartByFarmer[farmerId].distance = validation.distance;
       cartByFarmer[farmerId].deliveryTime = validation.deliveryTime;
-      totalDeliveryCharge += validation.deliveryCharge;
+      totalDeliveryCharge += 0;
     }
   }
 
-  // Platform commission (5%)
-  const platformCommission = Math.round(totalAmount * 0.05);
+  // Platform commission (0% - waived as discount)
+  const platformCommission = 0;
   const finalAmount = totalAmount + totalDeliveryCharge + platformCommission;
 
   // Create orders for each farmer using Supabase
@@ -203,9 +203,16 @@ const placeOrder = asyncHandler(async (req, res) => {
       const farmerOrder = cartByFarmer[farmerId];
       const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
       const orderTotal = farmerOrder.subtotal + farmerOrder.deliveryCharge;
-      const orderPlatformCommission = Math.round(farmerOrder.subtotal * 0.05);
+      const orderPlatformCommission = 0; // Free platform fee
 
       console.log('DEBUG: Inserting order with payment method:', paymentMethod);
+      console.log('DEBUG: Order data to insert:', {
+        consumerid: consumerId,
+        farmerid: farmerId,
+        ordernumber: orderNumber,
+        totalamount: orderTotal,
+        paymentmethod: paymentMethod
+      });
 
       const { data: newOrder, error: insertError } = await supabase
         .from('orders')
@@ -230,7 +237,9 @@ const placeOrder = asyncHandler(async (req, res) => {
         .select()
         .single();
 
-      console.log('DEBUG: Order created with payment method:', newOrder.paymentmethod);
+      console.log('DEBUG: Order created:', newOrder);
+      console.log('DEBUG: Order created with payment method:', newOrder?.paymentmethod);
+      console.log('DEBUG: Insert error:', insertError);
 
       if (insertError) {
         logger.error('Error creating order:', insertError);

@@ -25,7 +25,8 @@ const CartSummary = ({ items, totalAmount, totalItems, onClear }) => {
 
   const deliveryCharge = totalAmount > 500 ? 0 : 40
   const platformCommission = Math.round(totalAmount * 0.05) // 5% commission
-  const finalAmount = totalAmount + deliveryCharge + platformCommission
+  const totalDiscount = deliveryCharge + platformCommission
+  const finalAmount = totalAmount
 
   return (
     <div className="cart-summary">
@@ -52,29 +53,27 @@ const CartSummary = ({ items, totalAmount, totalItems, onClear }) => {
           <div className="summary-items">
             <div className="summary-row">
               <span>Items ({totalItems})</span>
-              <span>{formatPrice(totalAmount)}</span>
+              <span>{formatPrice(totalAmount + totalDiscount)}</span>
             </div>
-            
-            <div className="summary-row">
-              <span>Platform Fee (5%)</span>
-              <span>{formatPrice(platformCommission)}</span>
-            </div>
-            
-            <div className="summary-row delivery-row">
-              <span>
-                Delivery Charge
-                {totalAmount > 500 && (
-                  <span className="free-delivery">FREE</span>
-                )}
-              </span>
-              <span className={totalAmount > 500 ? 'free-delivery-text' : ''}>
-                {totalAmount > 500 ? formatPrice(0) : formatPrice(deliveryCharge)}
-              </span>
-            </div>
-            
-            {totalAmount < 500 && (
-              <div className="delivery-tip">
-                <span>🚚 Add {formatPrice(500 - totalAmount)} more for free delivery!</span>
+
+            {platformCommission > 0 && (
+              <div className="summary-row discount-row">
+                <span>Platform Fee Discount</span>
+                <span className="discount-text">-{formatPrice(platformCommission)}</span>
+              </div>
+            )}
+
+            {deliveryCharge > 0 && (
+              <div className="summary-row discount-row">
+                <span>Delivery Fee Discount</span>
+                <span className="discount-text">-{formatPrice(deliveryCharge)}</span>
+              </div>
+            )}
+
+            {totalDiscount > 0 && (
+              <div className="summary-row total-discount-row">
+                <span>Total Savings</span>
+                <span className="total-discount-text">-{formatPrice(totalDiscount)}</span>
               </div>
             )}
           </div>
@@ -105,14 +104,6 @@ const CartSummary = ({ items, totalAmount, totalItems, onClear }) => {
               <span className="badge-icon">💰</span>
               <span className="badge-text">Cash on Delivery</span>
             </div>
-          </div>
-
-          <div className="savings-info">
-            {totalAmount > 500 && (
-              <div className="savings-message">
-                <span>💰 You saved {formatPrice(deliveryCharge)} on delivery!</span>
-              </div>
-            )}
           </div>
         </div>
       )}

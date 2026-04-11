@@ -118,14 +118,24 @@ const PaymentMethod = ({
 
       const verifyRes = await paymentAPI.verifyPayment(verificationData)
 
+      console.log("VERIFY RESPONSE:", verifyRes.data)
+      console.log("VERIFY DATA:", verifyRes.data.data)
+      console.log("PAYMENT OBJECT:", verifyRes.data.data?.payment)
+
       if (verifyRes.data.success) {
         success('Payment successful!')
+
+        const payment = verifyRes.data.data.payment
+        if (!payment) {
+          console.error("PAYMENT OBJECT IS NULL!")
+          throw new Error('Payment data not received from server')
+        }
 
         await onPaymentSuccess?.({
           paymentMethod: 'ONLINE',
           status: 'PAID',
-          paymentId: verifyRes.data.data.payment.id,
-          transactionId: verifyRes.data.data.payment.transactionId
+          paymentId: payment._id || payment.transactionid,
+          transactionId: payment.transactionid
         })
       }
 
