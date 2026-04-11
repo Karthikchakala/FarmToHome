@@ -321,7 +321,7 @@ The Farm to Table platform is built on a scalable Node.js + PostgreSQL architect
 
 ---
 
-END OF DOCUMENT
+END OF DOCUMENT:
 
 ## UI Requirements
 
