@@ -23,6 +23,7 @@ export const adminAPI = {
   getProductById: (id) => api.get(`/admin/products/${id}`),
   deleteProduct: (id) => api.delete(`/admin/products/${id}`),
   
+    
   // Analytics
   getDashboardStats: () => api.get('/admin/dashboard/stats'),
   getAnalytics: (params = {}) => api.get('/admin/analytics', { params }),

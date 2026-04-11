@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 
-// Razorpay hook for payment processing
 export const useRazorpay = () => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Load Razorpay script
     const loadRazorpay = () => {
       if (window.Razorpay) {
         setIsLoaded(true)
@@ -16,20 +14,22 @@ export const useRazorpay = () => {
       const script = document.createElement('script')
       script.src = 'https://checkout.razorpay.com/v1/checkout.js'
       script.async = true
+      script.defer = true
+      script.crossOrigin = 'anonymous'
+
       script.onload = () => {
+        console.log("Razorpay SDK Loaded ✅")
         setIsLoaded(true)
         setError(null)
       }
+
       script.onerror = () => {
+        console.log("Razorpay SDK Failed ❌")
         setError('Failed to load Razorpay SDK')
         setIsLoaded(false)
       }
 
-      document.body.appendChild(script)
-
-      return () => {
-        document.body.removeChild(script)
-      }
+      document.head.appendChild(script)
     }
 
     loadRazorpay()
@@ -42,22 +42,34 @@ export const useRazorpay = () => {
         return
       }
 
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+      console.log("STEP 0 - Razorpay Key:", razorpayKey)
+
+      if (!razorpayKey) {
+        reject(new Error('Razorpay key not configured'))
+        return
+      }
+
       const razorpay = new window.Razorpay({
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         ...options,
-        handler: function(response) {
+
+        handler: function (response) {
+          console.log("STEP 4 - RAW RAZORPAY RESPONSE:", response)
+
+          // Safe fallback
+          if (!response.razorpay_order_id) {
+            response.razorpay_order_id = options.order_id;
+          }
+
           resolve(response)
         },
+
         modal: {
-          ondismiss: function() {
-            reject(new Error('Payment cancelled by user'))
-          },
-          escape: true,
-          handleback: true,
-          confirm_close: true,
-          outside: true,
-          animate: true
+          ondismiss: () => reject(new Error('Payment cancelled by user'))
         },
+
         theme: {
           color: '#2c7a2c'
         }
@@ -67,36 +79,5 @@ export const useRazorpay = () => {
     })
   }
 
-  return {
-    isLoaded,
-    error,
-    openCheckout
-  }
+  return { isLoaded, error, openCheckout }
 }
-
-// Payment options generator
-export const generatePaymentOptions = (order, razorpayOrderId) => {
-  return {
-    order_id: razorpayOrderId,
-    amount: order.totalAmount * 100, // Convert to paise
-    currency: 'INR',
-    name: 'Farm to Table',
-    description: `Payment for order ${order.orderNumber}`,
-    image: '/logo.png',
-    prefill: {
-      name: order.customerName || '',
-      email: order.customerEmail || '',
-      contact: order.customerPhone || ''
-    },
-    notes: {
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      customerName: order.customerName
-    },
-    theme: {
-      color: '#2c7a2c'
-    }
-  }
-}
-
-export default useRazorpay

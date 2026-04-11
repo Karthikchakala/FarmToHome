@@ -303,22 +303,6 @@ const AdminOrders = () => {
             <div className="modal-content">
               <div className="order-details">
                 <div className="detail-section">
-                  <h4>Customer Information</h4>
-                  <div className="detail-row">
-                    <span>Name:</span>
-                    <span>{selectedOrder.users?.name}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Email:</span>
-                    <span>{selectedOrder.users?.email}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Phone:</span>
-                    <span>{selectedOrder.users?.phone}</span>
-                  </div>
-                </div>
-
-                <div className="detail-section">
                   <h4>Order Information</h4>
                   <div className="detail-row">
                     <span>Order ID:</span>
@@ -358,7 +342,7 @@ const AdminOrders = () => {
                         <div className="item-info">
                           <div className="item-name">{item.products?.name}</div>
                           <div className="item-details">
-                            Rs. {item.products?.price} × {item.quantity} = Rs. {(item.products?.price * item.quantity).toFixed(2)}
+                            Rs. {item.products?.price || item.price || 0} × {item.quantity || 0} = Rs. {((item.products?.price || item.price || 0) * (item.quantity || 0)).toFixed(2)}
                           </div>
                         </div>
                       </div>

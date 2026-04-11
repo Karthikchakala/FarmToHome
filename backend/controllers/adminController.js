@@ -89,10 +89,10 @@ const getDashboardStats = async (req, res) => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('finalamount')
+        .select('totalamount')
         .eq('status', 'COMPLETED')
       if (!error && data) {
-        stats.totalRevenue = data.reduce((sum, order) => sum + parseFloat(order.finalamount || 0), 0)
+        stats.totalRevenue = data.reduce((sum, order) => sum + parseFloat(order.totalamount || 0), 0)
         console.log('Total revenue:', stats.totalRevenue)
       }
     } catch (err) {

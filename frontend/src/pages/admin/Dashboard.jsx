@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { adminAPI } from '../../services/adminAPI'
-import StatCard from '../../components/StatCard'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import './Dashboard.css'
 
@@ -88,57 +87,6 @@ const AdminDashboard = () => {
         <h1>Admin Dashboard</h1>
         <p>System administration and analytics</p>
       </div>
-
-        {/* Admin Stats Grid */}
-        <div className="admin-stats-grid">
-          <StatCard
-            title="Total Users"
-            value={stats?.totalUsers || 0}
-            subtitle="Registered users"
-            icon="👥"
-            color="primary"
-          />
-          
-          <StatCard
-            title="Active Users"
-            value={stats?.activeUsers || 0}
-            subtitle="Currently active"
-            icon="🟢"
-            color="success"
-          />
-          
-          <StatCard
-            title="Total Orders"
-            value={stats?.totalOrders || 0}
-            subtitle="All time orders"
-            icon="📦"
-            color="info"
-          />
-          
-          <StatCard
-            title="Total Revenue"
-            value={`₹${stats?.totalRevenue?.toLocaleString() || '0'}`}
-            subtitle="Lifetime revenue"
-            icon="💰"
-            color="success"
-          />
-          
-          <StatCard
-            title="Total Products"
-            value={stats?.totalProducts || 0}
-            subtitle="In marketplace"
-            icon="🥬"
-            color="warning"
-          />
-          
-          <StatCard
-            title="Pending Approvals"
-            value={stats?.pendingApprovals || 0}
-            subtitle="Farmer verification"
-            icon="⏳"
-            color="warning"
-          />
-        </div>
 
         {/* System Health */}
         <div className="system-health">

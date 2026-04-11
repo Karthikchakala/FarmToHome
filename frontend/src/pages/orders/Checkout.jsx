@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { cartAPI, orderAPI, profileAPI } from '../../services/api'
-import SEO from '../../components/SEO'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+import { cartAPI } from '../../services/api'
+import { orderAPI } from '../../services/orderAPI'
+import { profileAPI } from '../../services/profileAPI'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import EmptyState from '../../components/EmptyState'
 import Button from '../../components/Button'
+import EmptyState from '../../components/EmptyState'
+import PaymentMethod from '../../components/PaymentMethod'
+import SEO from '../../components/SEO'
 import './Checkout.css'
 
 const Checkout = () => {
@@ -12,11 +16,12 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true)
   const [placingOrder, setPlacingOrder] = useState(false)
   const [deliveryAddress, setDeliveryAddress] = useState('')
-  const [deliveryAddressObj, setDeliveryAddressObj] = useState(null)
   const [paymentMethod, setPaymentMethod] = useState('COD')
   const [notes, setNotes] = useState('')
   const [userProfile, setUserProfile] = useState(null)
   const [useDefaultAddress, setUseDefaultAddress] = useState(true)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [currentOrder, setCurrentOrder] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -47,8 +52,6 @@ const Checkout = () => {
             latitude: addr.latitude,
             longitude: addr.longitude
           }
-          console.log('DEBUG: Setting address object:', addressObj)
-          setDeliveryAddressObj(addressObj)
         }
       }
     } catch (error) {
@@ -70,27 +73,78 @@ const Checkout = () => {
   }
 
   const handlePlaceOrder = async () => {
+    console.log('DEBUG: handlePlaceOrder called with paymentMethod:', paymentMethod);
+    
     if (!deliveryAddress.trim()) {
-      alert('Please enter delivery address')
+      alert('Please enter a delivery address')
       return
     }
-
+    
+    setPlacingOrder(true)
+    
     try {
-      setPlacingOrder(true)
-      
       const orderData = {
-        deliveryAddress: deliveryAddressObj || deliveryAddress.trim(),
-        paymentMethod,
+        deliveryAddress: deliveryAddress.trim(),
+        paymentMethod: paymentMethod,
         notes: notes.trim() || null
       }
 
-      const response = await orderAPI.placeOrder(orderData)
-      
-      if (response.data.success) {
-        alert('Order placed successfully!')
-        navigate('/order-success')
+      console.log('DEBUG: Final order data being sent:', orderData);
+      console.log('DEBUG: Payment method type:', typeof paymentMethod);
+      console.log('DEBUG: Payment method value:', paymentMethod);
+
+      if (paymentMethod === 'COD') {
+        // For COD, place order directly
+        const response = await orderAPI.placeOrder(orderData)
+        
+        if (response.data.success) {
+          alert('Order placed successfully!')
+          navigate('/order-success')
+        } else {
+          alert(response.data.error || 'Failed to place order')
+        }
       } else {
-        alert(response.data.error || 'Failed to place order')
+        // For ONLINE payment, create order first then process payment
+        console.log("FINAL PAYMENT METHOD SENT:", paymentMethod);
+        console.log('DEBUG: Creating order with payment method:', paymentMethod);
+        const response = await orderAPI.placeOrder(orderData)
+        
+        if (response.data.success) {
+          const orderResponse = response.data.data
+          console.log('DEBUG: Order response data:', orderResponse);
+          
+          // Get the first order from the orders array
+          const firstOrder = orderResponse.orders?.[0];
+          if (!firstOrder) {
+            console.error('ERROR: No orders found in response');
+            alert('No order data received. Please try again.');
+            return;
+          }
+          
+          // Create a temporary order object for PaymentMethod component
+          const paymentOrder = {
+            id: firstOrder._id || firstOrder.id,
+            orderNumber: firstOrder.ordernumber || firstOrder.orderNumber,
+            totalAmount: firstOrder.totalamount || firstOrder.totalAmount || firstOrder.amount,
+            customerName: userProfile?.name || 'Customer',
+            customerEmail: userProfile?.email || '',
+            customerPhone: userProfile?.phone || ''
+          }
+          
+          // Validate required fields
+          if (!paymentOrder.id || !paymentOrder.totalAmount) {
+            console.error('ERROR: Missing required order fields:', paymentOrder);
+            alert('Order data is incomplete. Please try again.');
+            return;
+          }
+          
+          // Set the order for payment processing
+          console.log('DEBUG: Setting currentOrder:', paymentOrder);
+          setCurrentOrder(paymentOrder)
+          setShowPaymentModal(true)
+        } else {
+          alert(response.data.error || 'Failed to place order')
+        }
       }
     } catch (error) {
       console.error('Failed to place order:', error)
@@ -98,6 +152,22 @@ const Checkout = () => {
     } finally {
       setPlacingOrder(false)
     }
+  }
+
+  const handlePaymentSuccess = async (paymentData) => {
+    setShowPaymentModal(false)
+    alert('Payment successful! Your order has been placed.')
+    navigate('/order-success')
+  }
+
+  const handlePaymentError = (error) => {
+    setShowPaymentModal(false)
+    alert('Payment failed. Please try again.')
+  }
+
+  const handlePaymentCancel = (error) => {
+    setShowPaymentModal(false)
+    alert('Payment cancelled. You can try again.')
   }
 
   if (loading) {
@@ -246,7 +316,10 @@ const Checkout = () => {
                       name="paymentMethod"
                       value="COD"
                       checked={paymentMethod === 'COD'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      onChange={(e) => {
+                        console.log('DEBUG: COD payment method changed to:', e.target.value);
+                        setPaymentMethod(e.target.value);
+                      }}
                     />
                     <span className="payment-label">
                       <span className="payment-icon">💵</span>
@@ -263,7 +336,10 @@ const Checkout = () => {
                       name="paymentMethod"
                       value="ONLINE"
                       checked={paymentMethod === 'ONLINE'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      onChange={(e) => {
+                        console.log('DEBUG: ONLINE payment method changed to:', e.target.value);
+                        setPaymentMethod(e.target.value);
+                      }}
                     />
                     <span className="payment-label">
                       <span className="payment-icon">💳</span>
@@ -298,19 +374,19 @@ const Checkout = () => {
                 <div className="summary-totals">
                   <div className="total-row">
                     <span>Subtotal</span>
-                    <span>₹{(cartData?.totalAmount || 0).toFixed(2)}</span>
+                    <span>₹{(cartData?.summary?.totalAmount || 0).toFixed(2)}</span>
                   </div>
                   <div className="total-row">
                     <span>Delivery Charge</span>
-                    <span>₹{(cartData?.deliveryCharge || 0).toFixed(2)}</span>
+                    <span>₹{(cartData?.summary?.deliveryCharge || 0).toFixed(2)}</span>
                   </div>
                   <div className="total-row">
                     <span>Platform Fee</span>
-                    <span>₹{(cartData?.platformCommission || 0).toFixed(2)}</span>
+                    <span>₹{(cartData?.summary?.platformCommission || 0).toFixed(2)}</span>
                   </div>
                   <div className="total-row grand-total">
                     <span>Total</span>
-                    <span>₹{(cartData?.finalAmount || 0).toFixed(2)}</span>
+                    <span>₹{(cartData?.summary?.finalAmount || 0).toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -334,6 +410,32 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && currentOrder && (
+        <div className="modal-overlay">
+          <div className="modal-content payment-modal">
+            <div className="modal-header">
+              <h2>Complete Payment</h2>
+              <button 
+                className="modal-close"
+                onClick={() => setShowPaymentModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              {console.log('DEBUG: Modal currentOrder:', currentOrder)}
+              <PaymentMethod
+                order={currentOrder}
+                onPaymentSuccess={handlePaymentSuccess}
+                onPaymentError={handlePaymentError}
+                onPaymentCancel={handlePaymentCancel}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

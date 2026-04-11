@@ -87,6 +87,9 @@
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .farmer-card:hover {
@@ -99,6 +102,7 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+  gap: 0.5rem;
 }
 
 .farmer-header h3 {
@@ -106,6 +110,11 @@
   color: #333;
   margin: 0;
   line-height: 1.3;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  flex: 1;
+  min-width: 0;
 }
 
 .status {
@@ -134,6 +143,7 @@
 
 .farmer-info {
   margin-bottom: 1.5rem;
+  overflow: hidden;
 }
 
 .farmer-info p {
@@ -141,6 +151,9 @@
   font-size: 0.9rem;
   color: #555;
   line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .farmer-info strong {

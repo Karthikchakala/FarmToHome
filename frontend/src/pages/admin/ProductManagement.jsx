@@ -10,64 +10,64 @@ const AdminProductManagement = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        const response = await adminAPI.getAllProducts()
-        if (response.data.success) {
-          setProducts(response.data.data || [])
-        } else {
-          console.error('Failed to fetch products:', response.data.message)
-          setProducts([])
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error)
+  
+  // Fetch products
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await adminAPI.getAllProducts()
+      if (response.data.success) {
+        setProducts(response.data.data || [])
+      } else {
+        console.error('Failed to fetch products:', response.data.message)
         setProducts([])
-      } finally {
-        setLoading(false)
       }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      setProducts([])
+    } finally {
+      setLoading(false)
     }
+  }
 
-    if (isAuthenticated) {
-      fetchProducts()
-    }
-  }, [isAuthenticated])
-
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.farmer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.farmer?.farmname?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterStatus === 'all' || 
-                         (filterStatus === 'available' && product.stockquantity > 0) ||
-                         (filterStatus === 'out-of-stock' && product.stockquantity <= 0)
-    return matchesSearch && matchesFilter
-  })
-
+  // Delete product
   const handleDeleteProduct = async (productId) => {
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to delete this product?')) {
       return
     }
 
     try {
       const response = await adminAPI.deleteProduct(productId)
       if (response.data.success) {
-        // Refresh products list
-        const productsResponse = await adminAPI.getAllProducts()
-        if (productsResponse.data.success) {
-          setProducts(productsResponse.data.data || [])
-        }
-        alert('Product deleted successfully!')
+        setProducts(products.filter(p => p._id !== productId))
+        alert('Product deleted successfully')
       } else {
         alert('Failed to delete product: ' + response.data.message)
       }
     } catch (error) {
       console.error('Error deleting product:', error)
-      alert('Error deleting product. Please try again.')
+      alert('Error deleting product')
     }
   }
+
+  // Filter products
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = filterStatus === 'all' ||
+                         (filterStatus === 'available' && product.stockquantity > 0) ||
+                         (filterStatus === 'out-of-stock' && product.stockquantity === 0)
+    return matchesSearch && matchesFilter
+  })
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchProducts()
+    }
+  }, [isAuthenticated])
+
+  // Cost chart API temporarily disabled to prevent 500 errors
+  // Cost chart is for reference only
 
   if (!isAuthenticated) {
     return (
@@ -80,18 +80,14 @@ const AdminProductManagement = () => {
   }
 
   if (loading) {
-    return (
-      <div className="admin-product-management">
-        <LoadingSpinner />
-      </div>
-    )
+    return <LoadingSpinner size="large" text="Loading products..." />
   }
 
   return (
     <div className="admin-product-management">
       <div className="page-header">
         <h1>🥬 Product Management</h1>
-        <p>Manage all products and listings across the platform</p>
+        <p>Manage all products and listings across the platform. Add cost chart entries for pricing guidelines.</p>
       </div>
 
       <div className="filters">
@@ -141,31 +137,25 @@ const AdminProductManagement = () => {
                   <p><strong>Farm:</strong> {product.farmer?.farmname || 'N/A'}</p>
                   <p><strong>Email:</strong> {product.farmer?.email || 'N/A'}</p>
                   <p><strong>Category:</strong> {product.category || 'N/A'}</p>
-                  <p><strong>Price:</strong> ₹{product.priceperunit || 0}/{product.unit || 'unit'}</p>
+                  <p><strong>Price:</strong> ¥{product.priceperunit || 0}/{product.unit || 'unit'}</p>
                   <p><strong>Stock:</strong> {product.stockquantity || 0} {product.unit || 'units'}</p>
                   <p><strong>Min Order:</strong> {product.minorderquantity || 1} {product.unit || 'units'}</p>
                   <p><strong>Added:</strong> {product.createdat ? new Date(product.createdat).toLocaleDateString() : 'N/A'}</p>
                   {product.ratingaverage > 0 && (
                     <p><strong>Rating:</strong> ⭐ {product.ratingaverage.toFixed(1)} ({product.ratingcount} reviews)</p>
                   )}
-                  {product.isfeatured && (
-                    <p><strong>Featured:</strong> ⭐ Yes</p>
-                  )}
-                </div>
-                <div className="product-description">
-                  <p><strong>Description:</strong> {product.description || 'No description available'}</p>
-                </div>
-                <div className="product-actions">
-                  <button className="btn btn-outline">View Details</button>
-                  <button className="btn btn-danger" onClick={() => handleDeleteProduct(product._id)}>
-                    🗑️ Delete
-                  </button>
+                  <div className="product-actions">
+                    <button className="btn btn-danger" onClick={() => handleDeleteProduct(product._id)}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
     </div>
   )
 }

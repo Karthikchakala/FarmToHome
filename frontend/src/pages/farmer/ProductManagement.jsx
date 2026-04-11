@@ -4,9 +4,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { farmerAPI } from '../../services/farmerAPI'
 import { reviewAPI } from '../../services/reviewAPI'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import ProductPricingGuide from '../../components/farmer/ProductPricingGuide'
-import ShelfLifeInput from '../../components/farmer/ShelfLifeInput'
-import CostChartReference from '../../components/farmer/CostChartReference'
 import './ProductManagement.css'
 
 const ProductManagement = () => {
@@ -27,15 +24,14 @@ const ProductManagement = () => {
     name: '',
     category: 'vegetables',
     description: '',
-    priceperunit: '',
+    price: '',
     unit: 'kg',
     stockquantity: '',
     minorderquantity: '',
     isavailable: true,
     images: [],
     harvestdate: '',
-    expirydate: '',
-    shelfLife: ''
+    expirydate: ''
   })
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
@@ -159,10 +155,9 @@ const ProductManagement = () => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
-    const imageUrls = files.map(file => URL.createObjectURL(file))
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, ...imageUrls]
+      images: [...prev.images, ...files]
     }))
   }
 
@@ -173,67 +168,12 @@ const ProductManagement = () => {
     }))
   }
 
-  const validateProductPrice = async (productName, price) => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token || !productName || !price) {
-        return { valid: true, message: 'Validation skipped' }
-      }
-
-      const response = await fetch(`/api/cost-chart/pricing/${encodeURIComponent(productName.toLowerCase())}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      const data = await response.json()
-      
-      if (response.ok && data.success && data.data) {
-        const pricing = data.data
-        const minPrice = parseFloat(pricing.min_price)
-        const maxPrice = parseFloat(pricing.max_price)
-        
-        if (price < minPrice) {
-          return { 
-            valid: false, 
-            message: `Price is too low! Minimum allowed price is ₹${minPrice} (${pricing.unit}). Current price: ₹${price}` 
-          }
-        }
-        
-        if (price > maxPrice) {
-          return { 
-            valid: false, 
-            message: `Price is too high! Maximum allowed price is ₹${maxPrice} (${pricing.unit}). Current price: ₹${price}` 
-          }
-        }
-        
-        return { valid: true, message: 'Price is within acceptable range' }
-      } else {
-        // If no pricing info found, allow the price but warn
-        return { valid: true, message: 'No pricing reference found for this vegetable' }
-      }
-    } catch (error) {
-      console.error('Error validating price:', error)
-      // On validation error, allow the price but don't block
-      return { valid: true, message: 'Price validation unavailable' }
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormLoading(true)
     setFormError('')
 
     try {
-      // Validate price against cost chart before submitting
-      const priceValidation = await validateProductPrice(formData.name, parseFloat(formData.price))
-      if (!priceValidation.valid) {
-        setFormError(priceValidation.message || 'Price validation failed. Please check the pricing guidelines.')
-        setFormLoading(false)
-        return
-      }
-
       // Prepare product data for API with correct field names
       const productData = {
         name: formData.name,
@@ -241,19 +181,18 @@ const ProductManagement = () => {
         description: formData.description,
         price: parseFloat(formData.price),
         unit: formData.unit,
-        stockQuantity: parseInt(formData.stockQuantity),
-        minimumOrder: parseInt(formData.minimumOrder),
-        isAvailable: formData.isAvailable,
-        images: formData.images,
-        harvestDate: formData.harvestDate,
-        expiryDate: formData.expiryDate
+        stockQuantity: parseInt(formData.stockquantity),
+        minimumOrder: parseInt(formData.minorderquantity),
+        isAvailable: formData.isavailable,
+        harvestDate: formData.harvestdate,
+        expiryDate: formData.expirydate
       }
 
       let response
       if (isEditMode) {
         response = await farmerAPI.updateProduct(id, productData)
       } else {
-        response = await farmerAPI.addProduct(productData)
+        response = await farmerAPI.addProduct(productData, formData.images)
       }
 
       // Reset form
@@ -263,12 +202,12 @@ const ProductManagement = () => {
         description: '',
         price: '',
         unit: 'kg',
-        stockQuantity: '',
-        minimumOrder: '',
-        isAvailable: true,
+        stockquantity: '',
+        minorderquantity: '',
+        isavailable: true,
         images: [],
-        harvestDate: '',
-        expiryDate: ''
+        harvestdate: '',
+        expirydate: ''
       })
       
       // Show success message and redirect
@@ -329,9 +268,7 @@ const ProductManagement = () => {
               </div>
             )}
             
-            {/* Cost Chart Reference */}
-            <CostChartReference />
-            
+                        
             <form onSubmit={handleSubmit} className="product-form">
               <div className="form-grid">
                 {/* Left Column */}
@@ -427,37 +364,28 @@ const ProductManagement = () => {
                     </div>
                   </div>
                   
-                  {/* Product Pricing Guide */}
-                  <div className="form-section">
-                    <ProductPricingGuide 
-                      vegetableName={formData.name}
-                      currentPrice={formData.price}
-                      onPriceChange={(price) => setFormData(prev => ({ ...prev, price }))}
-                    />
-                  </div>
-                  
+                                    
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="stockQuantity">Stock Quantity *</label>
+                      <label htmlFor="stockquantity">Stock Quantity *</label>
                       <input
                         type="number"
-                        id="stockQuantity"
-                        name="stockQuantity"
-                        value={formData.stockQuantity}
+                        id="stockquantity"
+                        name="stockquantity"
+                        value={formData.stockquantity}
                         onChange={handleInputChange}
                         required
                         min="0"
-                        placeholder="Available quantity"
                       />
                     </div>
                     
                     <div className="form-group">
-                      <label htmlFor="minimumOrder">Minimum Order *</label>
+                      <label htmlFor="minorderquantity">Minimum Order *</label>
                       <input
                         type="number"
-                        id="minimumOrder"
-                        name="minimumOrder"
-                        value={formData.minimumOrder}
+                        id="minorderquantity"
+                        name="minorderquantity"
+                        value={formData.minorderquantity}
                         onChange={handleInputChange}
                         required
                         min="0"
@@ -467,24 +395,17 @@ const ProductManagement = () => {
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="harvestDate">Harvest Date</label>
+                    <label htmlFor="harvestdate">Harvest Date</label>
                     <input
                       type="date"
-                      id="harvestDate"
-                      name="harvestDate"
-                      value={formData.harvestDate}
+                      id="harvestdate"
+                      name="harvestdate"
+                      value={formData.harvestdate}
                       onChange={handleInputChange}
                     />
                   </div>
                   
-                  {/* Enhanced Shelf Life Input */}
-                  <div className="form-section">
-                    <ShelfLifeInput 
-                      value={formData.shelfLife}
-                      onChange={(shelfLife) => setFormData(prev => ({ ...prev, shelfLife }))}
-                    />
-                  </div>
-                </div>
+                                  </div>
               </div>
               
               {/* Product Images */}
@@ -494,7 +415,10 @@ const ProductManagement = () => {
                   <div className="uploaded-images">
                     {formData.images.map((image, index) => (
                       <div key={index} className="image-preview">
-                        <img src={image} alt={`Product ${index + 1}`} />
+                        <img 
+                          src={image instanceof File ? URL.createObjectURL(image) : image} 
+                          alt={`Product ${index + 1}`} 
+                        />
                         <button
                           type="button"
                           className="remove-image"
@@ -540,8 +464,8 @@ const ProductManagement = () => {
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
-                    name="isAvailable"
-                    checked={formData.isAvailable}
+                    name="isavailable"
+                    checked={formData.isavailable}
                     onChange={handleInputChange}
                   />
                   Product is available for sale
@@ -648,78 +572,45 @@ const ProductManagement = () => {
                   alt={product.name}
                   onError={(e) => e.target.src = '/placeholder-product.jpg'}
                 />
-                <div className={`availability-badge ${product.isavailable ? 'available' : 'unavailable'}`}>
-                  {product.isavailable ? '✅ Available' : '❌ Out of Stock'}
-                </div>
               </div>
-              
+              <div className={`availability-badge ${product.isavailable ? 'available' : 'unavailable'}`}>
+                {product.isavailable ? '✅ Available' : '❌ Out of Stock'}
+              </div>
               <div className="product-info">
-                <h3>{product.name}</h3>
-                <p className="product-category">{product.category}</p>
-                <p className="product-description">{product.description}</p>
-                
-                <div className="product-details">
-                  <div className="detail-item">
-                    <span className="label">Price:</span>
-                    <span className="value">₹{product.priceperunit}/{product.unit}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="label">Stock:</span>
-                    <span className={`value ${product.stockquantity === 0 ? 'out-of-stock' : ''}`}>
-                      {product.stockquantity} {product.unit}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="product-actions">
-                <Link to={`/farmer/products/edit/${product._id}`} className="btn btn-outline">
-                  ✏️ Edit
-                </Link>
-                <button
-                  onClick={() => toggleAvailability(product._id)}
-                  className={`btn ${product.isavailable ? 'btn-warning' : 'btn-success'}`}
-                >
-                  {product.isavailable ? '⏸️ Unlist' : '📢 List'}
-                </button>
-                <button
-                  onClick={() => handleDeleteProduct(product)}
-                  className="btn btn-danger"
-                >
-                  🗑️ Delete
-                </button>
-              </div>
-
-              {/* Reviews Section */}
-              <div className="product-reviews">
-                <div className="reviews-header">
-                  <h4>⭐ Customer Reviews</h4>
-                  <Link to={`/farmer/products/${product._id}/reviews`} className="view-all-reviews">
-                    View All Reviews →
+                <p><strong>Category:</strong> {product.category || 'N/A'}</p>
+                <p><strong>Price:</strong> ₹{product.priceperunit || 0}/{product.unit || 'unit'}</p>
+                <p><strong>Stock:</strong> {product.stockquantity || 0} {product.unit || 'units'}</p>
+                <p><strong>Min Order:</strong> {product.minorderquantity || 1} {product.unit || 'units'}</p>
+                <p><strong>Added:</strong> {product.createdat ? new Date(product.createdat).toLocaleDateString() : 'N/A'}</p>
+                {product.ratingaverage > 0 && (
+                  <p><strong>Rating:</strong> {'\u2b50'} {product.ratingaverage.toFixed(1)} ({product.ratingcount} reviews)</p>
+                )}
+                <div className="product-actions">
+                  <Link to={`/farmer/products/edit/${product._id}`} className="btn btn-outline">
+                    ✏️ Edit
                   </Link>
-                </div>
-                <div className="reviews-summary">
-                  <div className="rating-display">
-                    <span className="rating-score">
-                      {productReviews[product._id]?.length > 0 
-                        ? (productReviews[product._id].reduce((acc, review) => acc + review.rating, 0) / productReviews[product._id].length).toFixed(1)
-                        : '0.0'
-                      }
-                    </span>
-                    <div className="rating-stars">
-                      {productReviews[product._id]?.length > 0 
-                        ? Array.from({ length: 5 }, (_, i) => 
-                            i < Math.round(productReviews[product._id].reduce((acc, review) => acc + review.rating, 0) / productReviews[product._id].length) 
-                              ? '⭐' 
-                              : '☆'
-                          ).join('')
-                        : '☆☆☆☆☆'
-                      }
-                    </div>
-                    <span className="review-count">
-                      ({productReviews[product._id]?.length || 0} reviews)
-                    </span>
+                  <button
+                    onClick={() => toggleAvailability(product._id)}
+                    className={`btn ${product.isavailable ? 'btn-warning' : 'btn-success'}`}
+                  >
+                    {product.isavailable ? '⏸️ Unlist' : '📢 List'}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProduct(product)}
+                    className="btn btn-danger"
+                  >
+                    🗑️ Delete
+                  </button>
+                  <div className="rating">
+                    {Array.from({ length: 5 }, (_, i) => 
+                      i < Math.round(productReviews[product._id]?.reduce((acc, review) => acc + review.rating, 0) / productReviews[product._id]?.length || 0) 
+                      ? '⭐' 
+                      : '☆'
+                    ).join('')}
                   </div>
+                  <span className="review-count">
+                      {productReviews[product._id]?.length || 0} reviews
+                    </span>
                 </div>
                 <div className="recent-reviews">
                   {productReviews[product._id]?.length > 0 ? (

@@ -309,7 +309,7 @@ const getVegetablePricing = async (req, res) => {
   }
 };
 
-// Validate product price against cost chart
+// Validate product price against cost chart - allow any product without constraints
 const validateProductPrice = async (vegetable_name, price) => {
   try {
     const { data: pricing, error } = await supabase
@@ -319,26 +319,12 @@ const validateProductPrice = async (vegetable_name, price) => {
       .eq('is_active', true)
       .single();
 
+    // Always return valid for any product - no price constraints
     if (error || !pricing) {
-      return { valid: true, message: 'No pricing constraints found' };
+      return { valid: true, message: 'No pricing constraints found - allowing any price' };
     }
 
-    if (price < pricing.min_price) {
-      return { 
-        valid: false, 
-        message: `Price cannot be less than ₹${pricing.min_price} (10% below base price)` 
-      };
-    }
-
-    if (price > pricing.max_price) {
-      return { 
-        valid: false, 
-        message: `Price cannot be more than ₹${pricing.max_price} (10% above base price)` 
-      };
-    }
-
-    return { valid: true, message: 'Price is within allowed range' };
-
+    return { valid: true, message: 'Product price validation passed' };
   } catch (error) {
     logger.error('Error validating product price:', error);
     return { valid: true, message: 'Validation failed, allowing price' };

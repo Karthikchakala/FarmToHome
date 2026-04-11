@@ -3,8 +3,31 @@ import api from './api'
 // Farmer Product API calls
 export const farmerAPI = {
   // Add product
-  addProduct: (productData) => {
-    return api.post('/farmer/products', productData)
+  addProduct: (productData, images) => {
+    const formData = new FormData();
+    
+    // Add product data
+    Object.keys(productData).forEach(key => {
+      if (key !== 'images') {
+        formData.append(key, productData[key]);
+      }
+    });
+    
+    // Add image files
+    if (images && images.length > 0) {
+      images.forEach(image => {
+        // Handle both File objects and blob URLs
+        if (image instanceof File) {
+          formData.append('images', image);
+        }
+      });
+    }
+    
+    return api.post('/farmer/products', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
   // Update product

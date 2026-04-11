@@ -220,9 +220,25 @@ const CustomerProducts = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      setAddingToCart(prev => ({ ...prev, [product._id]: true }))
+      console.log('DEBUG: Adding to cart, product data:', product);
+      console.log('DEBUG: Product ID fields:', {
+        '_id': product._id,
+        'id': product.id,
+        'productid': product.productid
+      });
       
-      const response = await cartAPI.addToCart(product._id, 1)
+      const productId = product._id || product.id || product.productid;
+      
+      if (!productId) {
+        console.error('ERROR: No product ID found in product data');
+        setToastMessage('❌ Product ID missing')
+        setShowToast(true)
+        return;
+      }
+      
+      setAddingToCart(prev => ({ ...prev, [productId]: true }))
+      
+      const response = await cartAPI.addToCart(productId, 1)
       
       if (response.data.success) {
         setAddedProducts(prev => ({ ...prev, [product._id]: true }))
@@ -639,16 +655,16 @@ const CustomerProducts = () => {
                 </Link>
                 <button 
                   className={`btn ${addedProducts[product._id] ? 'btn-success' : 'btn-primary'}`}
-                  disabled={!product.isavailable || addingToCart[product._id] || addedProducts[product._id]}
+                  disabled={!product.isavailable || product.stockquantity <= 0 || addingToCart[product._id] || addedProducts[product._id]}
                   onClick={() => handleAddToCart(product)}
                 >
                   {addingToCart[product._id] ? 'Adding...' : 
                    addedProducts[product._id] ? '✅ Added to cart' : 
-                   (product.isavailable ? 'Add to Cart' : 'Out of Stock')}
+                   (product.isavailable && product.stockquantity > 0 ? 'Add to Cart' : 'Out of Stock')}
                 </button>
                 <button 
                   className="btn btn-subscription"
-                  disabled={!product.isavailable}
+                  disabled={!product.isavailable || product.stockquantity <= 0}
                   onClick={() => handleOpenSubscriptionModal(product)}
                 >
                   🔄 Subscribe

@@ -19,6 +19,8 @@ const placeOrder = asyncHandler(async (req, res) => {
   const { deliveryAddress, paymentMethod = 'COD', notes } = req.body;
 
   console.log('DEBUG: Received order request:', { deliveryAddress, paymentMethod, notes, userId });
+  console.log('DEBUG: Payment method value:', paymentMethod, 'Type:', typeof paymentMethod);
+  console.log('DEBUG: Creating orders for payment method:', paymentMethod);
 
   // Validate input
   if (!deliveryAddress) {
@@ -203,6 +205,8 @@ const placeOrder = asyncHandler(async (req, res) => {
       const orderTotal = farmerOrder.subtotal + farmerOrder.deliveryCharge;
       const orderPlatformCommission = Math.round(farmerOrder.subtotal * 0.05);
 
+      console.log('DEBUG: Inserting order with payment method:', paymentMethod);
+
       const { data: newOrder, error: insertError } = await supabase
         .from('orders')
         .insert({
@@ -225,6 +229,8 @@ const placeOrder = asyncHandler(async (req, res) => {
         })
         .select()
         .single();
+
+      console.log('DEBUG: Order created with payment method:', newOrder.paymentmethod);
 
       if (insertError) {
         logger.error('Error creating order:', insertError);
@@ -386,6 +392,9 @@ const placeOrder = asyncHandler(async (req, res) => {
     }
 
     logger.info(`Order placed successfully: userId=${userId}, orderCount=${orders.length}, totalAmount=${finalAmount}`);
+
+    console.log('DEBUG: Created orders with IDs:', orders.map(o => o._id));
+    console.log('DEBUG: Returning orders to frontend:', orders.map(o => ({ _id: o._id, ordernumber: o.ordernumber })));
 
     return responseHelper.created(res, {
       orders,
@@ -553,7 +562,26 @@ const getOrderById = async (req, res, next) => {
     }
 
     const order = result.rows[0];
-    order.items = order.items ? JSON.parse(order.items) : [];
+    
+    // Handle items field - check if it's already an object or needs parsing
+    if (order.items) {
+      if (typeof order.items === 'string') {
+        try {
+          order.items = JSON.parse(order.items);
+        } catch (parseError) {
+          console.warn('Failed to parse order.items:', parseError.message);
+          order.items = [];
+        }
+      } else if (typeof order.items === 'object') {
+        // It's already an object, no need to parse
+        order.items = order.items;
+      } else {
+        // Unexpected type, default to empty array
+        order.items = [];
+      }
+    } else {
+      order.items = [];
+    }
 
     res.status(200).json({
       success: true,
@@ -612,7 +640,23 @@ const cancelOrder = async (req, res, next) => {
       `, [id, reason || 'User requested cancellation']);
 
       // Restore product stock
-      const items = order.items ? JSON.parse(order.items) : [];
+      let items = [];
+      if (order.items) {
+        if (typeof order.items === 'string') {
+          try {
+            items = JSON.parse(order.items);
+          } catch (parseError) {
+            console.warn('Failed to parse order.items for stock restoration:', parseError.message);
+            items = [];
+          }
+        } else if (typeof order.items === 'object') {
+          // It's already an object, use it directly
+          items = order.items;
+        } else {
+          // Unexpected type, default to empty array
+          items = [];
+        }
+      }
       for (const item of items) {
         await client.query(`
           UPDATE products 

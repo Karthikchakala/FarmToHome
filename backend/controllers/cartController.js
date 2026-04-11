@@ -8,8 +8,12 @@ const addToCart = async (req, res, next) => {
     const userId = req.user._id;
     const { productId, quantity = 1 } = req.body;
 
+    console.log('DEBUG: Cart add request:', { userId, productId, quantity });
+    console.log('DEBUG: Request body:', req.body);
+
     // Validate input
     if (!productId) {
+      console.log('ERROR: Product ID is missing');
       return res.status(400).json({
         success: false,
         error: 'Product ID is required'
@@ -17,6 +21,7 @@ const addToCart = async (req, res, next) => {
     }
 
     if (quantity < 1) {
+      console.log('ERROR: Invalid quantity:', quantity);
       return res.status(400).json({
         success: false,
         error: 'Quantity must be at least 1'
@@ -24,6 +29,7 @@ const addToCart = async (req, res, next) => {
     }
 
     // Check if product exists and is available using Supabase
+    console.log('DEBUG: Checking product existence:', productId);
     const { data: product, error: productError } = await supabase
       .from('products')
       .select('_id, name, priceperunit, stockquantity, isavailable')
@@ -31,7 +37,10 @@ const addToCart = async (req, res, next) => {
       .eq('isavailable', true)
       .single();
 
+    console.log('DEBUG: Product query result:', { product, productError });
+
     if (productError || !product) {
+      console.log('ERROR: Product not found or not available:', productError);
       return res.status(404).json({
         success: false,
         error: 'Product not found or not available'
@@ -39,10 +48,12 @@ const addToCart = async (req, res, next) => {
     }
 
     // Check if requested quantity is available
+    console.log('DEBUG: Stock check:', { requested: quantity, available: product.stockquantity });
     if (product.stockquantity < quantity) {
+      console.log('ERROR: Insufficient stock');
       return res.status(400).json({
         success: false,
-        error: `Only ${product.stockquantity} units available`
+        error: `Only ${product.stockquantity} units available. Cannot add ${quantity} units.`
       });
     }
 

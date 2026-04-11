@@ -13,245 +13,167 @@ const PaymentMethod = ({
   onPaymentError,
   onPaymentCancel 
 }) => {
+
   const [selectedMethod, setSelectedMethod] = useState('COD')
   const [processing, setProcessing] = useState(false)
-  const [razorpayOrderId, setRazorpayOrderId] = useState(null)
-  
+
   const { isLoaded, openCheckout } = useRazorpay()
   const { success, error: showError } = useToast()
 
-  const handlePaymentMethodChange = (method) => {
-    setSelectedMethod(method)
-  }
-
-  const handleCODPayment = async () => {
-    try {
-      setProcessing(true)
-      
-      // For COD, we can directly place the order
-      if (onPaymentSuccess) {
-        await onPaymentSuccess({
-          paymentMethod: 'COD',
-          status: 'PENDING'
-        })
-      }
-      
-      success('Order placed successfully! Payment will be collected on delivery.')
-      
-    } catch (error) {
-      showError('Failed to place order. Please try again.')
-      if (onPaymentError) {
-        onPaymentError(error)
-      }
-    } finally {
-      setProcessing(false)
-    }
-  }
-
   const handleOnlinePayment = async () => {
     if (!isLoaded) {
-      showError('Payment system is loading. Please wait...')
+      showError('Payment system loading...')
       return
     }
 
     try {
       setProcessing(true)
 
-      // Create Razorpay order
-      const response = await paymentAPI.createPaymentOrder({
-        orderId: order.id,
-        amount: order.totalAmount
-      })
+      console.log("=== FRONTEND DEBUG ===");
+      console.log("Full order object:", order);
+      console.log("Order ID being sent:", order.id || order._id);
+      console.log("Amount (totalAmount):", order.totalAmount);
+      console.log("Amount (totalamount):", order.totalamount);
 
-      if (response.data.success) {
-        const { razorpayOrderId } = response.data.data
-        setRazorpayOrderId(razorpayOrderId)
+      const payload = {
+        orderId: order.id || order._id,
+        amount: order.totalAmount || order.totalamount || cartData?.summary?.finalAmount || 0
+      };
 
-        // Generate payment options
-        const paymentOptions = {
-          order_id: razorpayOrderId,
-          amount: order.totalAmount * 100, // Convert to paise
-          currency: 'INR',
-          name: 'Farm to Table',
-          description: `Payment for order ${order.orderNumber}`,
-          image: '/logo.png',
-          prefill: {
-            name: order.customerName || '',
-            email: order.customerEmail || '',
-            contact: order.customerPhone || ''
-          },
-          notes: {
-            orderId: order.id,
-            orderNumber: order.orderNumber,
-            customerName: order.customerName
-          },
-          theme: {
-            color: '#2c7a2c'
-          }
+      console.log("Payload sent to backend:", payload);
+
+      // ✅ STEP 1: Create order
+      let response;
+      try {
+        response = await paymentAPI.createPaymentOrder(payload)
+      } catch (error) {
+        console.error('ERROR: API call failed:', error);
+        console.error('ERROR: Response data:', error.response?.data);
+        console.error('ERROR: Response status:', error.response?.status);
+        throw error;
+      }
+
+      console.log("STEP 1 - FULL BACKEND RESPONSE:", response.data)
+
+      if (!response.data.success) {
+        console.error('ERROR: Backend returned error:', response.data.error);
+        throw new Error(response.data.error || 'Failed to create payment order');
+      }
+
+      const responseData = response.data.data || response.data
+
+      console.log("STEP 1.1 - EXTRACTED DATA:", responseData)
+
+      // ✅ SAFE extraction
+      const razorpayOrderId =
+        responseData.razorpayOrderId ||
+        responseData.orderId
+
+      console.log("STEP 2 - ORDER ID FROM BACKEND:", razorpayOrderId)
+
+      if (!razorpayOrderId) {
+        throw new Error("❌ No razorpayOrderId received from backend")
+      }
+
+      // ✅ STEP 2: Prepare options
+      const paymentOptions = {
+        order_id: razorpayOrderId,
+        amount: order.totalAmount * 100,
+        currency: 'INR',
+        name: 'Farm to Table',
+        description: `Payment for order ${order.orderNumber}`,
+
+        prefill: {
+          name: order.customerName || '',
+          email: order.customerEmail || '',
+          contact: order.customerPhone || ''
+        },
+
+        notes: {
+          orderId: order.id || order._id
         }
+      }
 
-        // Open Razorpay checkout
-        const response = await openCheckout(paymentOptions)
+      console.log("STEP 3 - PAYMENT OPTIONS:", paymentOptions)
 
-        // Verify payment
-        const verificationResponse = await paymentAPI.verifyPayment({
-          razorpayOrderId: response.razorpay_order_id,
-          razorpayPaymentId: response.razorpay_payment_id,
-          razorpaySignature: response.razorpay_signature,
-          orderId: order.id
+      // ✅ STEP 3: Open Razorpay
+      const paymentResponse = await openCheckout(paymentOptions)
+
+      console.log("STEP 4 - FINAL PAYMENT RESPONSE:", paymentResponse)
+
+      // ❌ STOP if missing
+      if (!paymentResponse.razorpay_order_id) {
+        throw new Error("❌ razorpay_order_id missing from Razorpay")
+      }
+
+      // ✅ STEP 4: Verify payment (FINAL FIX)
+      const verificationData = {
+        razorpayOrderId: paymentResponse.razorpay_order_id,
+        razorpayPaymentId: paymentResponse.razorpay_payment_id,
+        razorpaySignature: paymentResponse.razorpay_signature,
+        orderId: order.id || order._id
+      }
+
+      console.log("STEP 5 - VERIFY DATA:", verificationData)
+
+      const verifyRes = await paymentAPI.verifyPayment(verificationData)
+
+      if (verifyRes.data.success) {
+        success('Payment successful!')
+
+        await onPaymentSuccess?.({
+          paymentMethod: 'ONLINE',
+          status: 'PAID',
+          paymentId: verifyRes.data.data.payment.id,
+          transactionId: verifyRes.data.data.payment.transactionId
         })
-
-        if (verificationResponse.data.success) {
-          success('Payment successful! Your order has been placed.')
-          
-          if (onPaymentSuccess) {
-            await onPaymentSuccess({
-              paymentMethod: 'ONLINE',
-              status: 'PAID',
-              paymentId: verificationResponse.data.data.payment.id,
-              transactionId: verificationResponse.data.data.payment.transactionId
-            })
-          }
-        }
-
-      } else {
-        throw new Error('Failed to create payment order')
       }
 
     } catch (error) {
-      console.error('Payment error:', error)
-      
+      console.error("❌ PAYMENT ERROR:", error)
+
       if (error.message === 'Payment cancelled by user') {
-        if (onPaymentCancel) {
-          onPaymentCancel(error)
-        }
+        onPaymentCancel?.(error)
       } else {
-        showError('Payment failed. Please try again.')
-        if (onPaymentError) {
-          onPaymentError(error)
-        }
+        showError(error.message || 'Payment failed')
+        onPaymentError?.(error)
       }
+
     } finally {
       setProcessing(false)
     }
   }
 
-  const handlePayment = () => {
-    if (selectedMethod === 'COD') {
-      handleCODPayment()
-    } else if (selectedMethod === 'ONLINE') {
-      handleOnlinePayment()
-    }
-  }
-
   return (
     <Card className="payment-method">
-      <div className="payment-header">
-        <h2>Select Payment Method</h2>
-        <p>Choose how you'd like to pay for your order</p>
-      </div>
 
-      <div className="payment-options">
-        <div className="payment-option">
-          <label className="payment-option-label">
-            <input
-              type="radio"
-              name="paymentMethod"
-              value="COD"
-              checked={selectedMethod === 'COD'}
-              onChange={() => handlePaymentMethodChange('COD')}
-              disabled={processing}
-            />
-            <div className="payment-option-content">
-              <div className="payment-option-info">
-                <h3>Cash on Delivery</h3>
-                <p>Pay when you receive your order</p>
-              </div>
-              <div className="payment-option-icon">💵</div>
-            </div>
-          </label>
-        </div>
+      <h2>Select Payment Method</h2>
 
-        <div className="payment-option">
-          <label className="payment-option-label">
-            <input
-              type="radio"
-              name="paymentMethod"
-              value="ONLINE"
-              checked={selectedMethod === 'ONLINE'}
-              onChange={() => handlePaymentMethodChange('ONLINE')}
-              disabled={processing}
-            />
-            <div className="payment-option-content">
-              <div className="payment-option-info">
-                <h3>Online Payment</h3>
-                <p>Pay securely with Razorpay</p>
-                <div className="payment-methods">
-                  <span className="method-badge">Cards</span>
-                  <span className="method-badge">UPI</span>
-                  <span className="method-badge">Net Banking</span>
-                  <span className="method-badge">Wallet</span>
-                </div>
-              </div>
-              <div className="payment-option-icon">💳</div>
-            </div>
-          </label>
-        </div>
-      </div>
+      <label>
+        <input
+          type="radio"
+          checked={selectedMethod === 'COD'}
+          onChange={() => setSelectedMethod('COD')}
+        />
+        COD
+      </label>
 
-      <div className="payment-summary">
-        <div className="summary-row">
-          <span>Order Total:</span>
-          <span>₹{order.totalAmount}</span>
-        </div>
-        {selectedMethod === 'ONLINE' && (
-          <div className="summary-row">
-            <span>Convenience Fee:</span>
-            <span>₹0</span>
-          </div>
-        )}
-        <div className="summary-row total">
-          <span>Total Amount:</span>
-          <span>₹{order.totalAmount}</span>
-        </div>
-      </div>
+      <label>
+        <input
+          type="radio"
+          checked={selectedMethod === 'ONLINE'}
+          onChange={() => setSelectedMethod('ONLINE')}
+        />
+        Online
+      </label>
 
-      <div className="payment-actions">
-        <Button
-          variant="primary"
-          size="large"
-          onClick={handlePayment}
-          loading={processing}
-          disabled={processing || (selectedMethod === 'ONLINE' && !isLoaded)}
-          fullWidth
-        >
-          {processing ? (
-            <LoadingSpinner size="small" text="" />
-          ) : selectedMethod === 'COD' ? (
-            'Place Order (COD)'
-          ) : (
-            'Pay Online'
-          )}
-        </Button>
-      </div>
+      <h3>Total: ₹{order.totalAmount}</h3>
 
-      {selectedMethod === 'ONLINE' && !isLoaded && (
-        <div className="payment-loading">
-          <LoadingSpinner size="small" text="Loading payment system..." />
-        </div>
-      )}
+      <Button onClick={handleOnlinePayment} disabled={processing}>
+        {processing ? 'Processing...' : 'Pay Now'}
+      </Button>
 
-      <div className="payment-security">
-        <div className="security-info">
-          <h4>🔒 Secure Payment</h4>
-          <ul>
-            <li>256-bit SSL encryption</li>
-            <li>PCI DSS compliant</li>
-            <li>Secure payment gateway</li>
-            <li>Instant confirmation</li>
-          </ul>
-        </div>
-      </div>
+      {!isLoaded && <p>Loading Razorpay...</p>}
     </Card>
   )
 }

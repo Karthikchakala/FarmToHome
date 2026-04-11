@@ -107,20 +107,9 @@ const addProduct = [
       throw new ValidationError(priceValidation.message);
     }
 
-    // Validate shelf life
-    let shelfLifeExpiry = null;
-    if (shelfLife !== undefined && shelfLife !== null) {
-      if (parseInt(shelfLife) <= 0) {
-        throw new ValidationError('Shelf life must be greater than 0 days');
-      }
-      if (parseInt(shelfLife) > 365) {
-        throw new ValidationError('Shelf life cannot exceed 365 days');
-      }
-      
-      // Calculate shelf life expiry from current date
-      const shelfLifeExpiryDate = new Date();
-      shelfLifeExpiryDate.setDate(shelfLifeExpiryDate.getDate() + parseInt(shelfLife));
-      shelfLifeExpiry = shelfLifeExpiryDate.toISOString();
+    // Validate expiry date
+    if (expiryDate && new Date(expiryDate) <= new Date()) {
+      throw new ValidationError('Expiry date must be in the future');
     }
 
     // Create product using Supabase with correct farmerid
@@ -136,9 +125,7 @@ const addProduct = [
       images: allImages, // Use the combined images array
       isavailable: isAvailable,
       harvestdate: harvestDate || null,
-      expirydate: expiryDate || null,
-      shelf_life: shelfLife ? parseInt(shelfLife) : null,
-      shelf_life_expiry: shelfLifeExpiry
+      expirydate: expiryDate || null
     };
 
     console.log('Product data prepared for Supabase:', productData);
