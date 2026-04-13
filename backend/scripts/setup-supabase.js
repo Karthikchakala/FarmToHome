@@ -1,160 +1,90 @@
 #!/usr/bin/env node
 
-// Supabase Database Setup Script
-// This script helps set up the Farm to Table database schema on Supabase
+// Supabase database setup/check script.
+// This version uses the Supabase client for verification instead of a raw
+// postgres connection string. It can confirm whether the smart-agri tables
+// exist, but the SQL migration still needs to be applied in Supabase SQL
+// editor or through your preferred migration workflow.
 
 require('dotenv').config();
-const { Pool } = require('pg');
-const fs = require('fs');
-const path = require('path');
+const supabase = require('../config/supabaseClient');
 
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
+const REQUIRED_TABLES = ['users', 'fields', 'plant_scans'];
+
+const checkTable = async (tableName) => {
+  const { error } = await supabase.from(tableName).select('*').limit(1);
+  if (!error) {
+    return { table: tableName, exists: true };
   }
-});
 
-// SQL schema files
-const schemaFiles = [
-  '01-users.sql',
-  '02-products.sql',
-  '03-orders.sql',
-  '04-subscriptions.sql',
-  '05-notifications.sql',
-  '06-reviews.sql',
-  '07-chat.sql',
-  '08-indexes.sql'
-];
-
-// Execute SQL file
-const executeSQLFile = async (filePath) => {
-  try {
-    const sql = fs.readFileSync(filePath, 'utf8');
-    await pool.query(sql);
-    console.log(`✅ Executed: ${path.basename(filePath)}`);
-  } catch (error) {
-    console.error(`❌ Error executing ${path.basename(filePath)}:`, error.message);
-    throw error;
+  const text = `${error.code || ''} ${error.message || ''}`.toLowerCase();
+  if (error.code === 'PGRST205' || text.includes('schema cache') || text.includes('could not find the table')) {
+    return { table: tableName, exists: false, error };
   }
+
+  throw error;
 };
 
-// Enable PostGIS extensions
-const enablePostGIS = async () => {
-  try {
-    await pool.query('CREATE EXTENSION IF NOT EXISTS postgis');
-    await pool.query('CREATE EXTENSION IF NOT EXISTS postgis_topology');
-    console.log('✅ PostGIS extensions enabled');
-  } catch (error) {
-    console.error('❌ Failed to enable PostGIS:', error.message);
-    throw error;
-  }
-};
-
-// Create database schema
-const createSchema = async () => {
-  try {
-    console.log('🗄️  Creating database schema...');
-    
-    // Enable PostGIS
-    await enablePostGIS();
-    
-    // Execute schema files
-    for (const file of schemaFiles) {
-      const filePath = path.join(__dirname, '../schema', file);
-      if (fs.existsSync(filePath)) {
-        await executeSQLFile(filePath);
-      } else {
-        console.warn(`⚠️  Schema file not found: ${file}`);
-      }
-    }
-    
-    console.log('✅ Database schema created successfully');
-  } catch (error) {
-    console.error('❌ Schema creation failed:', error.message);
-    throw error;
-  }
-};
-
-// Verify setup
 const verifySetup = async () => {
-  try {
-    console.log('🔍 Verifying database setup...');
-    
-    // Check tables exist
-    const tablesQuery = `
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public' 
-      ORDER BY table_name
-    `;
-    
-    const result = await pool.query(tablesQuery);
-    const tables = result.rows.map(row => row.table_name);
-    
-    console.log('📋 Tables created:', tables);
-    
-    // Check PostGIS is enabled
-    const postgisCheck = await pool.query('SELECT PostGIS_Version()');
-    console.log('🗺️  PostGIS version:', postgisCheck.rows[0].postgis_version);
-    
-    // Check indexes
-    const indexesQuery = `
-      SELECT indexname, tablename 
-      FROM pg_indexes 
-      WHERE schemaname = 'public' 
-      ORDER BY tablename, indexname
-    `;
-    
-    const indexes = await pool.query(indexesQuery);
-    console.log(`📊 Created ${indexes.rows.length} indexes`);
-    
-    console.log('✅ Database verification complete');
-  } catch (error) {
-    console.error('❌ Verification failed:', error.message);
-    throw error;
+  console.log('🔍 Verifying Supabase tables via Supabase client...');
+
+  const results = [];
+  for (const table of REQUIRED_TABLES) {
+    try {
+      const result = await checkTable(table);
+      results.push(result);
+    } catch (error) {
+      console.error(`❌ Error checking ${table}:`, error.message);
+      throw error;
+    }
   }
+
+  const missing = results.filter((item) => !item.exists);
+  if (missing.length) {
+    console.warn('⚠️ Missing tables detected:', missing.map((item) => item.table).join(', '));
+    console.warn('Apply the migration in Supabase SQL editor using:');
+    console.warn('  backend/database/migrations/2026-04-12-smart-agri-features.sql');
+  } else {
+    console.log('✅ All required smart-agri tables are available.');
+  }
+
+  console.log('✅ Supabase verification complete');
+  return {
+    tables: results,
+    missing: missing.map((item) => item.table)
+  };
 };
 
-// Main setup function
 const setupSupabase = async () => {
   try {
-    console.log('🚀 Starting Supabase setup for Farm to Table...');
-    console.log(`📍 Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
-    
-    // Test connection
-    await pool.query('SELECT 1');
-    console.log('✅ Database connection established');
-    
-    // Create schema
-    await createSchema();
-    
-    // Verify setup
+    console.log('🚀 Starting Supabase setup check for Farm to Table...');
+    console.log(`📍 Supabase URL: ${process.env.SUPABASE_URL ? 'Configured' : 'Not configured'}`);
+    console.log(`🔑 Service role key: ${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Configured' : 'Not configured'}`);
+
+    const { error } = await supabase.from('users').select('_id').limit(1);
+    if (error) {
+      throw error;
+    }
+    console.log('✅ Supabase client connection successful');
+
     await verifySetup();
-    
-    console.log('🎉 Supabase setup completed successfully!');
+
+    console.log('🎉 Setup check completed successfully!');
     console.log('\n📝 Next steps:');
-    console.log('1. Update your .env file with actual Supabase credentials');
-    console.log('2. Run: npm start to start the server');
-    console.log('3. Visit: http://localhost:5000/health to verify');
-    
+    console.log('1. If any tables are missing, apply the migration in Supabase SQL editor');
+    console.log('2. Restart the backend');
+    console.log('3. Re-run this script to confirm the tables are present');
   } catch (error) {
-    console.error('❌ Setup failed:', error.message);
-    process.exit(1);
-  } finally {
-    await pool.end();
+    console.error('❌ Setup check failed:', error.message);
+    process.exitCode = 1;
   }
 };
 
-// Run setup if called directly
 if (require.main === module) {
   setupSupabase();
 }
 
 module.exports = {
   setupSupabase,
-  createSchema,
-  verifySetup,
-  enablePostGIS
+  verifySetup
 };

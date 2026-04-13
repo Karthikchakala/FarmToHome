@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm To Home | Premium Crop Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Left Sidebar: Controls -->
+        <aside class="glass-panel controls-sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-leaf logo-icon"></i>
+                <h1>Farm To Home</h1>
+            </div>
+            
+            <div class="control-section">
+                <h3><i class="fa-solid fa-map"></i> Land Details</h3>
+                <div class="input-group">
+                    <label for="land-area">Area (Acres)</label>
+                    <input type="number" id="land-area" value="50" min="1" max="1000">
+                </div>
+                <div class="input-group">
+                    <label for="soil-type">Soil Type</label>
+                    <select id="soil-type">
+                        <option value="loamy">Loamy (Ideal)</option>
+                        <option value="clay">Clay (Heavy)</option>
+                        <option value="sandy">Sandy (Drainage)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="soil-ph">Soil pH</label>
+                    <input type="range" id="soil-ph" min="4" max="9" step="0.5" value="6.5">
+                    <span class="value-display" id="ph-val">6.5</span>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3><i class="fa-solid fa-seedling"></i> Crop Type</h3>
+                <div class="crop-select-grid">
+                    <div class="crop-option active" data-crop="wheat">
+                        <i class="fa-solid fa-wheat-awn"></i>
+                        <span>Wheat</span>
+                    </div>
+                    <div class="crop-option" data-crop="corn">
+                        <i class="fa-brands fa-pagelines"></i>
+                        <span>Corn</span>
+                    </div>
+                    <div class="crop-option" data-crop="rice">
+                        <i class="fa-solid fa-bowl-rice"></i>
+                        <span>Rice</span>
+                    </div>
+                    <div class="crop-option" data-crop="tomato">
+                        <i class="fa-solid fa-apple-whole" style="color: #ef4444;"></i>
+                        <span>Tomato</span>
+                    </div>
+                    <div class="crop-option" data-crop="sugarcane">
+                        <i class="fa-solid fa-tree" style="color: #65a30d;"></i>
+                        <span>Sugar Cane</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3><i class="fa-solid fa-cloud-sun-rain"></i> Environment</h3>
+                <div class="input-group">
+                    <label for="env-rain">Rainfall Expected (mm/month)</label>
+                    <input type="range" id="env-rain" min="0" max="300" step="10" value="100">
+                    <span class="value-display" id="rain-val">100 mm</span>
+                </div>
+                <div class="input-group">
+                    <label for="env-temp">Average Temp (°C)</label>
+                    <input type="range" id="env-temp" min="-5" max="45" step="1" value="22">
+                    <span class="value-display" id="temp-val">22 °C</span>
+                </div>
+                <div class="input-group">
+                    <label for="env-humidity">Humidity (%)</label>
+                    <input type="range" id="env-humidity" min="0" max="100" step="1" value="60">
+                    <span class="value-display" id="humidity-val">60%</span>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3><i class="fa-solid fa-bolt"></i> Simulation Controls</h3>
+                
+                <div class="toggle-group">
+                    <label class="switch">
+                        <input type="checkbox" id="random-events" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Enable Random Events (Drought, Flood, Pests)</span>
+                </div>
+
+                <div class="input-group speed-control">
+                    <label for="sim-speed">Tick Speed (Days/Sec)</label>
+                    <input type="range" id="sim-speed" min="1" max="14" step="1" value="1">
+                    <span class="value-display" id="speed-val">1 day/sec</span>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="start-btn" class="btn primary"><i class="fa-solid fa-play"></i> Start Simulation</button>
+                    <button id="reset-btn" class="btn secondary" disabled><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-workspace">
+            
+            <!-- Visual Simulation Area -->
+            <section class="simulation-view glass-panel">
+                <div class="sky" id="sky-layer">
+                    <div class="sun" id="sun-element"></div>
+                    <div class="clouds" id="clouds-layer"></div>
+                    <div class="rain-container" id="rain-container"></div>
+                </div>
+                <div class="ground" id="ground-layer">
+                    <div class="farm-grid" id="farm-grid">
+                        <!-- Plants generated here -->
+                    </div>
+                </div>
+                
+                <!-- Overlay Alerts (Event popups) -->
+                <div class="event-overlay glass-panel hidden" id="event-popup">
+                    <i id="event-icon" class="fa-solid fa-triangle-exclamation"></i>
+                    <h2 id="event-title">Event</h2>
+                    <p id="event-desc">Description</p>
+                </div>
+
+                <div class="day-counter">
+                    Day: <span id="current-day">0</span> / <span id="max-days">120</span>
+                </div>
+                 <div class="current-stage-chip">
+                    Stage: <span id="current-stage-text">Not Started</span>
+                </div>
+            </section>
+
+            <!-- Dashboard Analytics -->
+            <section class="dashboard-panel">
+                <div class="dash-card glass-panel flex-row">
+                    <div class="stage-tracker">
+                        <h3>Growth Progress</h3>
+                        <div class="progress-bar-container">
+                            <div class="progress-line"></div>
+                            <div class="stage-nodes">
+                                <div class="node" id="node-germination">
+                                    <div class="dot"></div>
+                                    <span>Germination</span>
+                                </div>
+                                <div class="node" id="node-vegetative">
+                                    <div class="dot"></div>
+                                    <span>Vegetative</span>
+                                </div>
+                                <div class="node" id="node-flowering">
+                                    <div class="dot"></div>
+                                    <span>Flowering</span>
+                                </div>
+                                <div class="node" id="node-harvest">
+                                    <div class="dot"></div>
+                                    <span>Harvest</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-stats-grid">
+                    <div class="dash-card glass-panel stat-card">
+                        <div class="stat-icon yield"><i class="fa-solid fa-box-open"></i></div>
+                        <div class="stat-info">
+                            <h4>Expected Yield</h4>
+                            <h2 id="stat-yield">-- Tons</h2>
+                            <p class="trend" id="yield-trend">Waiting for run...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dash-card glass-panel stat-card">
+                        <div class="stat-icon health"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <div class="stat-info">
+                            <h4>Crop Health</h4>
+                            <h2 id="stat-health">100%</h2>
+                            <p class="trend" id="health-trend">Optimal</p>
+                        </div>
+                    </div>
+
+                    <div class="dash-card glass-panel stat-card">
+                        <div class="stat-icon profit"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                        <div class="stat-info">
+                            <h4>Est. Profit</h4>
+                            <h2 id="stat-profit">Rs. 0</h2>
+                            <p class="trend" id="profit-trend">Market Value</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

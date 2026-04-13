@@ -1,0 +1,60 @@
+.crop-sim{width:100%;display:flex;flex-direction:column;gap:1rem;padding:1rem 0 1.5rem;color:#eff6f3}
+.glass-panel{background:rgba(10,24,18,.78);border:1px solid rgba(183,226,204,.12);box-shadow:0 18px 60px rgba(4,12,8,.22);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.crop-sim__header{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;border-radius:24px;padding:1.35rem 1.5rem;background:radial-gradient(circle at top right,rgba(34,197,94,.18),transparent 38%),radial-gradient(circle at left center,rgba(59,130,246,.12),transparent 45%),rgba(8,18,14,.84)}
+.crop-sim__eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:#7ee0a4;margin-bottom:.45rem}
+.crop-sim__header h1{font-size:clamp(2rem,3vw,3.25rem);line-height:1.02;margin:0;letter-spacing:-.04em}
+.crop-sim__header p{max-width:54rem;color:rgba(234,245,239,.78);margin-top:.65rem}
+.crop-sim__status{flex-shrink:0;border-radius:999px;padding:.7rem 1rem;font-size:.82rem;font-weight:700;border:1px solid rgba(183,226,204,.18)}
+.crop-sim__status--synced{background:rgba(34,197,94,.16);color:#86efac}.crop-sim__status--fallback{background:rgba(245,158,11,.16);color:#fcd34d}.crop-sim__status--local{background:rgba(59,130,246,.14);color:#93c5fd}
+.crop-sim__workspace{display:grid;grid-template-columns:minmax(290px,340px) minmax(0,1fr);gap:1rem;align-items:start}
+.crop-sim__sidebar,.crop-sim__main{border-radius:24px}
+.crop-sim__sidebar{display:flex;flex-direction:column;gap:1rem;padding:1rem;position:sticky;top:1rem;max-height:calc(100vh - 2rem);overflow:auto}
+.crop-sim__sidebar::-webkit-scrollbar{width:8px}.crop-sim__sidebar::-webkit-scrollbar-thumb{background:rgba(183,226,204,.18);border-radius:999px}
+.crop-sim__section{display:flex;flex-direction:column;gap:.85rem;padding-bottom:1rem;border-bottom:1px solid rgba(183,226,204,.08)}.crop-sim__section:last-child{border-bottom:none;padding-bottom:0}
+.crop-sim__section h2,.crop-sim__tracker h2,.crop-sim__stat h3,.crop-sim__card h2{margin:0}
+.crop-sim__section h2{font-size:1rem;color:#f8fffb}
+.crop-sim__section label{display:flex;flex-direction:column;gap:.55rem;font-size:.9rem;color:rgba(234,245,239,.82)}
+.crop-sim__section input[type="number"],.crop-sim__section select{width:100%;padding:.78rem .85rem;border-radius:14px;border:1px solid rgba(183,226,204,.12);background:rgba(2,10,7,.42);color:#f8fffb;outline:none}
+.crop-sim__section input[type="range"]{width:100%;accent-color:#22c55e}
+.crop-sim__toggle{display:flex;align-items:center;flex-direction:row!important;gap:.75rem}.crop-sim__toggle input{width:1rem;height:1rem}
+.crop-sim__crop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+.crop-sim__crop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;padding:.8rem .6rem;border-radius:18px;border:1px solid rgba(183,226,204,.08);background:rgba(255,255,255,.03);color:#eff6f3;transition:transform 180ms ease,border-color 180ms ease,background 180ms ease}
+.crop-sim__crop:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(126,224,164,.55)}
+.crop-sim__crop.is-active{background:color-mix(in srgb,var(--crop-accent) 18%,rgba(255,255,255,.04));border-color:color-mix(in srgb,var(--crop-accent) 55%,rgba(255,255,255,.1))}
+.crop-sim__crop:disabled{opacity:.7;cursor:not-allowed}
+.crop-sim__crop-icon{width:1.35rem;height:1.35rem;border-radius:999px;background:var(--crop-accent);box-shadow:0 0 0 6px color-mix(in srgb,var(--crop-accent) 16%,transparent)}
+.crop-sim__actions{display:flex;gap:.75rem}
+.crop-sim__button{flex:1;padding:.95rem 1rem;border-radius:16px;color:#fff;font-weight:700;transition:transform 180ms ease,opacity 180ms ease}
+.crop-sim__button:hover{transform:translateY(-1px)}.crop-sim__button--primary{background:linear-gradient(135deg,#16a34a,#22c55e)}.crop-sim__button--secondary{background:rgba(255,255,255,.08);border:1px solid rgba(183,226,204,.12)}
+.crop-sim__main{display:flex;flex-direction:column;gap:1rem}
+.crop-sim__visual{position:relative;min-height:28rem;overflow:hidden;border-radius:24px;background:linear-gradient(to bottom,rgba(148,220,255,.24),rgba(187,247,208,.16)),rgba(6,14,10,.82)}
+.crop-sim__sky{position:relative;height:42%;overflow:hidden;background:linear-gradient(to bottom,#7dd3fc,#dbeafe 48%,rgba(255,255,255,.35))}
+.crop-sim__sky--raining{background:linear-gradient(to bottom,#64748b,#94a3b8 48%,rgba(255,255,255,.25))}.crop-sim__sky--flooded{background:linear-gradient(to bottom,#475569,#64748b 48%,rgba(255,255,255,.2))}.crop-sim__sky--drought{background:linear-gradient(to bottom,#fbbf24,#fde68a 46%,rgba(255,255,255,.25))}
+.crop-sim__sun{position:absolute;top:1.2rem;right:2rem;width:4.25rem;height:4.25rem;border-radius:999px;background:radial-gradient(circle,#fde68a 0%,#facc15 62%,#f59e0b 100%);box-shadow:0 0 60px rgba(250,204,21,.65)}
+.crop-sim__cloud{position:absolute;background:rgba(255,255,255,.8);border-radius:999px}.crop-sim__cloud::before,.crop-sim__cloud::after{content:'';position:absolute;background:inherit;border-radius:inherit}
+.crop-sim__cloud--one{top:1.5rem;left:15%;width:6rem;height:2.2rem}.crop-sim__cloud--one::before{width:3.2rem;height:3.2rem;left:.6rem;top:-1.2rem}.crop-sim__cloud--one::after{width:3.8rem;height:3.8rem;right:.4rem;top:-1.5rem}
+.crop-sim__cloud--two{top:3.2rem;right:22%;width:8rem;height:2.5rem;opacity:.75}.crop-sim__cloud--two::before{width:4rem;height:4rem;left:1rem;top:-1.3rem}.crop-sim__cloud--two::after{width:4.8rem;height:4.8rem;right:.5rem;top:-1.5rem}
+.crop-sim__rain{position:absolute;inset:0;pointer-events:none}.crop-sim__drop{position:absolute;top:-1rem;width:.12rem;height:1.9rem;border-radius:999px;background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(125,211,252,.95));animation:crop-sim-rain .7s linear infinite}
+.crop-sim__ground{position:relative;height:58%;background:radial-gradient(circle at center top,rgba(34,197,94,.15),transparent 40%),linear-gradient(to bottom,#4d7c0f,#365314 38%,#7c2d12)}
+.crop-sim__ground--flooded{background:radial-gradient(circle at center top,rgba(59,130,246,.22),transparent 42%),linear-gradient(to bottom,#2563eb,#1d4ed8 42%,#7c2d12)}.crop-sim__ground--drought{background:radial-gradient(circle at center top,rgba(245,158,11,.2),transparent 42%),linear-gradient(to bottom,#854d0e,#92400e 38%,#78350f)}
+.crop-sim__field{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.55rem;padding:1.4rem;align-content:end;height:100%}
+.crop-sim__cell{display:flex;align-items:end;justify-content:center;min-height:3.8rem}
+.crop-sim__plant{display:inline-block;width:.45rem;border-radius:999px 999px 0 0;transform-origin:bottom center;background:linear-gradient(to top,#14532d,#22c55e);box-shadow:0 -1px 10px rgba(34,197,94,.18)}
+.crop-sim__plant--wheat,.crop-sim__plant--corn{background:linear-gradient(to top,#14532d,#84cc16)}.crop-sim__plant--rice{background:linear-gradient(to top,#166534,#4ade80)}.crop-sim__plant--tomato{background:linear-gradient(to top,#7f1d1d,#ef4444)}.crop-sim__plant--sugarcane{background:linear-gradient(to top,#365314,#65a30d)}
+.crop-sim__plant--stage-0{height:.8rem}.crop-sim__plant--stage-1{height:1.8rem}.crop-sim__plant--stage-2{height:2.6rem}.crop-sim__plant--stage-3{height:3.2rem}.crop-sim__plant--stage-4{height:4rem}
+.crop-sim__popup{position:absolute;inset:auto 50% 2rem auto;transform:translateX(50%);min-width:min(92%,26rem);max-width:30rem;border-radius:22px;padding:1rem 1.1rem;border:1px solid color-mix(in srgb,var(--popup-color) 45%,rgba(255,255,255,.14));box-shadow:0 16px 50px rgba(4,12,8,.3)}
+.crop-sim__popup strong{display:block;color:var(--popup-color);font-size:.95rem;margin-bottom:.35rem}.crop-sim__popup p{color:rgba(234,245,239,.84);font-size:.92rem}
+.crop-sim__overlay{position:absolute;left:1rem;border-radius:999px;padding:.65rem 1rem;background:rgba(255,255,255,.82);color:#14532d;font-size:.9rem;font-weight:700}.crop-sim__overlay span{font-weight:800}.crop-sim__overlay--day{top:1rem}.crop-sim__overlay--stage{top:4rem}
+.crop-sim__dashboard{display:flex;flex-direction:column;gap:1rem}
+.crop-sim__tracker{border-radius:24px;padding:1rem 1.1rem}.crop-sim__progress{height:.75rem;border-radius:999px;background:rgba(148,163,184,.16);overflow:hidden}.crop-sim__progress-line{height:100%;border-radius:inherit;background:linear-gradient(90deg,#16a34a,#84cc16,#facc15);transition:width 220ms ease}
+.crop-sim__nodes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-top:1rem}
+.crop-sim__node{display:flex;flex-direction:column;align-items:center;gap:.45rem;color:rgba(234,245,239,.7);text-align:center;font-size:.82rem}.crop-sim__node.is-active{color:#d1fae5}.crop-sim__dot{width:.85rem;height:.85rem;border-radius:999px;background:rgba(148,163,184,.34);box-shadow:0 0 0 8px rgba(148,163,184,.08)}.crop-sim__node.is-active .crop-sim__dot{background:#86efac;box-shadow:0 0 0 8px rgba(34,197,94,.12)}
+.crop-sim__stats,.crop-sim__info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.crop-sim__stat,.crop-sim__card{border-radius:24px;padding:1rem 1.1rem}.crop-sim__stat strong{display:block;font-size:1.8rem;line-height:1.1;margin-bottom:.4rem}.crop-sim__stat p,.crop-sim__card p,.crop-sim__card li{color:rgba(234,245,239,.82);font-size:.92rem}
+.crop-sim__card ul{display:flex;flex-direction:column;gap:.55rem}
+.crop-sim__events,.crop-sim__bullets{list-style:disc;padding-left:1.1rem}
+.crop-sim__event{display:flex;justify-content:space-between;gap:1rem;align-items:center;padding:.75rem .85rem;border-radius:16px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.12)}
+.crop-sim__info-grid .crop-sim__card:nth-child(2) .crop-sim__event{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.16)}
+@keyframes crop-sim-rain{0%{transform:translateY(0);opacity:.1}10%{opacity:1}100%{transform:translateY(28rem);opacity:.2}}
+@media (max-width:1100px){.crop-sim__workspace{grid-template-columns:1fr}.crop-sim__sidebar{position:relative;top:auto;max-height:none}.crop-sim__stats,.crop-sim__info-grid{grid-template-columns:1fr}}
+@media (max-width:720px){.crop-sim{padding-top:.75rem}.crop-sim__header{flex-direction:column}.crop-sim__crop-grid,.crop-sim__nodes,.crop-sim__actions{grid-template-columns:1fr;flex-direction:column}.crop-sim__field{grid-template-columns:repeat(4,minmax(0,1fr));padding:1rem .8rem}.crop-sim__overlay{left:.75rem;right:.75rem;width:fit-content}}

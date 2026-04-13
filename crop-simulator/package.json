@@ -1,0 +1,13 @@
+{
+  "name": "croporia-simulator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "preview": "vite preview",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0"
+  }
+}

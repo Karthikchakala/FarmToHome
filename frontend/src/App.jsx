@@ -1,16 +1,11 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
-import { useState, useContext, useEffect } from 'react'
+import { useState } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import Sidebar from './components/Sidebar'
-import Header from './components/Header'
 import Footer from './components/Footer'
-import FarmerNavbar from './components/FarmerNavbar'
-import CustomerNavbar from './components/CustomerNavbar'
-import AdminNavbar from './components/AdminNavbar'
-import HomeNavbar from './components/HomeNavbar'
+import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import About from './pages/shared/About'
 import Services from './pages/shared/Services'
@@ -37,6 +32,7 @@ import SubscriptionManagement from './pages/farmer/SubscriptionManagement'
 import FarmerCostChart from './pages/farmer/FarmerCostChart'
 import ReviewManagement from './pages/farmer/ReviewManagement'
 import Settings from './pages/farmer/Settings'
+import Simulator from './pages/farmer/Simulator'
 import Subscriptions from './pages/customer/Subscriptions'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
@@ -52,6 +48,19 @@ import CostChartManagement from './components/admin/CostChartManagement'
 import CustomerReviews from './pages/customer/Reviews'
 import CustomerFeedback from './pages/customer/CustomerFeedback'
 import AdminFeedback from './pages/admin/AdminFeedback'
+import AIAssistant from './pages/ai-assistant'
+import PestScanner from './pages/pest-scanner'
+import YieldPredictor from './pages/yield-predictor'
+import ClimateSimulator from './pages/climate-simulator'
+import CropSimulator from './pages/crop-simulator'
+import CropMonetizer from './pages/crop-monetizer'
+import FieldManagement from './pages/field-management'
+import TalkToExperts from './pages/talk-to-experts'
+import CropWiki from './pages/farmer/CropWiki'
+import CropWikiDetail from './pages/farmer/CropWikiDetail'
+import FarmingPractices from './pages/farmer/FarmingPractices'
+import FarmingPracticesDetail from './pages/farmer/FarmingPracticesDetail'
+import FloatingChatbot from './components/FloatingChatbot'
 import './styles/global.css'
 import './App.css'
 
@@ -67,7 +76,6 @@ function App() {
     <HelmetProvider>
       <AuthProvider>
         <AppContent 
-          isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
           location={location}
         />
@@ -77,40 +85,31 @@ function App() {
 }
 
 // Separate component that has access to auth context
-function AppContent({ isSidebarOpen, toggleSidebar, location }) {
-  const { user } = useAuth()
+function AppContent({ toggleSidebar, location }) {
+  const { user, loading } = useAuth()
+  const hideFooterOnRoutes = [
+    '/ai-assistant',
+    '/farmer/ai-assistant',
+    '/farmer/crop-wiki',
+    '/farmer/farming-practices',
+    '/farmer/crop-simulator',
+    '/farmer/climate-simulator'
+  ]
+  const hideFooter = hideFooterOnRoutes.some((route) => location.pathname.startsWith(route))
+  const assistantElement = user?.role === 'farmer' ? <AIAssistant /> : <Navigate to="/login" replace />
 
-  // Role-based navbar selection
-  const getNavbar = () => {
-    const publicRoutes = ['/', '/about', '/services', '/contact', '/products', '/product/:id']
-    const isPublicRoute = publicRoutes.some(route => {
-      if (route.includes(':')) {
-        return location.pathname.startsWith(route.split(':')[0])
-      }
-      return location.pathname === route
-    })
-
-    // Use HomeNavbar for public pages
-    if (isPublicRoute) {
-      return <HomeNavbar />
-    }
-
-    // Use role-specific navbars for authenticated areas
-    if (user?.role === 'farmer') {
-      return <FarmerNavbar />
-    } else if (user?.role === 'admin') {
-      return <AdminNavbar />
-    } else if (user?.role === 'consumer') {
-      return <CustomerNavbar toggleSidebar={toggleSidebar} showSidebarToggle={true} />
-    } else {
-      // Fallback to HomeNavbar if not authenticated
-      return <HomeNavbar />
-    }
+  if (loading) {
+    return (
+      <div className="app">
+        <Navbar location={location} user={user} toggleSidebar={toggleSidebar} />
+        <main className="main" />
+      </div>
+    )
   }
 
   return (
     <div className="app">
-      {getNavbar()}
+      <Navbar location={location} user={user} toggleSidebar={toggleSidebar} />
       <main className="main">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -150,6 +149,8 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/admin/feedback" element={<AdminFeedback />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/ai-assistant" element={assistantElement} />
+          <Route path="/farmer/ai-assistant" element={assistantElement} />
           
           {/* Farmer Routes */}
           {user?.role === 'farmer' && (
@@ -169,6 +170,18 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
               <Route path="/farmer/reviews" element={<ReviewManagement />} />
               <Route path="/farmer/profile" element={<FarmerProfile />} />
               <Route path="/farmer/settings" element={<Settings />} />
+              <Route path="/farmer/simulator" element={<Simulator />} />
+              <Route path="/farmer/pest-scanner" element={<PestScanner />} />
+              <Route path="/farmer/yield-predictor" element={<YieldPredictor />} />
+              <Route path="/farmer/crop-wiki" element={<CropWiki />} />
+              <Route path="/farmer/crop-wiki/:slug" element={<CropWikiDetail />} />
+              <Route path="/farmer/farming-practices" element={<FarmingPractices />} />
+              <Route path="/farmer/farming-practices/:slug" element={<FarmingPracticesDetail />} />
+              <Route path="/farmer/crop-simulator" element={<CropSimulator />} />
+              <Route path="/farmer/climate-simulator" element={<ClimateSimulator />} />
+              <Route path="/farmer/crop-monetizer" element={<CropMonetizer />} />
+              <Route path="/farmer/field-management" element={<FieldManagement />} />
+              <Route path="/farmer/talk-to-experts" element={<TalkToExperts />} />
             </>
           )}
           
@@ -176,7 +189,8 @@ function AppContent({ isSidebarOpen, toggleSidebar, location }) {
           <Route path="/signup" element={<Signup />} />
         </Routes>
       </main>
-      <Footer />
+      <FloatingChatbot />
+      {!hideFooter && <Footer />}
       <ToastContainer 
         position="top-right"
         autoClose={3000}

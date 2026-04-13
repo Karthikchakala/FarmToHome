@@ -181,6 +181,13 @@ const FarmerDashboard = () => {
                 <h3>Manage Stock</h3>
                 <p>Update inventory levels</p>
               </Link>
+
+              <Link to="/farmer/crop-wiki" className="action-card action-card--wiki">
+                <div className="action-badge">NEW</div>
+                <div className="action-icon">CW</div>
+                <h3>Crop Wiki</h3>
+                <p>Explore 43 crop profiles with season, soil, and cost details</p>
+              </Link>
             </div>
           </div>
 

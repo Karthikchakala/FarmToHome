@@ -22,6 +22,32 @@ const initializeDatabase = async () => {
     } else {
       logger.info('✅ Supabase connection successful');
     }
+
+    try {
+      const { error: fieldsError } = await supabase
+        .from('fields')
+        .select('id')
+        .limit(1);
+
+      if (fieldsError) {
+        const errorText = `${fieldsError.code || ''} ${fieldsError.message || ''}`.toLowerCase();
+        if (fieldsError.code === 'PGRST205' || errorText.includes('could not find the table') || errorText.includes('schema cache')) {
+          logger.warn('⚠️ public.fields is missing from Supabase. Field management will fail until the table is created.');
+        } else {
+          logger.warn('⚠️ public.fields startup check returned an error:', {
+            code: fieldsError.code,
+            message: fieldsError.message,
+            details: fieldsError.details,
+            hint: fieldsError.hint
+          });
+        }
+      } else {
+        logger.info('✅ public.fields table is available');
+      }
+    } catch (fieldsCheckError) {
+      logger.warn('⚠️ public.fields startup check could not complete:', fieldsCheckError.message);
+    }
+
     logger.info('🚀 Database initialization complete');
   } catch (error) {
     logger.error('❌ Database initialization failed:', error);

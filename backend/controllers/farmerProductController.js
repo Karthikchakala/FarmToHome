@@ -1,4 +1,5 @@
 const supabase = require('../config/supabaseClient');
+const { query } = require('../db');
 const logger = require('../config/logger');
 const responseHelper = require('../utils/responseHelper');
 const { asyncHandler, NotFoundError, ValidationError } = require('../middlewares/enhancedErrorHandler');
@@ -24,6 +25,18 @@ const checkTableSchema = asyncHandler(async (req, res) => {
   }, 'Table schema retrieved successfully');
 });
 
+const parseIntegerField = (value, fallback = null) => {
+  if (value === undefined || value === null || value === '') return fallback;
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const parseFloatField = (value, fallback = null) => {
+  if (value === undefined || value === null || value === '') return fallback;
+  const parsed = parseFloat(value);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
 // Add product (Farmer only)
 const addProduct = [
   uploadImages,
@@ -43,6 +56,11 @@ const addProduct = [
       expiryDate,
       shelfLife // Shelf life in days
     } = req.body;
+
+    const normalizedIsAvailable =
+      typeof isAvailable === 'boolean'
+        ? isAvailable
+        : String(isAvailable).toLowerCase() === 'true';
 
     console.log('addProduct called with userId:', userId);
 
@@ -86,12 +104,24 @@ const addProduct = [
       throw new ValidationError('All required fields must be provided');
     }
 
+    const parsedPrice = parseFloatField(price);
+    const parsedStockQuantity = parseIntegerField(stockQuantity);
+    const parsedMinimumOrder = parseIntegerField(minimumOrder, 1);
+
+    if (parsedPrice === null) {
+      throw new ValidationError('Price must be a valid number');
+    }
+
+    if (parsedStockQuantity === null) {
+      throw new ValidationError('Stock quantity must be a valid number');
+    }
+
     // Validate price and stock
-    if (parseFloat(price) <= 0) {
+    if (parsedPrice <= 0) {
       throw new ValidationError('Price must be greater than 0');
     }
 
-    if (parseInt(stockQuantity) < 0) {
+    if (parsedStockQuantity < 0) {
       throw new ValidationError('Stock quantity cannot be negative');
     }
 
@@ -102,7 +132,7 @@ const addProduct = [
     }
 
     // Validate price against cost chart
-    const priceValidation = await validateProductPrice(name, parseFloat(price));
+    const priceValidation = await validateProductPrice(name, parsedPrice);
     if (!priceValidation.valid) {
       throw new ValidationError(priceValidation.message);
     }
@@ -118,12 +148,12 @@ const addProduct = [
       name,
       description,
       category,
-      priceperunit: parseFloat(price),
+      priceperunit: parsedPrice,
       unit,
-      stockquantity: parseInt(stockQuantity),
-      minorderquantity: parseInt(minimumOrder) || 1,
+      stockquantity: parsedStockQuantity,
+      minorderquantity: parsedMinimumOrder || 1,
       images: allImages, // Use the combined images array
-      isavailable: isAvailable,
+      isavailable: normalizedIsAvailable,
       harvestdate: harvestDate || null,
       expirydate: expiryDate || null
     };
@@ -140,6 +170,12 @@ const addProduct = [
 
     if (error) {
       logger.error('Add product error:', error);
+      if (error.code === '23505') {
+        throw new ValidationError('A product with this name already exists for your farm');
+      }
+      if (error.code === '23502') {
+        throw new ValidationError('Required product data is missing');
+      }
       throw new Error('Failed to add product: ' + error.message);
     }
 
@@ -155,16 +191,22 @@ const addProduct = [
 // Update product (Farmer only)
 const updateProduct = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const { productId } = req.params;
+  const { id: productId } = req.params;
   const {
     name,
     description,
     category,
+    price,
     priceperunit,
     unit,
     stockquantity,
+    stockQuantity,
     images,
-    isavailable
+    isavailable,
+    isAvailable,
+    minimumOrder,
+    harvestDate,
+    expiryDate
   } = req.body;
 
   // Validate product ID
@@ -173,7 +215,7 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 
   // Get farmer ID
-  const farmerQuery = 'SELECT _id FROM farmers WHERE _id = $1 AND isapproved = true';
+  const farmerQuery = 'SELECT _id FROM farmers WHERE userid = $1 AND isapproved = true';
   const farmerResult = await query(farmerQuery, [userId]);
 
   if (farmerResult.rows.length === 0) {
@@ -210,12 +252,17 @@ const updateProduct = asyncHandler(async (req, res) => {
     updateValues.push(category);
   }
 
-  if (priceperunit !== undefined) {
-    if (parseFloat(priceperunit) <= 0) {
+  const nextPrice = priceperunit !== undefined ? priceperunit : price;
+  if (nextPrice !== undefined) {
+    const parsedNextPrice = parseFloatField(nextPrice);
+    if (parsedNextPrice === null) {
+      throw new ValidationError('Price must be a valid number');
+    }
+    if (parsedNextPrice <= 0) {
       throw new ValidationError('Price must be greater than 0');
     }
     updateFields.push(`priceperunit = $${paramIndex++}`);
-    updateValues.push(parseFloat(priceperunit));
+    updateValues.push(parsedNextPrice);
   }
 
   if (unit !== undefined) {
@@ -223,12 +270,17 @@ const updateProduct = asyncHandler(async (req, res) => {
     updateValues.push(unit);
   }
 
-  if (stockquantity !== undefined) {
-    if (parseInt(stockquantity) < 0) {
+  const nextStock = stockquantity !== undefined ? stockquantity : stockQuantity;
+  if (nextStock !== undefined) {
+    const parsedNextStock = parseIntegerField(nextStock);
+    if (parsedNextStock === null) {
+      throw new ValidationError('Stock quantity must be a valid number');
+    }
+    if (parsedNextStock < 0) {
       throw new ValidationError('Stock quantity cannot be negative');
     }
     updateFields.push(`stockquantity = $${paramIndex++}`);
-    updateValues.push(parseInt(stockquantity));
+    updateValues.push(parsedNextStock);
   }
 
   if (images !== undefined) {
@@ -236,9 +288,29 @@ const updateProduct = asyncHandler(async (req, res) => {
     updateValues.push(JSON.stringify(images));
   }
 
-  if (isavailable !== undefined) {
+  const nextIsAvailable = isavailable !== undefined ? isavailable : isAvailable;
+  if (nextIsAvailable !== undefined) {
     updateFields.push(`isavailable = $${paramIndex++}`);
-    updateValues.push(isavailable);
+    updateValues.push(
+      typeof nextIsAvailable === 'boolean'
+        ? nextIsAvailable
+        : String(nextIsAvailable).toLowerCase() === 'true'
+    );
+  }
+
+  if (minimumOrder !== undefined) {
+    updateFields.push(`minorderquantity = $${paramIndex++}`);
+    updateValues.push(parseIntegerField(minimumOrder, 1) || 1);
+  }
+
+  if (harvestDate !== undefined) {
+    updateFields.push(`harvestdate = $${paramIndex++}`);
+    updateValues.push(harvestDate || null);
+  }
+
+  if (expiryDate !== undefined) {
+    updateFields.push(`expirydate = $${paramIndex++}`);
+    updateValues.push(expiryDate || null);
   }
 
   if (updateFields.length === 0) {

@@ -34,6 +34,14 @@ const notificationRoutes = require('./routes/notifications');
 const chatRoutes = require('./routes/chatRoutes');
 const costChartRoutes = require('./routes/costChart');
 const photosRoutes = require('./routes/photos');
+const aiAssistantRoutes = require('./routes/aiAssistantRoutes');
+const pestScannerRoutes = require('./routes/pestScannerRoutes');
+const yieldPredictorRoutes = require('./routes/yieldPredictorRoutes');
+const cropMonetizerRoutes = require('./routes/cropMonetizerRoutes');
+const fieldRoutes = require('./routes/fieldRoutes');
+const climateRoutes = require('./routes/climateRoutes');
+const simulatorRoutes = require('./routes/simulatorRoutes');
+const expertRoutes = require('./routes/expertRoutes');
 const { healthCheck } = require('./db');
 const subscriptionProcessor = require('./jobs/subscriptionProcessor');
 
@@ -113,6 +121,14 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/cost-chart', costChartRoutes);
 app.use('/api/photos', photosRoutes);
+app.use('/api/ai', aiAssistantRoutes);
+app.use('/api/pest', pestScannerRoutes);
+app.use('/api/yield', yieldPredictorRoutes);
+app.use('/api/monetizer', cropMonetizerRoutes);
+app.use('/api/fields', fieldRoutes);
+app.use('/api/simulator', simulatorRoutes);
+app.use('/api/climate', climateRoutes);
+app.use('/api/experts', expertRoutes);
 
 // Create HTTP server
 const server = http.createServer(app);

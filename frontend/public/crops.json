@@ -1,0 +1,712 @@
+[
+  {
+    "slug": "tomato",
+    "name": "Tomato",
+    "category": "vegetable",
+    "summary": "One of the most widely grown vegetables in India, essential for daily cooking.",
+    "conditions": { "soil": "Well-drained loamy soil", "water": "Regular irrigation", "climate": "Warm, 20–27°C", "season": "Kharif and Rabi" },
+    "time": { "germination_days": 7, "harvest_days": 75 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 3, "notes": "Peak labour during transplanting and harvest" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 300 },
+      { "item": "Fertilizer", "cost_inr": 2000 },
+      { "item": "Pesticides", "cost_inr": 1500 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Prepare nursery bed", "Transplant after 25 days", "Apply basal fertilizer", "Irrigate regularly", "Harvest when red" ],
+    "resources": { "seeds": "Arka Vikas", "fertilizer": "NPK 19:19:19", "pesticides": "Imidacloprid" },
+    "watchouts": [ "Early blight spreads fast", "Overwatering causes rot" ]
+  },
+  {
+    "slug": "brinjal",
+    "name": "Brinjal",
+    "category": "vegetable",
+    "summary": "Hardy vegetable crop grown year-round in India.",
+    "conditions": { "soil": "Silt or clay loam", "water": "Frequent watering", "climate": "Warm, 25–30°C", "season": "Year-round" },
+    "time": { "germination_days": 8, "harvest_days": 90 },
+    "labour": { "intensity": "High", "workers_per_acre": 4, "notes": "Intensive picking required" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 500 },
+      { "item": "Fertilizer", "cost_inr": 2500 },
+      { "item": "Labour", "cost_inr": 7000 }
+    ],
+    "process": [ "Raise nursery", "Transplant seedlings", "Earthing up", "Pest monitoring", "Pick when glossy" ],
+    "resources": { "seeds": "Pusa Purple Long", "fertilizer": "FYM and NPK", "pesticides": "Neem oil" },
+    "watchouts": [ "Shoot and fruit borer", "Bacterial wilt" ]
+  },
+  {
+    "slug": "okra",
+    "name": "Okra",
+    "category": "vegetable",
+    "summary": "High-demand vegetable, easy to grow and profitable.",
+    "conditions": { "soil": "Sandy to clay loam", "water": "Regular irrigation", "climate": "Warm and humid", "season": "Kharif and Zaid" },
+    "time": { "germination_days": 5, "harvest_days": 45 },
+    "labour": { "intensity": "High", "workers_per_acre": 5, "notes": "Frequent harvesting needed" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1200 },
+      { "item": "Fertilizer", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 8000 }
+    ],
+    "process": [ "Direct sowing", "Thinning after 15 days", "Weeding", "Top dressing Urea", "Harvest young pods" ],
+    "resources": { "seeds": "Arka Anamika", "fertilizer": "Urea and DAP", "pesticides": "Quinalphos" },
+    "watchouts": [ "Yellow Vein Mosaic Virus", "Fruit borer" ]
+  },
+  {
+    "slug": "chilli",
+    "name": "Chilli",
+    "category": "vegetable",
+    "summary": "Essential spice used both green and dried.",
+    "conditions": { "soil": "Sandy loam, well-drained", "water": "Avoid waterlogging", "climate": "Warm and humid", "season": "Year-round" },
+    "time": { "germination_days": 7, "harvest_days": 100 },
+    "labour": { "intensity": "High", "workers_per_acre": 8, "notes": "Hand picking is labor intensive" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1500 },
+      { "item": "Fertilizer", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 10000 }
+    ],
+    "process": [ "Nursery raising", "Transplanting", "Irrigation at fruit set", "Harvesting" ],
+    "resources": { "seeds": "Guntur varieties", "fertilizer": "NPK", "pesticides": "Confidor" },
+    "watchouts": [ "Leaf curl virus", "Fruit rot" ]
+  },
+  {
+    "slug": "onion",
+    "name": "Onion",
+    "category": "vegetable",
+    "summary": "Essential bulb crop with high storage potential.",
+    "conditions": { "soil": "Friable loamy soil", "water": "Controlled irrigation", "climate": "Mild climate", "season": "Rabi and Kharif" },
+    "time": { "germination_days": 10, "harvest_days": 120 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 6, "notes": "Manual weeding critical" },
+    "expenses": [
+      { "item": "Seeds/Bulbs", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 9000 }
+    ],
+    "process": [ "Seedbed preparation", "Transplanting", "Controlled irrigation", "Curing bulbs" ],
+    "resources": { "seeds": "Baswant 780", "fertilizer": "NPK + Sulfur", "pesticides": "Mancozeb" },
+    "watchouts": [ "Purple blotch", "Bulb rot" ]
+  },
+  {
+    "slug": "potato",
+    "name": "Potato",
+    "category": "vegetable",
+    "summary": "The world's fourth most important food crop.",
+    "conditions": { "soil": "Loose, well-drained", "water": "Regular", "climate": "Cool, 15–20°C", "season": "Rabi" },
+    "time": { "germination_days": 15, "harvest_days": 100 },
+    "labour": { "intensity": "High", "workers_per_acre": 5, "notes": "Earthing up is mandatory" },
+    "expenses": [
+      { "item": "Seed Tubers", "cost_inr": 12000 },
+      { "item": "Fertilizer", "cost_inr": 5000 },
+      { "item": "Labour", "cost_inr": 8000 }
+    ],
+    "process": [ "Seed tuber treatment", "Ploughing and ridging", "Planting in furrows", "Earthing up twice", "Desiccation before harvest" ],
+    "resources": { "seeds": "Kufri Jyoti", "fertilizer": "DAP, Potash", "pesticides": "Metalaxyl" },
+    "watchouts": [ "Late blight disease", "Aphids" ]
+  },
+  {
+    "slug": "cauliflower",
+    "name": "Cauliflower",
+    "category": "vegetable",
+    "summary": "Popular winter vegetable with high nutritional value.",
+    "conditions": { "soil": "Rich loamy soil", "water": "Moderate", "climate": "Cool and moist", "season": "Winter" },
+    "time": { "germination_days": 7, "harvest_days": 90 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 4, "notes": "Blanching needed for white curd" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1000 },
+      { "item": "Fertilizer", "cost_inr": 3500 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Nursery raising", "Transplanting", "Hoeing and weeding", "Irrigation", "Curd harvesting" ],
+    "resources": { "seeds": "Pusa Katki", "fertilizer": "Borax, NPK", "pesticides": "Cartap" },
+    "watchouts": [ "Boron deficiency", "Diamondback moth" ]
+  },
+  {
+    "slug": "cabbage",
+    "name": "Cabbage",
+    "category": "vegetable",
+    "summary": "Hardy leafy vegetable, widely consumed in India.",
+    "conditions": { "soil": "Sand loam to heavy clay", "water": "Regular", "climate": "Cool climate", "season": "Winter" },
+    "time": { "germination_days": 6, "harvest_days": 80 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 3, "notes": "Manual harvest of heads" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 800 },
+      { "item": "Fertilizer", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 5000 }
+    ],
+    "process": [ "Direct sowing or nursery", "Transplanting", "Periodic irrigation", "Head formation monitoring", "Harvesting" ],
+    "resources": { "seeds": "Pusa Drum Head", "fertilizer": "NPK", "pesticides": "Quinalphos" },
+    "watchouts": [ "Club root", "Cabbage butterfly" ]
+  },
+  {
+    "slug": "spinach",
+    "name": "Spinach",
+    "category": "vegetable",
+    "summary": "Fast-growing leafy green, rich in iron.",
+    "conditions": { "soil": "Silt loam soil", "water": "Frequent light misting", "climate": "Cool, 10–20°C", "season": "Year-round (best in winter)" },
+    "time": { "germination_days": 10, "harvest_days": 40 },
+    "labour": { "intensity": "Low", "workers_per_acre": 2, "notes": "Easy to harvest" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 400 },
+      { "item": "Fertilizer", "cost_inr": 1500 },
+      { "item": "Labour", "cost_inr": 3000 }
+    ],
+    "process": [ "Direct broadcasting", "Weeding", "Nitrogen top-dressing", "Multiple pickings" ],
+    "resources": { "seeds": "Pusa All Green", "fertilizer": "Urea", "pesticides": "Neem spray" },
+    "watchouts": [ "Downy mildew", "Leaf miner" ]
+  },
+  {
+    "slug": "bitter-gourd",
+    "name": "Bitter Gourd",
+    "category": "vegetable",
+    "summary": "Nutritious vine vegetable known for medicinal properties.",
+    "conditions": { "soil": "Sandy loam, rich in organic matter", "water": "Regular vine irrigation", "climate": "Hot and humid", "season": "Kharif and Zaid" },
+    "time": { "germination_days": 10, "harvest_days": 60 },
+    "labour": { "intensity": "High", "workers_per_acre": 4, "notes": "Trellising required for high yield" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 2000 },
+      { "item": "Trellising", "cost_inr": 5000 },
+      { "item": "Labour", "cost_inr": 7000 }
+    ],
+    "process": [ "Pit preparation", "Seed sowing", "Stake/Trellis setup", "Training vines", "Fruit harvesting" ],
+    "resources": { "seeds": "Pusa Do Mausami", "fertilizer": "FYM + NPK", "pesticides": "Malathion" },
+    "watchouts": [ "Fruit fly", "Powdery mildew" ]
+  },
+  {
+    "slug": "bottle-gourd",
+    "name": "Bottle Gourd",
+    "category": "vegetable",
+    "summary": "Easy to grow vine vegetable with high water content.",
+    "conditions": { "soil": "Alluvial well-drained soil", "water": "Moderate", "climate": "Warm tropical", "season": "Kharif and Rabi" },
+    "time": { "germination_days": 8, "harvest_days": 65 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 3, "notes": "Vines should be spread on ground or trellis" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1000 },
+      { "item": "Labour", "cost_inr": 5000 }
+    ],
+    "process": [ "Direct sowing in pits", "Pit manuring", "Weeding", "Fungal control", "Regular picking" ],
+    "resources": { "seeds": "Pusa Summer Prolific", "fertilizer": "NPK", "pesticides": "Neem oil" },
+    "watchouts": [ "Downy mildew", "Red pumpkin beetle" ]
+  },
+  {
+    "slug": "carrot",
+    "name": "Carrot",
+    "category": "vegetable",
+    "summary": "Root vegetable grown for edible taproots.",
+    "conditions": { "soil": "Deep, loose loamy soil", "water": "Controlled", "climate": "Cool, 15–18°C", "season": "Winter" },
+    "time": { "germination_days": 12, "harvest_days": 90 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 4, "notes": "Requires deep soil tilth" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1200 },
+      { "item": "Fertilizer", "cost_inr": 2500 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Field thinning", "Drip irrigation", "Hoeing", "Harvesting by pulling" ],
+    "resources": { "seeds": "Pusa Kesar", "fertilizer": "SOP, NPK", "pesticides": "Mancozeb" },
+    "watchouts": [ "Forking of roots", "Sclerotium rot" ]
+  },
+  {
+    "slug": "mango",
+    "name": "Mango",
+    "category": "fruit",
+    "summary": "The king of fruits, India is the leading producer.",
+    "conditions": { "soil": "Deep alluvial soil", "water": "Low once established", "climate": "Tropical", "season": "Harvest in Summer" },
+    "time": { "germination_days": 15, "harvest_days": 1825 },
+    "labour": { "intensity": "High", "workers_per_acre": 2, "notes": "Needs pruning and spraying" },
+    "expenses": [
+      { "item": "Saplings", "cost_inr": 5000 },
+      { "item": "Fertilizer", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 8000 }
+    ],
+    "process": [ "Pit digging and filling", "Sapling planting", "Flower monitoring", "Hand harvesting" ],
+    "resources": { "seeds": "Alphonso Grafts", "fertilizer": "Organics", "pesticides": "Copper spray" },
+    "watchouts": [ "Mango hopper", "Alternate bearing" ]
+  },
+  {
+    "slug": "banana",
+    "name": "Banana",
+    "category": "fruit",
+    "summary": "Large herbaceous plant producing high-energy fruit.",
+    "conditions": { "soil": "Rich loamy soil", "water": "Very high", "climate": "Tropical humid", "season": "Year-round" },
+    "time": { "germination_days": 0, "harvest_days": 365 },
+    "labour": { "intensity": "High", "workers_per_acre": 4, "notes": "Desuckering needed" },
+    "expenses": [
+      { "item": "Tissue Culture", "cost_inr": 8000 },
+      { "item": "Fertilizer", "cost_inr": 12000 },
+      { "item": "Labour", "cost_inr": 15000 }
+    ],
+    "process": [ "Field preparation", "Trench planting", "Mulching", "Propping", "Harvest clusters" ],
+    "resources": { "seeds": "G-9 Tissue Culture", "fertilizer": "Potash", "pesticides": "Propiconazole" },
+    "watchouts": [ "Panama Wilt", "Sigatoka spot" ]
+  },
+  {
+    "slug": "papaya",
+    "name": "Papaya",
+    "category": "fruit",
+    "summary": "Fast-growing tropical fruit with medicinal value.",
+    "conditions": { "soil": "Well-drained sandy loam", "water": "Moderate", "climate": "Hot and humid", "season": "All year" },
+    "time": { "germination_days": 15, "harvest_days": 270 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 2, "notes": "Thinning extra male plants" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "NurseryRaising", "Transplanting", "Fertigation", "Twist harvesting" ],
+    "resources": { "seeds": "Red Lady 786", "fertilizer": "Ring application", "pesticides": "Neem oil" },
+    "watchouts": [ "Ring spot virus", "Stem rot" ]
+  },
+  {
+    "slug": "guava",
+    "name": "Guava",
+    "category": "fruit",
+    "summary": "Hardy superfood fruit, drought-tolerant.",
+    "conditions": { "soil": "Clayey to loamy", "water": "Low to moderate", "climate": "Subtropical", "season": "Monsoon/Winter" },
+    "time": { "germination_days": 20, "harvest_days": 730 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 2, "notes": "Bending branches" },
+    "expenses": [
+      { "item": "Grafts", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 7000 }
+    ],
+    "process": [ "Square planting", "Pruning", "Bird protection", "Twice a year manuring" ],
+    "resources": { "seeds": "Allahabad Safeda", "fertilizer": "Organic", "pesticides": "Malathion" },
+    "watchouts": [ "Guava wilt", "Fruit fly" ]
+  },
+  {
+    "slug": "watermelon",
+    "name": "Watermelon",
+    "category": "fruit",
+    "summary": "Refreshing summer fruit with high market demand.",
+    "conditions": { "soil": "Sandy river beds (Diara)", "water": "Moderate to low", "climate": "Warm/Hot", "season": "Summer" },
+    "time": { "germination_days": 7, "harvest_days": 95 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 3, "notes": "Avoid fruit touching wet soil" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 3000 },
+      { "item": "Manure", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Digging shallow pits", "Seed sowing", "Regular hoeing", "Fruit monitoring", "Harvesting on tapping sound" ],
+    "resources": { "seeds": "Sugar Baby", "fertilizer": "Urea, SSP", "pesticides": "Karathane" },
+    "watchouts": [ "Powdery mildew", "Fruit cracking" ]
+  },
+  {
+    "slug": "pomegranate",
+    "name": "Pomegranate",
+    "category": "fruit",
+    "summary": "Value-added fruit crop with export potential.",
+    "conditions": { "soil": "Well-drained light soil", "water": "Low (drip mandatory)", "climate": "Arid/Semi-arid", "season": "Bahar (Ambe/Mrig)" },
+    "time": { "germination_days": 15, "harvest_days": 540 },
+    "labour": { "intensity": "High", "workers_per_acre": 3, "notes": "Pruning is technical" },
+    "expenses": [
+      { "item": "Air layers", "cost_inr": 6000 },
+      { "item": "Drip System", "cost_inr": 15000 },
+      { "item": "Labour", "cost_inr": 10000 }
+    ],
+    "process": [ "Planting air layers", "Training the tree", "Water stress management", "Fruit bagging", "Careful clipping" ],
+    "resources": { "seeds": "Bhagwa, Mridula", "fertilizer": "Micronutrients", "pesticides": "Thiophanate" },
+    "watchouts": [ "Oily spot disease", "Fruit borer" ]
+  },
+  {
+    "slug": "coconut",
+    "name": "Coconut",
+    "category": "fruit",
+    "summary": "Tree of life, staple in coastal Indian economy.",
+    "conditions": { "soil": "Alluvial, sandy-loam", "water": "High", "climate": "Humid/Coastal", "season": "Year-round harvest" },
+    "time": { "germination_days": 120, "harvest_days": 2190 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 1, "notes": "Needs skilled climbers for harvest" },
+    "expenses": [
+      { "item": "Seedlings", "cost_inr": 8000 },
+      { "item": "Basal Pits", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Selecting quality seedlings", "Deep pit planting", "Watering young palms", "Basal fertilizing", "Climbing for harvest" ],
+    "resources": { "seeds": "Tall x Dwarf hybrids", "fertilizer": "Potash, Common salt", "pesticides": "Pheromone traps" },
+    "watchouts": [ "Rhinoceros beetle", "Bud rot" ]
+  },
+  {
+    "slug": "lemon",
+    "name": "Lemon",
+    "category": "fruit",
+    "summary": "Versatile citrus fruit, source of Vitamin C.",
+    "conditions": { "soil": "Deep, well-drained loamy soil", "water": "Regular misting", "climate": "Subtropical", "season": "Three flushes/year" },
+    "time": { "germination_days": 14, "harvest_days": 1095 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 2, "notes": "Pruning thorns is needed" },
+    "expenses": [
+      { "item": "Grafts", "cost_inr": 5000 },
+      { "item": "Fungicides", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 8000 }
+    ],
+    "process": [ "Pit layout", "Graft planting", "Micronutrient spray", "Irrigation during summer", "Hand picking" ],
+    "resources": { "seeds": "Kagzi Lime", "fertilizer": "Zinc/Iron chelates", "pesticides": "Copper spray" },
+    "watchouts": [ "Citrus canker", "Leaf minor" ]
+  },
+  {
+    "slug": "sapota",
+    "name": "Sapota",
+    "category": "fruit",
+    "summary": "Delicious Chiku, a low-maintenance long-term crop.",
+    "conditions": { "soil": "Alluvial to sandy", "water": "Regular moderate", "climate": "Coastal warm", "season": "Year-round" },
+    "time": { "germination_days": 20, "harvest_days": 1825 },
+    "labour": { "intensity": "Low", "workers_per_acre": 1, "notes": "Very few pests" },
+    "expenses": [
+      { "item": "Grafts on Khirni", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 5000 }
+    ],
+    "process": [ "Planting on Khirni rootstock", "Basal manuring", "Irrigation", "Hand picking once skin turns brown" ],
+    "resources": { "seeds": "Cricket Ball, Kali Patli", "fertilizer": "Organic manure", "pesticides": "Neem based" },
+    "watchouts": [ "Fruit borer (rare)", "Leaf spot" ]
+  },
+  {
+    "slug": "jackfruit",
+    "name": "Jackfruit",
+    "category": "fruit",
+    "summary": "The world's largest fruit, a climate-resilient giant.",
+    "conditions": { "soil": "Deep well-drained alluvial", "water": "Minimal once mature", "climate": "Tropical humid", "season": "Summer/Monsoon" },
+    "time": { "germination_days": 25, "harvest_days": 2555 },
+    "labour": { "intensity": "Low", "workers_per_acre": 1, "notes": "Hardy tree requiring little care" },
+    "expenses": [
+      { "item": "Seedlings/Grafts", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 4000 }
+    ],
+    "process": [ "Pit planting", "Protection from cattle", "Annual manuring", "Harvesting on color change/smell" ],
+    "resources": { "seeds": "Grafted varieties", "fertilizer": "None/Organic", "pesticides": "Rarely needed" },
+    "watchouts": [ "Fruit rot in heavy rain", "Trunk borer" ]
+  },
+  {
+    "slug": "rice",
+    "name": "Rice",
+    "category": "field crop",
+    "summary": "Staple food, standing water crop.",
+    "conditions": { "soil": "Clayey retention", "water": "Very High", "climate": "Hot/Humid", "season": "Kharif" },
+    "time": { "germination_days": 5, "harvest_days": 120 },
+    "labour": { "intensity": "Very High", "workers_per_acre": 10, "notes": "Manual transplanting" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1500 },
+      { "item": "Labour", "cost_inr": 12000 }
+    ],
+    "process": [ "Puddling", "Nursery", "Transplanting", "Flooding", "Harvesting" ],
+    "resources": { "seeds": "Basmati", "fertilizer": "Urea/DAP", "pesticides": "Cartap" },
+    "watchouts": [ "Blast disease", "Leaf blight" ]
+  },
+  {
+    "slug": "wheat",
+    "name": "Wheat",
+    "category": "field crop",
+    "summary": "Major cereal grain for food security.",
+    "conditions": { "soil": "Loamy, well-drained", "water": "Stage-critical", "climate": "Cool growing", "season": "Rabi" },
+    "time": { "germination_days": 5, "harvest_days": 130 },
+    "labour": { "intensity": "Low", "workers_per_acre": 2, "notes": "Mostly mechanized" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 2000 },
+      { "item": "Fertilizer", "cost_inr": 4500 }
+    ],
+    "process": [ "Plowing", "Line sowing", "CRI stage irrigation", "Combining" ],
+    "resources": { "seeds": "HD-3086", "fertilizer": "DAP", "pesticides": "Tilt" },
+    "watchouts": [ "Yellow rust", "Late heat waves" ]
+  },
+  {
+    "slug": "maize",
+    "name": "Maize",
+    "category": "field crop",
+    "summary": "Cereal with multiple industrial and food uses.",
+    "conditions": { "soil": "Well-drained loamy soil", "water": "Moderate", "climate": "Variable warm", "season": "Kharif/Rabi" },
+    "time": { "germination_days": 4, "harvest_days": 100 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 4, "notes": "Harvest timing is crucial for sweet corn" },
+    "expenses": [
+      { "item": "Hybrid Seeds", "cost_inr": 3500 },
+      { "item": "Fertilizer", "cost_inr": 5000 },
+      { "item": "Labour", "cost_inr": 7000 }
+    ],
+    "process": [ "Seed bed prep", "Direct sowing", "Intercultural operations", "Cob harvesting" ],
+    "resources": { "seeds": "DeKalb varieties", "fertilizer": "Urea + Zinc", "pesticides": "Chlorpyrifos" },
+    "watchouts": [ "Fall Armyworm", "Stem borer" ]
+  },
+  {
+    "slug": "groundnut",
+    "name": "Groundnut",
+    "category": "field crop",
+    "summary": "Oilseed crop thriving in sandy soil.",
+    "conditions": { "soil": "Sandy/Light loam", "water": "Pegging critical", "climate": "Tropical", "season": "Kharif/Rabi" },
+    "time": { "germination_days": 10, "harvest_days": 110 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 4, "notes": "Digging is labor intensive" },
+    "expenses": [
+      { "item": "Seed Kernels", "cost_inr": 5000 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Shelling", "Moist sowing", "Gypsum addition", "Pegging care", "Drying" ],
+    "resources": { "seeds": "TG-37", "fertilizer": "SSP", "pesticides": "Chlorpyrifos" },
+    "watchouts": [ "Aflatoxin", "White grub" ]
+  },
+  {
+    "slug": "sunflower",
+    "name": "Sunflower",
+    "category": "field crop",
+    "summary": "Oilseed crop with high-quality edible oil.",
+    "conditions": { "soil": "Heavy loamy soil", "water": "Frequent moderate", "climate": "Sunny dry", "season": "Rabi/Zaid" },
+    "time": { "germination_days": 6, "harvest_days": 95 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 3, "notes": "Bird scaring needed at maturity" },
+    "expenses": [
+      { "item": "Hybrid Seeds", "cost_inr": 2500 },
+      { "item": "Fertilizer", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Line sowing", "Thinning", "Pollination monitoring", "Seed drying" ],
+    "resources": { "seeds": "LSH-3", "fertilizer": "NPK + Boron", "pesticides": "Endosulfan" },
+    "watchouts": [ "Head rot", "Bird damage" ]
+  },
+  {
+    "slug": "soybean",
+    "name": "Soybean",
+    "category": "field crop",
+    "summary": "Protein-rich legume and oilseed crop.",
+    "conditions": { "soil": "Well-drained black soil", "water": "Moderate", "climate": "Warm/Moist", "season": "Kharif" },
+    "time": { "germination_days": 5, "harvest_days": 105 },
+    "labour": { "intensity": "Low", "workers_per_acre": 2, "notes": "Rhizobium treatment is vital" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 3500 },
+      { "item": "Fertilizer", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 5000 }
+    ],
+    "process": [ "Seed inoculation", "Sowing in rows", "Weed control", "Harvesting on leaf drop" ],
+    "resources": { "seeds": "JS-335", "fertilizer": "SSP", "pesticides": "Imidacloprid" },
+    "watchouts": [ "Girdle beetle", "Yellow Mosaic Virus" ]
+  },
+  {
+    "slug": "cotton",
+    "name": "Cotton",
+    "category": "field crop",
+    "summary": "Cash crop for fiber industry.",
+    "conditions": { "soil": "Black soil", "water": "Moderate", "climate": "Semi-arid", "season": "Kharif" },
+    "time": { "germination_days": 7, "harvest_days": 180 },
+    "labour": { "intensity": "High", "workers_per_acre": 8, "notes": "Picking is manual/tedious" },
+    "expenses": [
+      { "item": "BT Seeds", "cost_inr": 3500 },
+      { "item": "Labour", "cost_inr": 18000 }
+    ],
+    "process": [ "Sowing", "Gap filling", "Boll monitoring", "Picking" ],
+    "resources": { "seeds": "Bollgard II", "fertilizer": "NPK", "pesticides": "Imidacloprid" },
+    "watchouts": [ "Pink bollworm", "Sucking pests" ]
+  },
+  {
+    "slug": "sugarcane",
+    "name": "Sugarcane",
+    "category": "field crop",
+    "summary": "High-intensity industrial cash crop for sugar/fuel.",
+    "conditions": { "soil": "Deep clay loam", "water": "Extremely High", "climate": "Tropical hot", "season": "One-year crop" },
+    "time": { "germination_days": 40, "harvest_days": 365 },
+    "labour": { "intensity": "Very High", "workers_per_acre": 12, "notes": "Harvesting is physically demanding" },
+    "expenses": [
+      { "item": "Setts", "cost_inr": 20000 },
+      { "item": "Irrigation", "cost_inr": 15000 },
+      { "item": "Labour", "cost_inr": 25000 }
+    ],
+    "process": [ "Sett treatment", "Furrow planting", "Earthing up", "De-trashing", "Stalk cutting" ],
+    "resources": { "seeds": "CO-86032", "fertilizer": "Urea/Potash", "pesticides": "Chlorpyrifos" },
+    "watchouts": [ "Red rot disease", "Pyrilla pest" ]
+  },
+  {
+    "slug": "turmeric",
+    "name": "Turmeric",
+    "category": "field crop",
+    "summary": "Golden spice, high economic value.",
+    "conditions": { "soil": "Friable loam", "water": "Uniform misting", "climate": "Moist/Hot", "season": "9-month crop" },
+    "time": { "germination_days": 30, "harvest_days": 270 },
+    "labour": { "intensity": "High", "workers_per_acre": 6, "notes": "Rhizome handling" },
+    "expenses": [
+      { "item": "Rhizomes", "cost_inr": 12000 },
+      { "item": "Labour", "cost_inr": 15000 }
+    ],
+    "process": [ "Ridge prep", "Rhizome sowing", "Leaf mulching", "Curing" ],
+    "resources": { "seeds": "Kedaram", "fertilizer": "NPK", "pesticides": "Bordeaux mix" },
+    "watchouts": [ "Rhizome rot", "Leaf blotch" ]
+  },
+  {
+    "slug": "red-gram",
+    "name": "Red Gram",
+    "category": "field crop",
+    "summary": "Major pulse (Arhar) providing staple protein.",
+    "conditions": { "soil": "Well-drained heavy soil", "water": "Low (drought-tolerant)", "climate": "Warm tropical", "season": "Kharif" },
+    "time": { "germination_days": 8, "harvest_days": 180 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 4, "notes": "Sensitive to waterlogging" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1500 },
+      { "item": "Fertilizer", "cost_inr": 2500 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Broadcasting/Dibbling", "Intercropping", "Flower monitoring", "Hand harvest" ],
+    "resources": { "seeds": "ICPH-2740", "fertilizer": "DAP", "pesticides": "Spinosad" },
+    "watchouts": [ "Pod borer", "Wilt disease" ]
+  },
+  {
+    "slug": "blackgram",
+    "name": "Blackgram",
+    "category": "field crop",
+    "summary": "Fast-growing pulse (Urad), vital for many Indian dishes.",
+    "conditions": { "soil": "Loamy to clay loam", "water": "Low to medium", "climate": "Warm/Humid", "season": "Kharif/Rabi" },
+    "time": { "germination_days": 6, "harvest_days": 80 },
+    "labour": { "intensity": "Low", "workers_per_acre": 3, "notes": "Easy to grow and harvest" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 1200 },
+      { "item": "Labour", "cost_inr": 4000 }
+    ],
+    "process": [ "Bed preparation", "Direct sowing", "Timed weeding", "Pods picking" ],
+    "resources": { "seeds": "T-9, PU-31", "fertilizer": "NPK", "pesticides": "Monocrotophos" },
+    "watchouts": [ "Mosaic Virus", "Powdery mildew" ]
+  },
+  {
+    "slug": "coriander",
+    "name": "Coriander",
+    "category": "herbs & spices",
+    "summary": "Fast-growing aromatic herb.",
+    "conditions": { "soil": "Silt loam", "water": "Low/Medium", "climate": "Cool", "season": "Rabi" },
+    "time": { "germination_days": 10, "harvest_days": 40 },
+    "labour": { "intensity": "Low", "workers_per_acre": 2, "notes": "Easy harvest" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 800 },
+      { "item": "Labour", "cost_inr": 3000 }
+    ],
+    "process": [ "Seed splitting", "Direct sowing", "Mist irrigation", "Cutting" ],
+    "resources": { "seeds": "GC-2", "fertilizer": "Urea", "pesticides": "Sulphan" },
+    "watchouts": [ "Powdery mildew", "Frost" ]
+  },
+  {
+    "slug": "fenugreek",
+    "name": "Fenugreek",
+    "category": "herbs & spices",
+    "summary": "Methi is a multi-purpose herb used for leaves and seeds.",
+    "conditions": { "soil": "Rich loamy soil", "water": "Regular light mist", "climate": "Cool winter", "season": "Winter" },
+    "time": { "germination_days": 5, "harvest_days": 30 },
+    "labour": { "intensity": "Low", "workers_per_acre": 2, "notes": "Can be harvested multiple times for leaves" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 500 },
+      { "item": "Labour", "cost_inr": 2500 }
+    ],
+    "process": [ "Broadcasting seeds", "Weeding", "Multiple clippings for leaves", "Seed drying if needed" ],
+    "resources": { "seeds": "Pusa Early Bunching", "fertilizer": "Urea", "pesticides": "Neem oil" },
+    "watchouts": [ "Downy mildew", "Leaf spot" ]
+  },
+  {
+    "slug": "ginger",
+    "name": "Ginger",
+    "category": "herbs & spices",
+    "summary": "Highly valuable underground spice.",
+    "conditions": { "soil": "Friable sandy loam", "water": "High mist", "climate": "Warm/Humid", "season": "8-month crop" },
+    "time": { "germination_days": 25, "harvest_days": 240 },
+    "labour": { "intensity": "High", "workers_per_acre": 6, "notes": "Deep mulching mandatory" },
+    "expenses": [
+      { "item": "Rhizomes", "cost_inr": 15000 },
+      { "item": "Labour", "cost_inr": 14000 }
+    ],
+    "process": [ "Bed prep", "Rhizome sowing", "Mulching", "Curing" ],
+    "resources": { "seeds": "Varada", "fertilizer": "FYM", "pesticides": "Mancozeb" },
+    "watchouts": [ "Soft rot", "Scales" ]
+  },
+  {
+    "slug": "garlic",
+    "name": "Garlic",
+    "category": "herbs & spices",
+    "summary": "Pungent bulb crop, high market value.",
+    "conditions": { "soil": "Rich loam", "water": "Constant low", "climate": "Cool", "season": "Rabi" },
+    "time": { "germination_days": 12, "harvest_days": 130 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 5, "notes": "Manual clove planting" },
+    "expenses": [
+      { "item": "Cloves", "cost_inr": 10000 },
+      { "item": "Labour", "cost_inr": 10000 }
+    ],
+    "process": [ "Clove separation", "Manual planting", "SOP application", "Drying" ],
+    "resources": { "seeds": "G-41", "fertilizer": "Potash/Sulfur", "pesticides": "Fungicide" },
+    "watchouts": [ "Neck rot", "Purple blotch" ]
+  },
+  {
+    "slug": "mint",
+    "name": "Mint",
+    "category": "herbs & spices",
+    "summary": "Pudina is a pervasive aromatic herb with high moisture needs.",
+    "conditions": { "soil": "Sandy loam, rich in organic matter", "water": "High/Daily", "climate": "Warm tropical", "season": "Year-round" },
+    "time": { "germination_days": 10, "harvest_days": 45 },
+    "labour": { "intensity": "Low", "workers_per_acre": 2, "notes": "Spreads quickly, may need containment" },
+    "expenses": [
+      { "item": "Runners", "cost_inr": 2000 },
+      { "item": "Labour", "cost_inr": 4000 }
+    ],
+    "process": [ "Planting runners", "Frequent light watering", "Weed removal", "Cutting stems for harvest" ],
+    "resources": { "seeds": "Local Mentha", "fertilizer": "FYM + Nitrogen", "pesticides": "Neem spray" },
+    "watchouts": [ "Mint rust", "Leaf roller" ]
+  },
+  {
+    "slug": "curry-leaf",
+    "name": "Curry Leaf",
+    "category": "herbs & spices",
+    "summary": "Aromatic tree leaves essential for South Indian cuisine.",
+    "conditions": { "soil": "Well-drained red or loamy", "water": "Low to moderate", "climate": "Tropical hot", "season": "Year-round" },
+    "time": { "germination_days": 20, "harvest_days": 730 },
+    "labour": { "intensity": "Low", "workers_per_acre": 1, "notes": "Pruning encourages leafy growth" },
+    "expenses": [
+      { "item": "Saplings", "cost_inr": 3000 },
+      { "item": "Labour", "cost_inr": 3000 }
+    ],
+    "process": [ "Pit digging", "Sapling planting", "Annual manuring", "Regular branch pruning" ],
+    "resources": { "seeds": "Local cultivars", "fertilizer": "Kitchen waste/FYM", "pesticides": "Soap spray" },
+    "watchouts": [ "Scale insects", "Mealy bugs" ]
+  },
+  {
+    "slug": "aloe-vera",
+    "name": "Aloe Vera",
+    "category": "herbs & spices",
+    "summary": "Medicinal succulent thriving in arid conditions.",
+    "conditions": { "soil": "Sandy well-drained soil", "water": "Very low", "climate": "Dry/Hot", "season": "All year" },
+    "time": { "germination_days": 0, "harvest_days": 365 },
+    "labour": { "intensity": "Low", "workers_per_acre": 1, "notes": "No major pest problems" },
+    "expenses": [
+      { "item": "Suckers", "cost_inr": 5000 },
+      { "item": "Labour", "cost_inr": 4000 }
+    ],
+    "process": [ "Planting suckers", "Weed management", "Minimal irrigation", "Cutting thick base leaves" ],
+    "resources": { "seeds": "Ghrita-kumari", "fertilizer": "None", "pesticides": "None" },
+    "watchouts": [ "Root rot (if wet)", "Overheating in extreme sun" ]
+  },
+  {
+    "slug": "lemongrass",
+    "name": "Lemongrass",
+    "category": "herbs & spices",
+    "summary": "Aromatic grass used for essential oils and tea.",
+    "conditions": { "soil": "Sandy to clay loam", "water": "Moderate", "climate": "Warm and moist", "season": "Year-round" },
+    "time": { "germination_days": 15, "harvest_days": 180 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 3, "notes": "Needs multiple slips for planting" },
+    "expenses": [
+      { "item": "Slips", "cost_inr": 4000 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Land preparation", "Slip planting", "Periodic cutting (4-5 months)", "Oil extraction if needed" ],
+    "resources": { "seeds": "OD-19, Krishna", "fertilizer": "NPK", "pesticides": "Fungicide" },
+    "watchouts": [ "Leaf blight", "Stem borer" ]
+  },
+  {
+    "slug": "ashwagandha",
+    "name": "Ashwagandha",
+    "category": "herbs & spices",
+    "summary": "Powerful Ayurvedic herb grown for its medicinal roots.",
+    "conditions": { "soil": "Sandy-loam well-drained", "water": "Minimal (Rabi moisture)", "climate": "Semiarid warm", "season": "Late Kharif" },
+    "time": { "germination_days": 10, "harvest_days": 160 },
+    "labour": { "intensity": "Medium", "workers_per_acre": 4, "notes": "Root drying needs care" },
+    "expenses": [
+      { "item": "Seeds", "cost_inr": 2000 },
+      { "item": "Labour", "cost_inr": 6000 }
+    ],
+    "process": [ "Broadcasting", "Thinning", "Minimal water", "Digging roots", "Sun drying" ],
+    "resources": { "seeds": "Jawahar Asgandh-20", "fertilizer": "Organic only", "pesticides": "Rarely needed" },
+    "watchouts": [ "Root rot in wet soil", "Low seed germination" ]
+  },
+  {
+    "slug": "tulsi",
+    "name": "Tulsi",
+    "category": "herbs & spices",
+    "summary": "Holy Basil, found in every Indian home for spiritual and health value.",
+    "conditions": { "soil": "Rich loamy soil", "water": "High/Regular", "climate": "Tropical warm", "season": "Year-round" },
+    "time": { "germination_days": 7, "harvest_days": 90 },
+    "labour": { "intensity": "Low", "workers_per_acre": 1, "notes": "Needs pruning of flowering tops" },
+    "expenses": [
+      { "item": "Seeds/Saplings", "cost_inr": 1000 },
+      { "item": "Labour", "cost_inr": 2000 }
+    ],
+    "process": [ "Seed sowing", "Transplanting", "Daily watering", "Flower head removal", "Leaf picking" ],
+    "resources": { "seeds": "Sri Tulsi, Krishna Tulsi", "fertilizer": "Vermicompost", "pesticides": "Neem oil" },
+    "watchouts": [ "Leaf spot", "Root knot nematode" ]
+  }
+]

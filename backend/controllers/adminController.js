@@ -4,6 +4,30 @@
 const { query } = require('../db')
 const supabase = require('../config/supabaseClient')
 
+const resolveFarmerByIdentifier = async (identifier) => {
+  const { data: farmerById, error: farmerByIdError } = await supabase
+    .from('farmers')
+    .select('_id, userid, verificationstatus, isapproved')
+    .eq('_id', identifier)
+    .single()
+
+  if (farmerById && !farmerByIdError) {
+    return farmerById
+  }
+
+  const { data: farmerByUserId, error: farmerByUserIdError } = await supabase
+    .from('farmers')
+    .select('_id, userid, verificationstatus, isapproved')
+    .eq('userid', identifier)
+    .single()
+
+  if (farmerByUserId && !farmerByUserIdError) {
+    return farmerByUserId
+  }
+
+  return null
+}
+
 const getDashboardStats = async (req, res) => {
   try {
     console.log('Getting dashboard stats using Supabase...')
@@ -251,6 +275,14 @@ const approveFarmer = async (req, res) => {
     const { id } = req.params
     console.log('Approving farmer:', id)
 
+    const farmerRecord = await resolveFarmerByIdentifier(id)
+    if (!farmerRecord) {
+      return res.status(404).json({
+        success: false,
+        message: 'Farmer not found'
+      })
+    }
+
     // Update farmer status using Supabase
     const { data: farmer, error } = await supabase
       .from('farmers')
@@ -259,7 +291,7 @@ const approveFarmer = async (req, res) => {
         isapproved: true,
         updatedat: new Date().toISOString()
       })
-      .eq('_id', id)
+      .eq('_id', farmerRecord._id)
       .select()
       .single()
 
@@ -300,6 +332,14 @@ const rejectFarmer = async (req, res) => {
     const { reason } = req.body
     console.log('Rejecting farmer:', id, 'Reason:', reason)
 
+    const farmerRecord = await resolveFarmerByIdentifier(id)
+    if (!farmerRecord) {
+      return res.status(404).json({
+        success: false,
+        message: 'Farmer not found'
+      })
+    }
+
     // Update farmer status using Supabase
     const { data: farmer, error } = await supabase
       .from('farmers')
@@ -308,7 +348,7 @@ const rejectFarmer = async (req, res) => {
         isapproved: false,
         updatedat: new Date().toISOString()
       })
-      .eq('_id', id)
+      .eq('_id', farmerRecord._id)
       .select()
       .single()
 

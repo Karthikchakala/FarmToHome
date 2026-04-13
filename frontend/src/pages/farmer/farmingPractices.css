@@ -1,0 +1,501 @@
+.farming-practices,
+.farming-practices-detail {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.farming-practices__hero,
+.farming-practices__banner,
+.farming-practices__card,
+.farming-practices-detail__hero,
+.farming-practices-detail__panel,
+.farming-practices-detail__state,
+.farming-practices-detail__related-card {
+  background: #fff;
+  border: 1px solid #dce5d6;
+  border-radius: 24px;
+  box-shadow: 0 18px 45px rgba(23, 51, 36, 0.08);
+}
+
+.farming-practices__hero {
+  padding: 32px;
+  background: linear-gradient(135deg, #143601 0%, #2c6b46 56%, #f7faf4 56%, #ffffff 100%);
+}
+
+.farming-practices__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2c6b46;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.farming-practices__hero h1,
+.farming-practices-detail__hero h1 {
+  margin: 18px 0 10px;
+  color: #fff;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.farming-practices__hero p,
+.farming-practices-detail__hero p {
+  margin: 0;
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.farming-practices__toolbar {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.farming-practices__section-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.farming-practices__section-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.84);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.farming-practices__section-number {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.farming-practices__content {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.farming-practices__banner {
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.farming-practices__banner.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.farming-practices__banner-number {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  opacity: 0.06;
+  font-size: 100px;
+  font-weight: 900;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+}
+
+.farming-practices__banner-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.farming-practices__banner-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.farming-practices__banner-heading h2,
+.farming-practices-detail__panel-title h2 {
+  margin: 0;
+  color: #183324;
+  font-size: 1.05rem;
+}
+
+.farming-practices__banner-number-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.farming-practices__banner p {
+  max-width: 680px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.7;
+}
+
+.farming-practices__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.farming-practices__card-link {
+  display: block;
+}
+
+.farming-practices__card {
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.farming-practices__card:hover,
+.farming-practices-detail__related-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(23, 51, 36, 0.12);
+}
+
+.farming-practices__card-strip,
+.farming-practices-detail__related-strip {
+  height: 6px;
+}
+
+.farming-practices__card-body {
+  padding: 16px;
+}
+
+.farming-practices__card-title,
+.farming-practices-detail__related-body strong {
+  margin: 0;
+  color: #183324;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.farming-practices__card-description,
+.farming-practices-detail__related-body p,
+.farming-practices-detail__body,
+.farming-practices-detail__list-item p,
+.farming-practices-detail__step p {
+  color: #5f6f63;
+  line-height: 1.7;
+}
+
+.farming-practices__card-description {
+  margin: 10px 0 14px;
+  font-size: 0.9rem;
+}
+
+.farming-practices__chips,
+.farming-practices-detail__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.farming-practices__chip,
+.farming-practices-detail__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.farming-practices__card-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #edf2ea;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.farming-practices__difficulty,
+.farming-practices-detail__difficulty {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.farming-practices__cost,
+.farming-practices-detail__cost,
+.farming-practices-detail__related-meta span:last-child {
+  color: #7a867b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.farming-practices-detail__hero {
+  padding: 28px;
+  background: linear-gradient(135deg, #183324 0%, #2c6b46 58%, #f7faf4 58%, #ffffff 100%);
+}
+
+.farming-practices-detail__back-link {
+  display: inline-flex;
+  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.farming-practices-detail__badge {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.farming-practices-detail__meta-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.farming-practices-detail__grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.farming-practices-detail__main,
+.farming-practices-detail__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.farming-practices-detail__panel {
+  padding: 20px;
+  border-radius: 22px;
+}
+
+.farming-practices-detail__panel-title {
+  margin-bottom: 16px;
+}
+
+.farming-practices-detail__body {
+  color: #405042;
+}
+
+.farming-practices-detail__list,
+.farming-practices-detail__steps,
+.farming-practices-detail__related {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.farming-practices-detail__list-item,
+.farming-practices-detail__step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: 18px;
+  background: #f8faf6;
+  border: 1px solid #edf2ea;
+}
+
+.farming-practices-detail__bullet,
+.farming-practices-detail__step span {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.farming-practices-detail__table-wrap {
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px solid #edf2ea;
+}
+
+.farming-practices-detail__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.farming-practices-detail__table th,
+.farming-practices-detail__table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf2ea;
+  text-align: left;
+}
+
+.farming-practices-detail__table th:last-child,
+.farming-practices-detail__table td:last-child {
+  text-align: right;
+}
+
+.farming-practices-detail__table thead th {
+  background: #f7faf4;
+  color: #7a867b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.farming-practices-detail__table tbody td {
+  color: #183324;
+  font-size: 0.95rem;
+}
+
+.farming-practices-detail__related-card {
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.farming-practices-detail__related-body {
+  padding: 14px 16px 16px;
+}
+
+.farming-practices-detail__related-body p {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+}
+
+.farming-practices-detail__related-meta {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.farming-practices-detail__related-meta span:first-child {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.farming-practices-detail__state {
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 12px;
+}
+
+.farming-practices-detail__state h1 {
+  margin: 0;
+  color: #183324;
+  font-size: 1.4rem;
+}
+
+.farming-practices-detail__state p {
+  margin: 0;
+  color: #5f6f63;
+}
+
+.farming-practices-detail__back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: #183324;
+  color: #fff;
+  font-weight: 700;
+}
+
+.farming-practices-detail__empty {
+  padding: 24px 0;
+}
+
+@media (max-width: 1100px) {
+  .farming-practices__grid,
+  .farming-practices-detail__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .farming-practices,
+  .farming-practices-detail {
+    padding: 16px;
+  }
+
+  .farming-practices__hero,
+  .farming-practices__banner,
+  .farming-practices-detail__hero,
+  .farming-practices-detail__panel,
+  .farming-practices-detail__state {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .farming-practices__grid,
+  .farming-practices-detail__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .farming-practices__toolbar {
+    align-items: stretch;
+  }
+}

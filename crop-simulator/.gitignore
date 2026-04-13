@@ -1,0 +1,17 @@
+node_modules/
+dist/
+
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.log
+*.bak
+*.tmp
