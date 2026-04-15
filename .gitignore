@@ -239,3 +239,13 @@ junit.xml
 *.log
 .env.*
 !.env.example
+
+# Python virtual env
+.venv/
+python-backend/.venv/
+
+# Node modules (if any)
+node_modules/
+
+# Other
+.env
