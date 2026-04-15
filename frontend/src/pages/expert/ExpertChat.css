@@ -1,0 +1,360 @@
+.expert-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.expert-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.chat-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.back-button {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.back-button:hover {
+  color: #374151;
+}
+
+.consultation-info h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.consultation-info p {
+  margin: 0 0 1rem 0;
+  color: #6b7280;
+}
+
+.status-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.status-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.status-button.accept {
+  background-color: #10b981;
+  color: white;
+}
+
+.status-button.reject {
+  background-color: #ef4444;
+  color: white;
+}
+
+.status-button.start {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.status-button.complete {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.status-button:hover {
+  opacity: 0.9;
+}
+
+.chat-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  min-height: 400px;
+  max-height: 600px;
+}
+
+.no-messages {
+  text-align: center;
+  color: #6b7280;
+  padding: 2rem;
+}
+
+.message {
+  max-width: 70%;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.message.expert {
+  align-self: flex-end;
+  background-color: #3b82f6;
+  color: white;
+}
+
+.message.farmer {
+  align-self: flex-start;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.message.expert .message-header strong {
+  color: white;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.message-content {
+  word-wrap: break-word;
+}
+
+.chat-input {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.chat-input input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.chat-input button {
+  padding: 0.75rem 1.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.chat-input button:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.chat-input button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.typing-indicator {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.875rem;
+  align-self: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+/* Incoming Call Modal */
+.incoming-call-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.call-modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.call-modal-content h3 {
+  margin: 0 0 1rem 0;
+  color: #111827;
+}
+
+.call-modal-content p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+}
+
+.call-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.accept-call-button {
+  padding: 0.75rem 2rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.accept-call-button:hover {
+  background: #059669;
+}
+
+.reject-call-button {
+  padding: 0.75rem 2rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.reject-call-button:hover {
+  background: #dc2626;
+}
+
+/* Active Call UI */
+.active-call-ui {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #111827;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.call-videos {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+
+.local-video,
+.remote-video {
+  flex: 1;
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.local-video {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 200px;
+  height: 150px;
+  border-radius: 8px;
+  border: 2px solid white;
+  z-index: 10;
+}
+
+.remote-video {
+  width: 100%;
+  height: 100%;
+}
+
+.voice-call-indicator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.call-controls {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.end-call-button {
+  padding: 1rem 3rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: background 0.2s;
+}
+
+.end-call-button:hover {
+  background: #dc2626;
+}

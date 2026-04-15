@@ -9,8 +9,69 @@
 }
 
 .expert-header p {
-  margin: 0 0 2rem;
+  margin: 0 0 1rem;
   color: #4b5563;
+}
+
+.expert-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.view-appointments-button {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.view-appointments-button:hover {
+  background: #2563eb;
+}
+
+.manage-appointments-link {
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.manage-appointments-link:hover {
+  background: #059669;
+}
+
+.book-manage-appointments-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
+
+.book-manage-appointments-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+  color: white;
+  text-decoration: none;
 }
 
 .expert-grid {
@@ -39,6 +100,13 @@
   padding: 1rem;
   background: #f9fafb;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.expert-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
 .expert-card.selected {
@@ -76,6 +144,76 @@
   border-radius: 999px;
   padding: 0.2rem 0.6rem;
   font-size: 0.75rem;
+}
+
+.expert-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.book-appointment-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  text-align: center;
+}
+
+.book-appointment-btn:hover {
+  background: #059669;
+  text-decoration: none;
+  color: white;
+}
+
+.expert-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.expert-status.online {
+  background: #22c55e;
+  color: white;
+}
+
+.expert-status.offline {
+  background: #6b7280;
+  color: white;
+}
+
+.expert-availability {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: #3b82f6;
+  color: white;
+}
+
+.expert-status-indicators {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.access-warning {
+  color: #dc2626;
+  font-weight: 500;
+  padding: 0.75rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
 }
 
 .expert-form {
@@ -118,6 +256,213 @@
   border-radius: 12px;
   background: #f0fdf4;
   color: #166534;
+}
+
+.appointments-note {
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.go-to-consultations-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.go-to-consultations-button:hover {
+  background: #059669;
+}
+
+.expert-quick-links {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.quick-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  color: #374151;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.quick-link:hover {
+  background: #e5e7eb;
+}
+
+/* Appointments Section Styles */
+.appointments-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.appointment-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.appointment-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.appointment-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+}
+
+.appointment-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.appointment-status.confirmed {
+  background: #3b82f6;
+  color: white;
+}
+
+.appointment-status.in_progress {
+  background: #8b5cf6;
+  color: white;
+}
+
+.appointment-status.completed {
+  background: #10b981;
+  color: white;
+}
+
+.appointment-status.pending {
+  background: #f59e0b;
+  color: white;
+}
+
+.appointment-status.cancelled {
+  background: #ef4444;
+  color: white;
+}
+
+.appointment-details {
+  margin-bottom: 1rem;
+}
+
+.appointment-details p {
+  margin: 0.25rem 0;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chat-btn {
+  background: #10b981;
+  color: white;
+}
+
+.chat-btn:hover {
+  background: #059669;
+  color: white;
+  text-decoration: none;
+}
+
+.video-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.video-btn:hover {
+  background: #2563eb;
+  color: white;
+  text-decoration: none;
+}
+
+.voice-btn {
+  background: #8b5cf6;
+  color: white;
+}
+
+.voice-btn:hover {
+  background: #7c3aed;
+  color: white;
+  text-decoration: none;
+}
+
+.completed-btn {
+  background: #6b7280;
+  color: white;
+  cursor: not-allowed;
+}
+
+.pending-btn {
+  background: #f59e0b;
+  color: white;
+  cursor: not-allowed;
+}
+
+.no-appointments {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.no-appointments p {
+  margin-bottom: 1rem;
+}
+
+.book-appointment-btn {
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.book-appointment-btn:hover {
+  background: #059669;
 }
 
 @media (max-width: 960px) {

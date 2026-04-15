@@ -56,6 +56,18 @@ import CropSimulator from './pages/crop-simulator'
 import CropMonetizer from './pages/crop-monetizer'
 import FieldManagement from './pages/field-management'
 import TalkToExperts from './pages/talk-to-experts'
+import DealerDashboard from './pages/dealer/Dashboard'
+import DealerFarmers from './pages/dealer/Farmers'
+import DealerBulkOrders from './pages/dealer/BulkOrders'
+import DealerAnalytics from './pages/dealer/Analytics'
+import DealerMessages from './pages/dealer/Messages'
+import DealerProfile from './pages/dealer/Profile'
+import ExpertDashboard from './pages/expert/Dashboard'
+import ExpertChat from './pages/expert/Chat'
+import ExpertConsultations from './pages/expert/Consultations'
+import VoiceCall from './pages/expert/VoiceCall'
+import VideoCall from './pages/expert/VideoCall'
+import FarmerConsultations from './pages/farmer/Consultations'
 import CropWiki from './pages/farmer/CropWiki'
 import CropWikiDetail from './pages/farmer/CropWikiDetail'
 import FarmingPractices from './pages/farmer/FarmingPractices'
@@ -107,9 +119,13 @@ function AppContent({ toggleSidebar, location }) {
     )
   }
 
+  const isDealerRoute = location.pathname.startsWith('/dealer');
+  const isExpertRoute = location.pathname.startsWith('/expert');
+  const showMainNavbar = !isDealerRoute && !isExpertRoute;
+
   return (
     <div className="app">
-      <Navbar location={location} user={user} toggleSidebar={toggleSidebar} />
+      {showMainNavbar && <Navbar location={location} user={user} toggleSidebar={toggleSidebar} />}
       <main className="main">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -182,6 +198,35 @@ function AppContent({ toggleSidebar, location }) {
               <Route path="/farmer/crop-monetizer" element={<CropMonetizer />} />
               <Route path="/farmer/field-management" element={<FieldManagement />} />
               <Route path="/farmer/talk-to-experts" element={<TalkToExperts />} />
+              <Route path="/farmer/consultations" element={<FarmerConsultations />} />
+            </>
+          )}
+          
+          {/* Public routes */}
+          <Route path="/talk-to-experts" element={<Navigate to="/farmer/talk-to-experts" replace />} />
+          
+          {/* Dealer Routes */}
+          {user?.role === 'dealer' && (
+            <>
+              <Route path="/dealer/dashboard" element={<DealerDashboard />} />
+              <Route path="/dealer/farmers" element={<DealerFarmers />} />
+              <Route path="/dealer/bulk-orders" element={<DealerBulkOrders />} />
+              <Route path="/dealer/analytics" element={<DealerAnalytics />} />
+              <Route path="/dealer/messages" element={<DealerMessages />} />
+              <Route path="/dealer/profile" element={<DealerProfile />} />
+            </>
+          )}
+          
+          {/* Expert Routes */}
+          {user?.role === 'expert' && (
+            <>
+              <Route path="/expert/dashboard" element={<ExpertDashboard />} />
+              <Route path="/expert/consultations" element={<ExpertConsultations />} />
+              <Route path="/expert/chat" element={<ExpertChat />} />
+              <Route path="/expert/chat/:consultationId" element={<ExpertChat />} />
+              <Route path="/expert/voice-call/:consultationId" element={<VoiceCall />} />
+              <Route path="/expert/video-call/:consultationId" element={<VideoCall />} />
+              <Route path="/expert/profile" element={<ExpertDashboard />} />
             </>
           )}
           

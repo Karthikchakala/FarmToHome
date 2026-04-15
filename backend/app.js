@@ -12,6 +12,7 @@ const { generalLimiter, authLimiter, orderLimiter, messageLimiter, searchLimiter
 const { authenticate, authorize } = require('./middlewares/auth');
 const errorHandler = require('./middlewares/errorHandler');
 const ChatSocket = require('./sockets/chatSocket');
+const ExpertSocket = require('./sockets/expertSocket');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -42,6 +43,7 @@ const fieldRoutes = require('./routes/fieldRoutes');
 const climateRoutes = require('./routes/climateRoutes');
 const simulatorRoutes = require('./routes/simulatorRoutes');
 const expertRoutes = require('./routes/expertRoutes');
+const dealerRoutes = require('./routes/dealerRoutes');
 const { healthCheck } = require('./db');
 const subscriptionProcessor = require('./jobs/subscriptionProcessor');
 
@@ -129,6 +131,7 @@ app.use('/api/fields', fieldRoutes);
 app.use('/api/simulator', simulatorRoutes);
 app.use('/api/climate', climateRoutes);
 app.use('/api/experts', expertRoutes);
+app.use('/api/dealer', dealerRoutes);
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -147,6 +150,9 @@ app.set('io', io);
 
 // Initialize chat socket handlers
 const chatSocket = new ChatSocket(io);
+
+// Initialize expert socket handlers
+const expertSocket = new ExpertSocket(io);
 
 // Export the server instance for use in server.js
 module.exports = app;

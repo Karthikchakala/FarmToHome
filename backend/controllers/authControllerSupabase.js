@@ -17,10 +17,10 @@ const register = async (req, res, next) => {
     }
 
     // Validate role
-    if (!['farmer', 'consumer', 'admin'].includes(role)) {
+    if (!['farmer', 'consumer', 'admin', 'dealer', 'expert'].includes(role)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid role. Must be farmer, consumer, or admin'
+        error: 'Invalid role. Must be farmer, consumer, admin, dealer, or expert'
       });
     }
 
@@ -127,6 +127,113 @@ const register = async (req, res, next) => {
         return res.status(500).json({
           success: false,
           error: 'Failed to create consumer profile'
+        });
+      }
+    } else if (role === 'dealer') {
+      const { 
+        businessName, 
+        businessType, 
+        licenseNumber, 
+        businessAddress, 
+        businessCity, 
+        businessState, 
+        businessPostalCode, 
+        businessPhone, 
+        businessEmail,
+        description,
+        minimumOrderQuantity,
+        serviceDeliveryRadius,
+        preferredCrops,
+        paymentTerms
+      } = roleSpecificData;
+
+      if (!businessName || !licenseNumber || !businessAddress || !businessCity || 
+          !businessState || !businessPostalCode || !businessPhone || !businessEmail) {
+        await supabase.from('users').delete().eq('_id', user._id);
+        return res.status(400).json({
+          success: false,
+          error: 'All business information is required for dealer registration'
+        });
+      }
+
+      const { error: dealerError } = await supabase
+        .from('dealers')
+        .insert([
+          {
+            userid: user._id,
+            businessname: businessName,
+            businesstype: businessType || 'wholesale',
+            licensenumber: licenseNumber,
+            businessaddress: businessAddress,
+            businesscity: businessCity,
+            businessstate: businessState,
+            businesspostalcode: businessPostalCode,
+            businessphone: businessPhone,
+            businessemail: businessEmail,
+            description: description || null,
+            minimumorderquantity: minimumOrderQuantity || 1,
+            servicedeliveryradius: serviceDeliveryRadius || 50,
+            preferredcrops: preferredCrops || [],
+            paymentterms: paymentTerms || 'COD'
+          }
+        ])
+        .select()
+        .single();
+
+      if (dealerError) {
+        logger.error('Dealer creation error:', dealerError);
+        await supabase.from('users').delete().eq('_id', user._id);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create dealer profile'
+        });
+      }
+    } else if (role === 'expert') {
+      const { 
+        specialization, 
+        expertiseLevel, 
+        qualifications, 
+        experienceYears, 
+        consultationFee, 
+        availabilityStatus,
+        consultationHours,
+        languages,
+        description
+      } = roleSpecificData;
+
+      if (!specialization || !expertiseLevel) {
+        await supabase.from('users').delete().eq('_id', user._id);
+        return res.status(400).json({
+          success: false,
+          error: 'Specialization and expertise level are required for expert registration'
+        });
+      }
+
+      const { error: expertError } = await supabase
+        .from('experts')
+        .insert([
+          {
+            userid: user._id,
+            specialization: specialization,
+            expertiselevel: expertiseLevel,
+            qualifications: qualifications || [],
+            experienceyears: experienceYears || 0,
+            consultationfee: consultationFee || 0.00,
+            availabilitystatus: availabilityStatus || 'available',
+            consultationhours: consultationHours || [],
+            languages: languages || ['English'],
+            description: description || null
+          }
+        ])
+        .select()
+        .single();
+
+      if (expertError) {
+        logger.error('Expert creation error:', expertError);
+        await supabase.from('users').delete().eq('_id', user._id);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create expert profile'
         });
       }
     }

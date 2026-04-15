@@ -2,6 +2,8 @@ import FarmerNavbar from './FarmerNavbar'
 import CustomerNavbar from './CustomerNavbar'
 import AdminNavbar from './AdminNavbar'
 import HomeNavbar from './HomeNavbar'
+import DealerNavbar from './DealerNavbar'
+import ExpertNavbar from './ExpertNavbar'
 import { triggerSidebarToggle } from './Layout'
 
 const PUBLIC_ROUTES = ['/', '/about', '/services', '/contact', '/products', '/product/:id']
@@ -39,6 +41,14 @@ const Navbar = ({ location, user, toggleSidebar }) => {
 
   if (user?.role === 'admin') {
     return <AdminNavbar />
+  }
+
+  if (user?.role === 'dealer') {
+    return <DealerNavbar toggleSidebar={toggleSidebar} showSidebarToggle />
+  }
+
+  if (user?.role === 'expert') {
+    return <ExpertNavbar toggleSidebar={toggleSidebar} showSidebarToggle />
   }
 
   if (user?.role === 'consumer') {

@@ -1,0 +1,150 @@
+.voice-call-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.call-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.call-header h1 {
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+}
+
+.call-status {
+  font-size: 1.1rem;
+}
+
+.status {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status.connecting {
+  color: #f59e0b;
+}
+
+.status.connected {
+  color: #10b981;
+}
+
+.status.ended {
+  color: #ef4444;
+}
+
+.call-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.call-info {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.expert-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.5rem;
+}
+
+.expert-info p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.call-duration {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.call-controls {
+  text-align: center;
+}
+
+.audio-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f0fdf4;
+  border-radius: 8px;
+}
+
+.pulse-animation {
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.control-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.end-call-btn {
+  padding: 1rem 2rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.end-call-btn:hover {
+  background: #dc2626;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error h2 {
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.error button {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.error button:hover {
+  background: #2563eb;
+}

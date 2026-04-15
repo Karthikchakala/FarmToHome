@@ -1,0 +1,160 @@
+.video-call-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.call-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.call-header h1 {
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+}
+
+.call-status {
+  font-size: 1.1rem;
+}
+
+.status {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status.connecting {
+  color: #f59e0b;
+}
+
+.status.connected {
+  color: #10b981;
+}
+
+.status.ended {
+  color: #ef4444;
+}
+
+.call-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  aspect-ratio: 16/9;
+}
+
+.video-container {
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.local-video {
+  border: 2px solid #3b82f6;
+}
+
+.remote-video {
+  border: 2px solid #10b981;
+}
+
+.call-controls {
+  text-align: center;
+}
+
+.call-duration {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.control-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.end-call-btn {
+  padding: 1rem 2rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.end-call-btn:hover {
+  background: #dc2626;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error h2 {
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.error button {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.error button:hover {
+  background: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .video-call-container {
+    padding: 1rem;
+  }
+  
+  .video-grid {
+    grid-template-columns: 1fr;
+    aspect-ratio: 4/3;
+  }
+  
+  .local-video {
+    order: 2;
+  }
+  
+  .remote-video {
+    order: 1;
+  }
+}

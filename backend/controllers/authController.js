@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { query, transaction } = require('../db');
+const supabase = require('../config/supabaseClient');
 const { generateToken } = require('../middlewares/auth');
 const logger = require('../config/logger');
 
@@ -17,10 +17,10 @@ const register = async (req, res, next) => {
     }
 
     // Validate role
-    if (!['farmer', 'consumer', 'admin'].includes(role)) {
+    if (!['farmer', 'consumer', 'admin', 'dealer', 'expert'].includes(role)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid role. Must be farmer, consumer, or admin'
+        error: 'Invalid role. Must be farmer, consumer, admin, dealer, or expert'
       });
     }
 
@@ -28,57 +28,168 @@ const register = async (req, res, next) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Use transaction for user creation
-    const result = await transaction(async (client) => {
-      // Insert user
-      const userResult = await client.query(
-        `INSERT INTO users (name, email, phone, passwordhash, role) 
-         VALUES ($1, $2, $3, $4, $5) 
-         RETURNING _id, name, email, role, isverified, isbanned, createdat`,
-        [name, email, phone, passwordHash, role]
-      );
+    // Insert user using Supabase
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .insert([{
+        name,
+        email,
+        phone,
+        passwordhash: passwordHash,
+        role
+      }])
+      .select()
+      .single();
 
-      const user = userResult.rows[0];
-
-      // Insert role-specific data
-      if (role === 'farmer') {
-        const { farmName, description, farmingType, location, deliveryRadius } = roleSpecificData;
-        
-        if (!farmName) {
-          throw new Error('Farm name is required for farmer registration');
-        }
-
-        await client.query(
-          `INSERT INTO farmers (userid, farmname, description, farmingtype, location, deliveryradius, verificationstatus, isapproved) 
-           VALUES ($1, $2, $3, $4, ST_GeographyFromText('SRID=4326;POINT(' || $5 || ' ' || $6 || ')'), $7, $8, $9)`,
-          [user._id, farmName, description || null, farmingType || 'mixed', 
-           location?.longitude || 0, location?.latitude || 0, deliveryRadius || 5000, 'pending', false]
-        );
-      } else if (role === 'consumer') {
-        const { defaultAddress } = roleSpecificData;
-        
-        if (defaultAddress) {
-          await client.query(
-            `INSERT INTO consumers (userid, defaultaddressstreet, defaultaddresscity, 
-             defaultaddressstate, defaultaddresspostalcode, defaultaddresslocation) 
-             VALUES ($1, $2, $3, $4, $5, ST_GeographyFromText('SRID=4326;POINT(' || $6 || ' ' || $7 || ')'))`,
-            [user._id, defaultAddress.street, defaultAddress.city, defaultAddress.state,
-             defaultAddress.postalCode, defaultAddress.location?.longitude || 0, 
-             defaultAddress.location?.latitude || 0]
-          );
-        } else {
-          await client.query(
-            'INSERT INTO consumers (userid) VALUES ($1)',
-            [user._id]
-          );
+    if (userError) {
+      // Handle duplicate key errors
+      if (userError.code === '23505') {
+        const constraint = userError.constraint;
+        if (constraint.includes('email')) {
+          return res.status(409).json({
+            success: false,
+            error: 'Email already exists'
+          });
+        } else if (constraint.includes('phone')) {
+          return res.status(409).json({
+            success: false,
+            error: 'Phone number already exists'
+          });
         }
       }
+      throw userError;
+    }
 
-      return user;
-    });
+    const user = userData;
+
+    // Insert role-specific data using Supabase
+    if (role === 'farmer') {
+      const { farmName, description, farmingType, location, deliveryRadius } = roleSpecificData;
+      
+      if (!farmName) {
+        throw new Error('Farm name is required for farmer registration');
+      }
+
+      const { error: farmerError } = await supabase
+        .from('farmers')
+        .insert([{
+          userid: user._id,
+          farmname: farmName,
+          description: description || null,
+          farmingtype: farmingType || 'mixed',
+          location: location || null,
+          deliveryradius: deliveryRadius || 5000,
+          verificationstatus: 'pending',
+          isapproved: false
+        }]);
+
+      if (farmerError) throw farmerError;
+    } else if (role === 'consumer') {
+      const { defaultAddress } = roleSpecificData;
+      
+      if (defaultAddress) {
+        const { error: consumerError } = await supabase
+          .from('consumers')
+          .insert([{
+            userid: user._id,
+            defaultaddressstreet: defaultAddress.street || null,
+            defaultaddresscity: defaultAddress.city || null,
+            defaultaddressstate: defaultAddress.state || null,
+            defaultaddresspostalcode: defaultAddress.postalCode || null,
+            defaultaddresslocation: defaultAddress.location || null
+          }]);
+
+        if (consumerError) throw consumerError;
+      } else {
+        const { error: consumerError } = await supabase
+          .from('consumers')
+          .insert([{
+            userid: user._id
+          }]);
+
+        if (consumerError) throw consumerError;
+      }
+    } else if (role === 'dealer') {
+      const { 
+        businessName, 
+        businessType, 
+        licenseNumber, 
+        businessAddress, 
+        businessCity, 
+        businessState, 
+        businessPostalCode, 
+        businessPhone, 
+        businessEmail,
+        description,
+        minimumOrderQuantity,
+        serviceDeliveryRadius,
+        preferredCrops,
+        paymentTerms
+      } = roleSpecificData;
+
+      if (!businessName || !licenseNumber || !businessAddress || !businessCity || 
+          !businessState || !businessPostalCode || !businessPhone || !businessEmail) {
+        throw new Error('All business information is required for dealer registration');
+      }
+
+      const { error: dealerError } = await supabase
+        .from('dealers')
+        .insert([{
+          userid: user._id,
+          businessname: businessName,
+          businesstype: businessType || 'wholesale',
+          licensenumber: licenseNumber,
+          businessaddress: businessAddress,
+          businesscity: businessCity,
+          businessstate: businessState,
+          businesspostalcode: businessPostalCode,
+          businessphone: businessPhone,
+          businessemail: businessEmail,
+          description: description || null,
+          minimumorderquantity: minimumOrderQuantity || 1,
+          servicedeliveryradius: serviceDeliveryRadius || 50,
+          preferredcrops: preferredCrops || [],
+          paymentterms: paymentTerms || 'COD'
+        }]);
+
+      if (dealerError) throw dealerError;
+    } else if (role === 'expert') {
+      const { 
+        specialization, 
+        expertiseLevel, 
+        qualifications, 
+        experienceYears, 
+        consultationFee, 
+        availabilityStatus,
+        consultationHours,
+        languages,
+        description
+      } = roleSpecificData;
+
+      if (!specialization || !expertiseLevel) {
+        throw new Error('Specialization and expertise level are required for expert registration');
+      }
+
+      const { error: expertError } = await supabase
+        .from('experts')
+        .insert([{
+          userid: user._id,
+          specialization: specialization,
+          expertiselevel: expertiseLevel,
+          qualifications: qualifications || [],
+          experienceyears: experienceYears || 0,
+          consultationfee: consultationFee || 0.00,
+          availabilitystatus: availabilityStatus || 'available',
+          consultationhours: consultationHours || [],
+          languages: languages || ['English'],
+          description: description || null
+        }]);
+
+      if (expertError) throw expertError;
+    }
 
     // Generate JWT token
-    const token = generateToken({ userId: result._id, role: result.role });
+    const token = generateToken({ userId: user._id, role: user.role });
 
     logger.info(`New user registered: ${email} with role: ${role}`);
 
@@ -93,12 +204,12 @@ const register = async (req, res, next) => {
       message: message,
       data: {
         user: {
-          id: result._id,
-          name: result.name,
-          email: result.email,
-          role: result.role,
-          isVerified: result.isverified,
-          isBanned: result.isbanned,
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isverified,
+          isBanned: user.isbanned,
           needsApproval: role === 'farmer'
         },
         token
@@ -141,21 +252,21 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Get user from database
-    const result = await query(
-      `SELECT _id, name, email, phone, passwordhash, role, isverified, isbanned, lastloginat 
-       FROM users WHERE email = $1`,
-      [email]
-    );
+    // Get user from Supabase
+    const { data: users, error: userError } = await supabase
+      .from('users')
+      .select('_id, name, email, phone, passwordhash, role, isverified, isbanned, lastloginat')
+      .eq('email', email)
+      .single();
 
-    if (result.rows.length === 0) {
+    if (userError || !users) {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
       });
     }
 
-    const user = result.rows[0];
+    const user = users;
 
     // Check if user is banned
     if (user.isbanned) {
@@ -175,10 +286,10 @@ const login = async (req, res, next) => {
     }
 
     // Update last login
-    await query(
-      'UPDATE users SET lastloginat = CURRENT_TIMESTAMP WHERE _id = $1',
-      [user._id]
-    );
+    await supabase
+      .from('users')
+      .update({ lastloginat: new Date().toISOString() })
+      .eq('_id', user._id);
 
     // Generate JWT token
     const token = generateToken({ userId: user._id, role: user.role });
@@ -186,20 +297,40 @@ const login = async (req, res, next) => {
     // Get role-specific data
     let roleData = {};
     if (user.role === 'farmer') {
-      const farmerResult = await query(
-        'SELECT farmname, verificationstatus, ratingaverage FROM farmers WHERE userid = $1',
-        [user._id]
-      );
-      if (farmerResult.rows.length > 0) {
-        roleData = farmerResult.rows[0];
+      const { data: farmerData } = await supabase
+        .from('farmers')
+        .select('farmname, verificationstatus, ratingaverage')
+        .eq('userid', user._id)
+        .single();
+      if (farmerData) {
+        roleData = farmerData;
       }
     } else if (user.role === 'consumer') {
-      const consumerResult = await query(
-        'SELECT walletbalance, totalorders FROM consumers WHERE userid = $1',
-        [user._id]
-      );
-      if (consumerResult.rows.length > 0) {
-        roleData = consumerResult.rows[0];
+      const { data: consumerData } = await supabase
+        .from('consumers')
+        .select('walletbalance, totalorders')
+        .eq('userid', user._id)
+        .single();
+      if (consumerData) {
+        roleData = consumerData;
+      }
+    } else if (user.role === 'dealer') {
+      const { data: dealerData } = await supabase
+        .from('dealers')
+        .select('businessname, isverified, ratingaverage')
+        .eq('userid', user._id)
+        .single();
+      if (dealerData) {
+        roleData = dealerData;
+      }
+    } else if (user.role === 'expert') {
+      const { data: expertData } = await supabase
+        .from('experts')
+        .select('specialization, isverified, ratingaverage')
+        .eq('userid', user._id)
+        .single();
+      if (expertData) {
+        roleData = expertData;
       }
     }
 
@@ -234,43 +365,57 @@ const getProfile = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
-    // Get basic user info
-    const userResult = await query(
-      `SELECT _id, name, email, phone, role, isverified, isbanned, profileimageurl, 
-       lastloginat, createdat FROM users WHERE _id = $1`,
-      [userId]
-    );
+    // Get basic user info from Supabase
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('_id, name, email, phone, role, isverified, isbanned, profileimageurl, lastloginat, createdat')
+      .eq('_id', userId)
+      .single();
 
-    if (userResult.rows.length === 0) {
+    if (userError || !user) {
       return res.status(404).json({
         success: false,
         error: 'User not found'
       });
     }
 
-    const user = userResult.rows[0];
-
     // Get role-specific data
     let roleData = {};
     if (user.role === 'farmer') {
-      const farmerResult = await query(
-        `SELECT farmname, description, farmingtype, deliveryradius, verificationstatus,
-         ratingaverage, totalreviews, totalsales, commissionrate 
-         FROM farmers WHERE userid = $1`,
-        [userId]
-      );
-      if (farmerResult.rows.length > 0) {
-        roleData = farmerResult.rows[0];
+      const { data: farmerData } = await supabase
+        .from('farmers')
+        .select('farmname, description, farmingtype, deliveryradius, verificationstatus, ratingaverage, totalreviews, totalsales, commissionrate')
+        .eq('userid', userId)
+        .single();
+      if (farmerData) {
+        roleData = farmerData;
       }
     } else if (user.role === 'consumer') {
-      const consumerResult = await query(
-        `SELECT defaultaddressstreet, defaultaddresscity, defaultaddressstate,
-         defaultaddresspostalcode, walletbalance, totalorders 
-         FROM consumers WHERE userid = $1`,
-        [userId]
-      );
-      if (consumerResult.rows.length > 0) {
-        roleData = consumerResult.rows[0];
+      const { data: consumerData } = await supabase
+        .from('consumers')
+        .select('defaultaddressstreet, defaultaddresscity, defaultaddressstate, defaultaddresspostalcode, walletbalance, totalorders')
+        .eq('userid', userId)
+        .single();
+      if (consumerData) {
+        roleData = consumerData;
+      }
+    } else if (user.role === 'dealer') {
+      const { data: dealerData } = await supabase
+        .from('dealers')
+        .select('*')
+        .eq('userid', userId)
+        .single();
+      if (dealerData) {
+        roleData = dealerData;
+      }
+    } else if (user.role === 'expert') {
+      const { data: expertData } = await supabase
+        .from('experts')
+        .select('*')
+        .eq('userid', userId)
+        .single();
+      if (expertData) {
+        roleData = expertData;
       }
     }
 
@@ -296,105 +441,116 @@ const updateProfile = async (req, res, next) => {
     const userId = req.user._id;
     const { name, phone, profileImageUrl, ...roleSpecificData } = req.body;
 
-    // Use transaction for update
-    await transaction(async (client) => {
-      // Update basic user info
-      const updateFields = [];
-      const updateValues = [];
-      let paramCount = 1;
+    // Update basic user info using Supabase
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (phone) updateData.phone = phone;
+    if (profileImageUrl !== undefined) updateData.profileimageurl = profileImageUrl;
 
-      if (name) {
-        updateFields.push(`name = $${paramCount++}`);
-        updateValues.push(name);
+    if (Object.keys(updateData).length > 0) {
+      const { error: updateError } = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('_id', userId);
+
+      if (updateError) throw updateError;
+    }
+
+    // Update role-specific data
+    if (req.user.role === 'farmer') {
+      const { farmName, description, farmingType, deliveryRadius } = roleSpecificData;
+      const farmerUpdateData = {};
+      if (farmName) farmerUpdateData.farmname = farmName;
+      if (description !== undefined) farmerUpdateData.description = description;
+      if (farmingType) farmerUpdateData.farmingtype = farmingType;
+      if (deliveryRadius !== undefined) farmerUpdateData.deliveryradius = deliveryRadius;
+
+      if (Object.keys(farmerUpdateData).length > 0) {
+        const { error: farmerError } = await supabase
+          .from('farmers')
+          .update(farmerUpdateData)
+          .eq('userid', userId);
+
+        if (farmerError) throw farmerError;
       }
-      if (phone) {
-        updateFields.push(`phone = $${paramCount++}`);
-        updateValues.push(phone);
-      }
-      if (profileImageUrl !== undefined) {
-        updateFields.push(`profileimageurl = $${paramCount++}`);
-        updateValues.push(profileImageUrl);
-      }
+    } else if (req.user.role === 'consumer') {
+      const { defaultAddress } = roleSpecificData;
+      
+      if (defaultAddress) {
+        const consumerUpdateData = {};
+        if (defaultAddress.street !== undefined) consumerUpdateData.defaultaddressstreet = defaultAddress.street;
+        if (defaultAddress.city !== undefined) consumerUpdateData.defaultaddresscity = defaultAddress.city;
+        if (defaultAddress.state !== undefined) consumerUpdateData.defaultaddressstate = defaultAddress.state;
+        if (defaultAddress.postalCode !== undefined) consumerUpdateData.defaultaddresspostalcode = defaultAddress.postalCode;
+        if (defaultAddress.location) consumerUpdateData.defaultaddresslocation = defaultAddress.location;
 
-      if (updateFields.length > 0) {
-        updateValues.push(userId);
-        await client.query(
-          `UPDATE users SET ${updateFields.join(', ')} WHERE _id = $${paramCount}`,
-          updateValues
-        );
-      }
+        if (Object.keys(consumerUpdateData).length > 0) {
+          const { error: consumerError } = await supabase
+            .from('consumers')
+            .update(consumerUpdateData)
+            .eq('userid', userId);
 
-      // Update role-specific data
-      if (req.user.role === 'farmer') {
-        const { farmName, description, farmingType, deliveryRadius } = roleSpecificData;
-        const farmerUpdateFields = [];
-        const farmerUpdateValues = [];
-        paramCount = 1;
-
-        if (farmName) {
-          farmerUpdateFields.push(`farmname = $${paramCount++}`);
-          farmerUpdateValues.push(farmName);
-        }
-        if (description !== undefined) {
-          farmerUpdateFields.push(`description = $${paramCount++}`);
-          farmerUpdateValues.push(description);
-        }
-        if (farmingType) {
-          farmerUpdateFields.push(`farmingtype = $${paramCount++}`);
-          farmerUpdateValues.push(farmingType);
-        }
-        if (deliveryRadius !== undefined) {
-          farmerUpdateFields.push(`deliveryradius = $${paramCount++}`);
-          farmerUpdateValues.push(deliveryRadius);
-        }
-
-        if (farmerUpdateFields.length > 0) {
-          farmerUpdateValues.push(userId);
-          await client.query(
-            `UPDATE farmers SET ${farmerUpdateFields.join(', ')} WHERE userid = $${paramCount}`,
-            farmerUpdateValues
-          );
-        }
-      } else if (req.user.role === 'consumer') {
-        const { defaultAddress } = roleSpecificData;
-        
-        if (defaultAddress) {
-          const consumerUpdateFields = [];
-          const consumerUpdateValues = [];
-          let paramCount = 1;
-
-          if (defaultAddress.street !== undefined) {
-            consumerUpdateFields.push(`defaultaddressstreet = $${paramCount++}`);
-            consumerUpdateValues.push(defaultAddress.street);
-          }
-          if (defaultAddress.city !== undefined) {
-            consumerUpdateFields.push(`defaultaddresscity = $${paramCount++}`);
-            consumerUpdateValues.push(defaultAddress.city);
-          }
-          if (defaultAddress.state !== undefined) {
-            consumerUpdateFields.push(`defaultaddressstate = $${paramCount++}`);
-            consumerUpdateValues.push(defaultAddress.state);
-          }
-          if (defaultAddress.postalCode !== undefined) {
-            consumerUpdateFields.push(`defaultaddresspostalcode = $${paramCount++}`);
-            consumerUpdateValues.push(defaultAddress.postalCode);
-          }
-          if (defaultAddress.location) {
-            consumerUpdateFields.push(`defaultaddresslocation = ST_Point($${paramCount}, $${paramCount + 1}, 4326)`);
-            consumerUpdateValues.push(defaultAddress.location.longitude, defaultAddress.location.latitude);
-            paramCount += 2;
-          }
-
-          if (consumerUpdateFields.length > 0) {
-            consumerUpdateValues.push(userId);
-            await client.query(
-              `UPDATE consumers SET ${consumerUpdateFields.join(', ')} WHERE userid = $${paramCount}`,
-              consumerUpdateValues
-            );
-          }
+          if (consumerError) throw consumerError;
         }
       }
-    });
+    } else if (req.user.role === 'dealer') {
+      const { 
+        businessName, businessType, licenseNumber, businessAddress, 
+        businessCity, businessState, businessPostalCode, businessPhone, 
+        businessEmail, description, minimumOrderQuantity, serviceDeliveryRadius,
+        preferredCrops, paymentTerms 
+      } = roleSpecificData;
+
+      const dealerUpdateData = {};
+      if (businessName) dealerUpdateData.businessname = businessName;
+      if (businessType) dealerUpdateData.businesstype = businessType;
+      if (licenseNumber) dealerUpdateData.licensenumber = licenseNumber;
+      if (businessAddress) dealerUpdateData.businessaddress = businessAddress;
+      if (businessCity) dealerUpdateData.businesscity = businessCity;
+      if (businessState) dealerUpdateData.businessstate = businessState;
+      if (businessPostalCode) dealerUpdateData.businesspostalcode = businessPostalCode;
+      if (businessPhone) dealerUpdateData.businessphone = businessPhone;
+      if (businessEmail) dealerUpdateData.businessemail = businessEmail;
+      if (description !== undefined) dealerUpdateData.description = description;
+      if (minimumOrderQuantity !== undefined) dealerUpdateData.minimumorderquantity = minimumOrderQuantity;
+      if (serviceDeliveryRadius !== undefined) dealerUpdateData.servicedeliveryradius = serviceDeliveryRadius;
+      if (preferredCrops !== undefined) dealerUpdateData.preferredcrops = preferredCrops;
+      if (paymentTerms) dealerUpdateData.paymentterms = paymentTerms;
+
+      if (Object.keys(dealerUpdateData).length > 0) {
+        const { error: dealerError } = await supabase
+          .from('dealers')
+          .update(dealerUpdateData)
+          .eq('userid', userId);
+
+        if (dealerError) throw dealerError;
+      }
+    } else if (req.user.role === 'expert') {
+      const { 
+        specialization, expertiseLevel, qualifications, experienceYears, 
+        consultationFee, availabilityStatus, consultationHours, languages, description 
+      } = roleSpecificData;
+
+      const expertUpdateData = {};
+      if (specialization) expertUpdateData.specialization = specialization;
+      if (expertiseLevel) expertUpdateData.expertiselevel = expertiseLevel;
+      if (qualifications !== undefined) expertUpdateData.qualifications = qualifications;
+      if (experienceYears !== undefined) expertUpdateData.experienceyears = experienceYears;
+      if (consultationFee !== undefined) expertUpdateData.consultationfee = consultationFee;
+      if (availabilityStatus) expertUpdateData.availabilitystatus = availabilityStatus;
+      if (consultationHours !== undefined) expertUpdateData.consultationhours = consultationHours;
+      if (languages !== undefined) expertUpdateData.languages = languages;
+      if (description !== undefined) expertUpdateData.description = description;
+
+      if (Object.keys(expertUpdateData).length > 0) {
+        const { error: expertError } = await supabase
+          .from('experts')
+          .update(expertUpdateData)
+          .eq('userid', userId);
+
+        if (expertError) throw expertError;
+      }
+    }
 
     logger.info(`Profile updated for user: ${req.user.email}`);
 
