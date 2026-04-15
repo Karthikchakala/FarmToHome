@@ -1000,6 +1000,113 @@ const getFarmerAnalytics = asyncHandler(async (req, res) => {
   }
 });
 
+// Get farmer bulk orders
+const getFarmerBulkOrders = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { status, page = 1, limit = 10 } = req.query;
+
+  // Get farmer record
+  const { data: farmer, error: farmerError } = await supabase
+    .from('farmers')
+    .select('_id')
+    .eq('userid', userId)
+    .single();
+
+  if (farmerError || !farmer) {
+    throw new NotFoundError('Farmer profile not found');
+  }
+
+  const farmerId = farmer._id;
+
+  // Get bulk orders for this farmer
+  let query = supabase
+    .from('bulk_orders')
+    .select(`
+      *,
+      dealers (
+        users (
+          name
+        )
+      ),
+      bulk_order_items (
+        productname,
+        quantity,
+        unit,
+        unitprice,
+        totalprice
+      )
+    `)
+    .eq('farmerid', farmerId)
+    .order('createdat', { ascending: false });
+
+  // Apply status filter if provided
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data: orders, error } = await query;
+
+  if (error) {
+    logger.error('Error fetching farmer bulk orders:', error);
+    throw new Error('Failed to fetch bulk orders');
+  }
+
+  return responseHelper.success(res, orders || [], 'Bulk orders retrieved successfully');
+});
+
+// Update bulk order status (accept/reject)
+const updateBulkOrderStatus = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { id: orderId } = req.params;
+  const { status } = req.body;
+
+  // Validate status
+  const validStatuses = ['pending', 'confirmed', 'rejected', 'cancelled', 'completed'];
+  if (!validStatuses.includes(status)) {
+    throw new ValidationError('Invalid status value');
+  }
+
+  // Get farmer record
+  const { data: farmer, error: farmerError } = await supabase
+    .from('farmers')
+    .select('_id')
+    .eq('userid', userId)
+    .single();
+
+  if (farmerError || !farmer) {
+    throw new NotFoundError('Farmer profile not found');
+  }
+
+  const farmerId = farmer._id;
+
+  // Check if order belongs to this farmer
+  const { data: order, error: orderError } = await supabase
+    .from('bulk_orders')
+    .select('*')
+    .eq('_id', orderId)
+    .eq('farmerid', farmerId)
+    .single();
+
+  if (orderError || !order) {
+    throw new NotFoundError('Bulk order not found or access denied');
+  }
+
+  // Update order status
+  const { data: updatedOrder, error: updateError } = await supabase
+    .from('bulk_orders')
+    .update({ status })
+    .eq('_id', orderId)
+    .select()
+    .single();
+
+  if (updateError) {
+    logger.error('Error updating bulk order status:', updateError);
+    throw new Error('Failed to update order status');
+  }
+
+  return responseHelper.success(res, updatedOrder, 'Order status updated successfully');
+});
+
 module.exports = {
   addProduct,
   updateProduct,
@@ -1009,5 +1116,7 @@ module.exports = {
   getLowStockAlerts,
   getStockStatistics,
   checkTableSchema,
-  getFarmerAnalytics
+  getFarmerAnalytics,
+  getFarmerBulkOrders,
+  updateBulkOrderStatus
 };

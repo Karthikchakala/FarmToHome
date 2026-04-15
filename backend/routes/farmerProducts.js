@@ -11,7 +11,9 @@ const {
   getLowStockAlerts,
   getStockStatistics,
   checkTableSchema,
-  getFarmerAnalytics
+  getFarmerAnalytics,
+  getFarmerBulkOrders,
+  updateBulkOrderStatus
 } = require('../controllers/farmerProductController');
 
 // Add product (Farmer only)
@@ -37,6 +39,12 @@ router.get('/products/statistics', authenticate, authorize('farmer'), getStockSt
 
 // Get farmer analytics
 router.get('/analytics', authenticate, authorize('farmer'), getFarmerAnalytics);
+
+// Get farmer bulk orders
+router.get('/bulk-orders', authenticate, authorize('farmer'), getFarmerBulkOrders);
+
+// Update bulk order status
+router.put('/bulk-orders/:id/status', authenticate, authorize('farmer'), validateId, updateBulkOrderStatus);
 
 // Check table schema (for debugging)
 router.get('/schema', checkTableSchema);

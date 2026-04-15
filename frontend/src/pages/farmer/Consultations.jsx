@@ -13,12 +13,11 @@ const FarmerConsultations = () => {
   const [selectedExpertId, setSelectedExpertId] = useState('');
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [bookingData, setBookingData] = useState({
+    selectedExpertId: '',
+    consultationType: 'chat',
     topic: '',
     message: '',
-    consultationType: 'chat',
-    scheduledDate: '',
-    scheduledTime: '',
-    durationMinutes: 30
+    durationMinutes: '30'
   });
   const [bookingLoading, setBookingLoading] = useState(false);
 
@@ -100,45 +99,43 @@ const FarmerConsultations = () => {
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
+    
     if (!selectedExpertId) {
       alert('Please select an expert');
       return;
     }
 
-    setBookingLoading(true);
     try {
+      setBookingLoading(true);
+      
       const consultationData = {
-        expertId: selectedExpertId,
-        consultationType: bookingData.consultationType,
+        expertid: selectedExpertId,
+        consultationtype: bookingData.consultationType,
         title: bookingData.topic,
         description: bookingData.message,
-        consultationMode: bookingData.consultationType === 'chat' ? 'chat' : 'video',
-        durationMinutes: bookingData.durationMinutes
+        status: 'pending',
+        durationminutes: bookingData.durationMinutes
       };
 
-      if (bookingData.consultationType !== 'chat' && bookingData.scheduledDate && bookingData.scheduledTime) {
-        consultationData.scheduledDate = `${bookingData.scheduledDate}T${bookingData.scheduledTime}:00`;
-      }
-
       const response = await expertAPI.createConsultation(consultationData);
-
+      
       if (response.data.success) {
-        alert('Appointment booked successfully!');
+        alert('Consultation booked successfully!');
+        setShowBookingForm(false);
         setBookingData({
+          selectedExpertId: '',
+          consultationType: 'chat',
           topic: '',
           message: '',
-          consultationType: 'chat',
-          scheduledDate: '',
-          scheduledTime: '',
-          durationMinutes: 30
+          durationMinutes: '30'
         });
-        setShowBookingForm(false);
         fetchConsultations();
       } else {
-        alert(response.data.message || 'Failed to book appointment');
+        alert('Failed to book consultation: ' + (response.data.error || 'Unknown error'));
       }
-    } catch (error) {
-      alert(error.response?.data?.message || 'Failed to book appointment');
+    } catch (err) {
+      console.error('Error booking consultation:', err);
+      alert('Failed to book consultation');
     } finally {
       setBookingLoading(false);
     }
@@ -339,34 +336,7 @@ const FarmerConsultations = () => {
 
               {bookingData.consultationType === 'video_call' && (
                 <div className="call-scheduling">
-                  <h3>Video Call Scheduling</h3>
-                  <div className="form-row">
-                    <label>
-                      Preferred Date
-                      <input
-                        type="date"
-                        name="scheduledDate"
-                        value={bookingData.scheduledDate}
-                        onChange={handleBookingChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                      />
-                    </label>
-                  </div>
-
-                  <div className="form-row">
-                    <label>
-                      Preferred Time
-                      <input
-                        type="time"
-                        name="scheduledTime"
-                        value={bookingData.scheduledTime}
-                        onChange={handleBookingChange}
-                        required
-                      />
-                    </label>
-                  </div>
-
+                  <h3>Video Call</h3>
                   <div className="form-row">
                     <label>
                       Call Duration
@@ -388,34 +358,7 @@ const FarmerConsultations = () => {
 
               {bookingData.consultationType === 'voice_call' && (
                 <div className="call-scheduling">
-                  <h3>Voice Call Scheduling</h3>
-                  <div className="form-row">
-                    <label>
-                      Preferred Date
-                      <input
-                        type="date"
-                        name="scheduledDate"
-                        value={bookingData.scheduledDate}
-                        onChange={handleBookingChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                      />
-                    </label>
-                  </div>
-
-                  <div className="form-row">
-                    <label>
-                      Preferred Time
-                      <input
-                        type="time"
-                        name="scheduledTime"
-                        value={bookingData.scheduledTime}
-                        onChange={handleBookingChange}
-                        required
-                      />
-                    </label>
-                  </div>
-
+                  <h3>Voice Call</h3>
                   <div className="form-row">
                     <label>
                       Call Duration
@@ -569,7 +512,7 @@ const FarmerConsultations = () => {
                   {consultation.status === 'confirmed' && (
                     <>
                       <Link 
-                        to={`/expert/chat/${consultation._id}`} 
+                        to={`/farmer/chat/${consultation._id}`} 
                         className="start-chat-button"
                       >
                         Start Chat
@@ -586,7 +529,7 @@ const FarmerConsultations = () => {
                   {consultation.status === 'in_progress' && (
                     <>
                       <Link 
-                        to={`/expert/chat/${consultation._id}`} 
+                        to={`/farmer/chat/${consultation._id}`} 
                         className="continue-chat-button"
                       >
                         Continue Chat

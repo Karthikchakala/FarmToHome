@@ -64,10 +64,14 @@ import DealerMessages from './pages/dealer/Messages'
 import DealerProfile from './pages/dealer/Profile'
 import ExpertDashboard from './pages/expert/Dashboard'
 import ExpertChat from './pages/expert/Chat'
+import ExpertChatDetail from './pages/expert/ChatDetail'
 import ExpertConsultations from './pages/expert/Consultations'
+import ExpertProfile from './pages/expert/Profile'
 import VoiceCall from './pages/expert/VoiceCall'
 import VideoCall from './pages/expert/VideoCall'
 import FarmerConsultations from './pages/farmer/Consultations'
+import FarmerChat from './pages/farmer/Chat'
+import FarmerBulkOrders from './pages/farmer/BulkOrders'
 import CropWiki from './pages/farmer/CropWiki'
 import CropWikiDetail from './pages/farmer/CropWikiDetail'
 import FarmingPractices from './pages/farmer/FarmingPractices'
@@ -199,6 +203,8 @@ function AppContent({ toggleSidebar, location }) {
               <Route path="/farmer/field-management" element={<FieldManagement />} />
               <Route path="/farmer/talk-to-experts" element={<TalkToExperts />} />
               <Route path="/farmer/consultations" element={<FarmerConsultations />} />
+              <Route path="/farmer/chat/:consultationId" element={<FarmerChat />} />
+              <Route path="/farmer/bulk-orders" element={<FarmerBulkOrders />} />
             </>
           )}
           
@@ -211,6 +217,7 @@ function AppContent({ toggleSidebar, location }) {
               <Route path="/dealer/dashboard" element={<DealerDashboard />} />
               <Route path="/dealer/farmers" element={<DealerFarmers />} />
               <Route path="/dealer/bulk-orders" element={<DealerBulkOrders />} />
+              <Route path="/dealer/bulk-orders/create" element={<DealerBulkOrders />} />
               <Route path="/dealer/analytics" element={<DealerAnalytics />} />
               <Route path="/dealer/messages" element={<DealerMessages />} />
               <Route path="/dealer/profile" element={<DealerProfile />} />
@@ -223,10 +230,10 @@ function AppContent({ toggleSidebar, location }) {
               <Route path="/expert/dashboard" element={<ExpertDashboard />} />
               <Route path="/expert/consultations" element={<ExpertConsultations />} />
               <Route path="/expert/chat" element={<ExpertChat />} />
-              <Route path="/expert/chat/:consultationId" element={<ExpertChat />} />
+              <Route path="/expert/chat/:consultationId" element={<ExpertChatDetail />} />
               <Route path="/expert/voice-call/:consultationId" element={<VoiceCall />} />
               <Route path="/expert/video-call/:consultationId" element={<VideoCall />} />
-              <Route path="/expert/profile" element={<ExpertDashboard />} />
+              <Route path="/expert/profile" element={<ExpertProfile />} />
             </>
           )}
           

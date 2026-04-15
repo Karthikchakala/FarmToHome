@@ -88,6 +88,9 @@ const UserManagement = () => {
         if (farmersResponse.data.success) {
           setFarmers(farmersResponse.data.data || [])
         }
+        // Close edit modal to prevent accidental save button click
+        setShowEditModal(false)
+        setSelectedUser(null)
         alert('Farmer rejected successfully!')
       } else {
         alert('Failed to reject farmer: ' + response.data.message)
@@ -527,13 +530,19 @@ const UserManagement = () => {
                   <div className="approval-actions">
                     <button 
                       className="btn btn-success" 
-                      onClick={() => handleApproveFarmer(selectedUser._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleApproveFarmer(selectedUser._id);
+                      }}
                     >
                       ✅ Approve Farmer
                     </button>
                     <button 
                       className="btn btn-danger" 
-                      onClick={() => handleRejectFarmer(selectedUser._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRejectFarmer(selectedUser._id);
+                      }}
                     >
                       ❌ Reject Farmer
                     </button>

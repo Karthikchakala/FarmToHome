@@ -95,6 +95,7 @@ const FarmerNavbar = ({ showSidebarToggle = true, toggleSidebar }) => {
               <div className="dropdown-menu">
                 <Link to="/farmer/orders" className={`dropdown-item ${isActive('/farmer/orders') ? 'active' : ''}`}>Customer Orders</Link>
                 <Link to="/farmer/orders/pending" className={`dropdown-item ${isActive('/farmer/orders/pending') ? 'active' : ''}`}>Pending Orders</Link>
+                <Link to="/farmer/bulk-orders" className={`dropdown-item ${isActive('/farmer/bulk-orders') ? 'active' : ''}`}>Bulk Orders</Link>
               </div>
             )}
           </div>

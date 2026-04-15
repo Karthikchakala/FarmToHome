@@ -198,12 +198,14 @@ const ExpertConsultations = () => {
                 </div>
 
                 <div className="consultation-actions">
-                  <Link 
-                    to={`/expert/chat/${consultation._id}`} 
-                    className="chat-button"
-                  >
-                    Open Chat
-                  </Link>
+                  {consultation.status !== 'cancelled' && consultation.status !== 'rejected' && consultation.status !== 'completed' && (
+                    <Link 
+                      to={`/expert/chat/${consultation._id}`} 
+                      className="chat-button"
+                    >
+                      Open Chat
+                    </Link>
+                  )}
                   
                   {consultation.status === 'pending' && (
                     <>

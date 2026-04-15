@@ -68,6 +68,14 @@ export const farmerAPI = {
   // Get farmer analytics
   getAnalytics: (timeRange = '30days') => {
     return api.get('/farmer/analytics', { params: { timeRange } })
+  },
+
+  // Bulk orders from dealers
+  getFarmerBulkOrders: (params = {}) => {
+    return api.get('/farmer/bulk-orders', { params })
+  },
+  updateBulkOrderStatus: (orderId, statusData) => {
+    return api.put(`/farmer/bulk-orders/${orderId}/status`, statusData)
   }
 }
 

@@ -295,10 +295,9 @@ const createBulkOrder = asyncHandler(async (req, res) => {
     throw new Error('Failed to create bulk order');
   }
 
-  // Create bulk order items
+  // Create bulk order items (without product references for dealer business model)
   const orderItems = items.map(item => ({
     bulkorderid: bulkOrder._id,
-    productid: item.productId,
     productname: item.productName,
     quantity: item.quantity,
     unit: item.unit,
