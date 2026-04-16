@@ -1,55 +1,70 @@
-Farm to Table
+# Farm to Table
 
-A hyperlocal agri-commerce platform: React + Vite frontend, Node.js + Express backend, and PostgreSQL (Supabase).
-⸻
-Table of contents
+A hyperlocal agri-commerce platform: **React + Vite** frontend, **Node.js + Express** backend, and **PostgreSQL** (Supabase).
 
-- Features
-- Tech stack
-- Project structure
-- Getting started
-- API endpoints
-- Database
-- Security
-- Testing
-- Deployment
-- Contributing
-- License
-- Support
-- Future enhancements
-⸻
-Features
-Area	What you get
-Marketplace	Connect local farmers directly with consumers
-Products	Certified organic listings
-Delivery	Fresh produce within 24 hours
-Stories	Farmer profiles behind the food
-Inventory	Live stock updates from farms
-Payments	Multiple options with secure processing
-UI	Mobile-first, responsive layout
-⸻
-Tech stack
+---
 
-Frontend
-Tool	Role
-React 18	Functional components and hooks
-Vite	Dev server and production build
-React Router	Client-side routing
-Axios	HTTP client for APIs
-Plain CSS	Styling (no Tailwind/Bootstrap)
+## Table of contents
 
-Backend
-Tool	Role
-Node.js + Express	API server
-PostgreSQL (Supabase)	Database
-Raw SQL	Queries (no ORM)
-JWT	Authentication
-bcrypt	Password hashing
-Winston	Application logging
-Morgan	HTTP request logging
-⸻
-Project structure
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [API endpoints](#api-endpoints)
+- [Database](#database)
+- [Security](#security)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+- [Future enhancements](#future-enhancements)
 
+---
+
+## Features
+
+| Area | What you get |
+|------|----------------|
+| Marketplace | Connect local farmers directly with consumers |
+| Products | Certified organic listings |
+| Delivery | Fresh produce within 24 hours |
+| Stories | Farmer profiles behind the food |
+| Inventory | Live stock updates from farms |
+| Payments | Multiple options with secure processing |
+| UI | Mobile-first, responsive layout |
+
+---
+
+## Tech stack
+
+### Frontend
+
+| Tool | Role |
+|------|------|
+| React 18 | Functional components and hooks |
+| Vite | Dev server and production build |
+| React Router | Client-side routing |
+| Axios | HTTP client for APIs |
+| Plain CSS | Styling (no Tailwind/Bootstrap) |
+
+### Backend
+
+| Tool | Role |
+|------|------|
+| Node.js + Express | API server |
+| PostgreSQL (Supabase) | Database |
+| Raw SQL | Queries (no ORM) |
+| JWT | Authentication |
+| bcrypt | Password hashing |
+| Winston | Application logging |
+| Morgan | HTTP request logging |
+
+---
+
+## Project structure
+
+```
 farm-to-table/
 ├── frontend/                 # React app
 │   ├── src/
@@ -68,30 +83,34 @@ farm-to-table/
 │   ├── db.js                 # DB connection
 │   └── package.json
 └── README.md
+```
 
-⸻
-Getting started
+---
 
-Prerequisites
+## Getting started
+
+### Prerequisites
 
 - Node.js 16+
 - npm or yarn
 - Supabase account (PostgreSQL)
 
-1. Database
+### 1. Database
 
-1. Create a project at Supabase.
-2. Run the SQL in backend/db.sql in the Supabase SQL Editor.
+1. Create a project at [Supabase](https://supabase.com).
+2. Run the SQL in `backend/db.sql` in the Supabase SQL Editor.
 3. Copy your connection details from project settings.
 
-2. Backend
+### 2. Backend
 
+```bash
 cd backend
 npm install
+```
 
+Create `backend/.env`:
 
-Create backend/.env:
-
+```env
 # Server
 PORT=5000
 NODE_ENV=development
@@ -111,63 +130,77 @@ LOG_LEVEL=info
 
 # CORS
 FRONTEND_URL=http://localhost:5173
+```
 
-
+```bash
 npm run dev
+```
 
+API base URL: `http://localhost:5000`
 
-API base URL: http://localhost:5000
+### 3. Frontend
 
-3. Frontend
-
+```bash
 cd frontend
 npm install
+```
 
+Create `frontend/.env`:
 
-Create frontend/.env:
-
+```env
 VITE_API_URL=http://localhost:5000/api
+```
 
-
+```bash
 npm run dev
+```
 
+App URL: `http://localhost:5173`
 
-App URL: http://localhost:5173
-⸻
-API endpoints
+---
 
-Authentication
-Method	Path	Description
-POST	/api/auth/register	Register a new user
-POST	/api/auth/login	Log in
-GET	/api/auth/profile	Get profile
-PUT	/api/auth/profile	Update profile
+## API endpoints
 
-Products
-Method	Path	Description
-GET	/api/products	List products (filters supported)
-GET	/api/products/featured	Featured products
-GET	/api/products/:id	Product by ID
-GET	/api/products/categories	All categories
-GET	/api/products/search	Search products
-⸻
-Database
+### Authentication
 
-Main tables: users, farmers, consumers, products, orders, reviews, payments.
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/auth/register` | Register a new user |
+| `POST` | `/api/auth/login` | Log in |
+| `GET` | `/api/auth/profile` | Get profile |
+| `PUT` | `/api/auth/profile` | Update profile |
 
-Full definitions: backend/db.sql.
+### Products
 
-Product experience
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/products` | List products (filters supported) |
+| `GET` | `/api/products/featured` | Featured products |
+| `GET` | `/api/products/:id` | Product by ID |
+| `GET` | `/api/products/categories` | All categories |
+| `GET` | `/api/products/search` | Search products |
 
-- Homepage: Hero + search, featured carousel, categories, farmer stories, testimonials, trust stats, newsletter.
-- Listing: Filters (category, price, search), sort, pagination, farmer info on cards, stock indicators.
-- Auth: Roles (Farmer / Consumer / Admin), JWT, profile updates, bcrypt-hashed passwords.
+---
 
-Responsive design
+## Database
+
+Main tables: `users`, `farmers`, `consumers`, `products`, `orders`, `reviews`, `payments`.
+
+Full definitions: **`backend/db.sql`**.
+
+### Product experience
+
+- **Homepage:** Hero + search, featured carousel, categories, farmer stories, testimonials, trust stats, newsletter.
+- **Listing:** Filters (category, price, search), sort, pagination, farmer info on cards, stock indicators.
+- **Auth:** Roles (Farmer / Consumer / Admin), JWT, profile updates, bcrypt-hashed passwords.
+
+### Responsive design
 
 Mobile-first layout, collapsible navigation, touch-friendly controls.
-⸻
-Security
+
+---
+
+## Security
 
 - JWT authentication (including refresh tokens where implemented)
 - bcrypt password hashing
@@ -175,52 +208,66 @@ Security
 - Input validation and sanitization
 - CORS restricted to the frontend origin
 - Parameterized SQL to reduce injection risk
-⸻
-Testing
 
+---
+
+## Testing
+
+```bash
 cd backend && npm test
+```
 
-
+```bash
 cd frontend && npm test
+```
 
+*(Frontend tests if/when configured.)*
 
-(Frontend tests if/when configured.)
-⸻
-Deployment
+---
 
-Backend (e.g. Render, Heroku)
+## Deployment
+
+### Backend (e.g. Render, Heroku)
 
 1. Set the same environment variables as production.
 2. Deploy the Node app.
-3. Point DB_* and JWT_SECRET at live values.
+3. Point `DB_*` and `JWT_SECRET` at live values.
 
-Frontend (e.g. Vercel, Netlify)
+### Frontend (e.g. Vercel, Netlify)
 
-1. npm run build
-2. Deploy the dist output.
-3. Set VITE_API_URL to your public API URL.
-⸻
-Contributing
+1. `npm run build`
+2. Deploy the `dist` output.
+3. Set `VITE_API_URL` to your public API URL.
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit and push
-4. Open a Pull Request
-⸻
-License
+---
 
-This project is licensed under the MIT License.
-⸻
-Support
+## Contributing
 
-- Email: support@farmtotable.com
-- Issues: GitHub Issues (update the URL to your repo)
-⸻
-Future enhancements
+1. Fork the repository  
+2. Create a feature branch  
+3. Commit and push  
+4. Open a Pull Request  
 
-- Real-time chat between farmers and consumers
-- Subscription delivery
-- React Native mobile app
-- Analytics dashboard
-- AI-powered recommendations
-- Multi-language support
+---
+
+## License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## Support
+
+- **Email:** support@farmtotable.com  
+- **Issues:** [GitHub Issues](https://github.com/your-username/farm-to-table/issues) *(update the URL to your repo)*  
+
+---
+
+## Future enhancements
+
+- Real-time chat between farmers and consumers  
+- Subscription delivery  
+- React Native mobile app  
+- Analytics dashboard  
+- AI-powered recommendations  
+- Multi-language support  
